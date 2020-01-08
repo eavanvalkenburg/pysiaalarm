@@ -1,5 +1,10 @@
 {
     "files.associations": {
         "*.yaml": "home-assistant"
-    }
+    },
+    "python.testing.pytestArgs": [],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.pythonPath": "C:\\Anaconda3\\python.exe"
 }

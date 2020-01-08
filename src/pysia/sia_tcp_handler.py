@@ -12,7 +12,7 @@ from Crypto.Cipher import AES
 import requests
 from requests_toolbelt.utils import dump
 import sseclient
-from .sia_client import SIAClient
+# from .sia_client import SIAClient
 
 _LOGGER = logging.getLogger(__name__)
 

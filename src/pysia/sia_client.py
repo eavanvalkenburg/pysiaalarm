@@ -6,6 +6,7 @@ This is a the main class for the SIA Client.
 from typing import Callable, Any
 from binascii import hexlify, unhexlify
 import socketserver
+import threading
 import argparse
 import sys
 import logging
