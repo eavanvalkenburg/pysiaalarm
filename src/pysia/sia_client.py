@@ -28,7 +28,7 @@ _LOGGER = logging.getLogger(__name__)
 class SIAClient(threading.Thread):
     """Class for SIA Clients."""
 
-    def __init__(self, host: str, port: int, account_id: str, key: str, function: Callable[[SIAEvent], Any]):
+    def __init__(self, host: str, port: int, account_id: str, key: str, function: Callable[[SIAEvent], None]):
         """Initialize the SIA Client."""
         threading.Thread.__init__(self)
         self._encrypted = False
