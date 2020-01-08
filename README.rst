@@ -3,13 +3,13 @@ pysia
 =====
 
 
-Add a short description here!
+Python package for creating a client that talks with SIA-based alarm systems.
 
 
 Description
 ===========
 
-A longer description of your project goes here...
+This package was created to talk with alarm systems using the SIA protocal, it was tested using a Ajax system, but should support all defined SIA codes.
 
 
 Note
