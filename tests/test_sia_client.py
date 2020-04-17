@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Class for tests of pysia."""
+"""Class for tests of pysiaalarm."""
 
 import pytest
 import socket
 import logging
 import random
-from pysia.sia_client import SIAClient
-from pysia.sia_event import SIAEvent
+from pysiaalarm.sia_client import SIAClient
+from pysiaalarm.sia_event import SIAEvent
 from .test_utils import create_test_items
 
 __author__ = "E.A. van Valkenburg"
@@ -51,7 +51,7 @@ def run_fake_client(host, port, message):
 
 
 class testSIA(object):
-    """Class for pysia tests."""
+    """Class for pysiaalarm tests."""
 
     @pytest.mark.parametrize(
         "line, account, type, code",

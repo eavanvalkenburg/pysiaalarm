@@ -8,7 +8,7 @@ import logging
 from Crypto import Random
 from Crypto.Cipher import AES
 
-from pysia import __version__
+from pysiaalarm import __version__
 from .sia_event import SIAEvent
 from .sia_tcp_handler import SIAServer, SIATCPHandler
 

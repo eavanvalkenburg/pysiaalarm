@@ -2,9 +2,9 @@
 import time
 import logging
 import json
-from pysia.sia_client import SIAClient
-from pysia.sia_event import SIAEvent
-from pysia import dist_name
+from pysiaalarm.sia_client import SIAClient
+from pysiaalarm.sia_event import SIAEvent
+from pysiaalarm import dist_name
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger(dist_name)

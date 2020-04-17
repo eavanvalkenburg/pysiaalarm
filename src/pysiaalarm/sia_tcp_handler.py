@@ -5,8 +5,8 @@ from datetime import datetime
 import time
 import socketserver
 import logging
-from pysia.sia_event import SIAEvent
-from pysia import sia_client
+from pysiaalarm.sia_event import SIAEvent
+from pysiaalarm import sia_client
 
 logging.getLogger(__name__)
 

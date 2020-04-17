@@ -1,8 +1,8 @@
 =====
-pysia
+pysiaalarm
 =====
 
-This is the documentation of **pysia**.
+This is the documentation of **pysiaalarm**.
 
 .. note::
 

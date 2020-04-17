@@ -3,7 +3,7 @@
 import re
 import logging
 
-from pysia import __version__
+from pysiaalarm import __version__
 
 __author__ = "E.A. van Valkenburg"
 __copyright__ = "E.A. van Valkenburg"

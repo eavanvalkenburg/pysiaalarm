@@ -1,4 +1,4 @@
-"""Utils for testing pysia."""
+"""Utils for testing pysiaalarm."""
 from binascii import hexlify
 from Crypto import Random
 from Crypto.Cipher import AES
