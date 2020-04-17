@@ -6,5 +6,9 @@
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
-    "python.pythonPath": "C:\\Anaconda3\\python.exe"
+    "python.pythonPath": "C:\\Anaconda3\\python.exe",
+    "python.linting.flake8Enabled": false,
+    "python.linting.enabled": true,
+    "python.linting.pydocstyleEnabled": false,
+    "python.linting.pylintEnabled": true
 }

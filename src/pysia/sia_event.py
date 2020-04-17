@@ -1,24 +1,23 @@
 # -*- coding: utf-8 -*-
-"""
-This is a class for SIA Events.
-"""
+"""This is a class for SIA Events."""
 import re
-import argparse
-import sys
 import logging
 
-# from pysia import __version__
+from pysia import __version__
 
 __author__ = "E.A. van Valkenburg"
 __copyright__ = "E.A. van Valkenburg"
 __license__ = "mit"
+__version__ = __version__
 
-_LOGGER = logging.getLogger(__name__)
+logging.getLogger(__name__)  # .addHandler(logging.NullHandler())
+
 
 class SIAEvent:
     """Class for SIA Events."""
 
     def __init__(self, line: str):
+        """Initialize a SIA event message."""
         # Example events: 98100078"*SIA-DCS"5994L0#AAA[5AB718E008C616BF16F6468033A11326B0F7546CAB230910BCA10E4DEBA42283C436E4F8EFF50931070DDE36D5BB5F0C
         # Example events: 66100078"*SIA-DCS"6001L0#AAA[6F7457178C6F0EAD99109E1DC5B75B26EDFBE1AA17361CD48E0B0E340081035F16AD2A25CD3D7F04105EC1EA65BF6341
         # Example events: 2E680078"*SIA-DCS"6002L0#AAA[FDDCDFEC950EDC3F7C438B75CD57B9C91E1CA632806882769097C60292F86BD13D43D3BA7E2F529560DC7B51E6581E58
@@ -31,7 +30,7 @@ class SIAEvent:
         # check if there is at least one match
         if not matches:
             raise ValueError("SIAEvent: Init: no matches found.")
-        # _LOGGER.debug(matches)
+        # logging.debug(matches)
         self.msg_crc, self.full_message, self.message_type, self.sequence, self.receiver, self.prefix, self.account, self.encrypted_content, self.content, self.zone, self.code, self.message, self.timestamp = matches[
             0
         ]
@@ -43,7 +42,7 @@ class SIAEvent:
             self._add_sia()
 
     def _add_sia(self):
-        """Finds the sia codes based on self.code."""
+        """Find the sia codes based on self.code."""
         full = self.all_codes.get(self.code, None)
         if full:
             self.type = full.get("type")
@@ -89,6 +88,7 @@ class SIAEvent:
         )
 
     def __str__(self):
+        """Return a string of a event."""
         return "CRC: {}, Calc CRC: {}, Full Message: {}, Message type: {}, Sequence: {}, Receiver: {}, Prefix: {}, Account: {}, Encrypted Content: {}, Content: {}, Zone: {}, Code: {}, Message: {}, Timestamp: {}, Code: {}, Type: {}, Description: {}, Concerns: {}".format(
             self.msg_crc,
             self.calc_crc,

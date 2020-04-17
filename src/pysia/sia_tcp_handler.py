@@ -1,20 +1,27 @@
 # -*- coding: utf-8 -*-
-"""
-This is the class for the actual TCP handler override of the handle method.
-"""
+"""This is the class for the actual TCP handler override of the handle method."""
 
+from datetime import datetime
+import time
 import socketserver
-import argparse
-import sys
 import logging
-from Crypto import Random
-from Crypto.Cipher import AES
-import requests
-from requests_toolbelt.utils import dump
-import sseclient
-# from .sia_client import SIAClient
+from pysia.sia_event import SIAEvent
+from pysia import sia_client
 
-_LOGGER = logging.getLogger(__name__)
+logging.getLogger(__name__)
+
+
+class SIAServer(socketserver.TCPServer):  # socketserver.ThreadingMixIn,
+    """Class for a SIA Server."""
+
+    daemon_threads = True
+    allow_reuse_address = True
+
+    def __init__(self, server_address, RequestHandlerClass):
+        """Initialize the server."""
+        self.request_handler = RequestHandlerClass
+        socketserver.TCPServer.__init__(self, server_address, self.request_handler)
+
 
 class SIATCPHandler(socketserver.BaseRequestHandler):
     """Class for the TCP Handler."""
@@ -22,41 +29,49 @@ class SIATCPHandler(socketserver.BaseRequestHandler):
     _received_data = "".encode()
 
     def handle_line(self, line: str):
-        """Method called for each line that comes in."""
-        _LOGGER.debug("TCP: Handle Line: Income raw string: %s", line)
-        self.SIAClient = SIAClient
+        """Handle the line in detail and call event processing code."""
+        logging.debug(f"TCP: Handle Line: Income raw string: {line}")
+        print(f"Handle line: {line}")
+        # parse the event
         try:
             event = SIAEvent(line)
-            _LOGGER.debug("TCP: Handle Line: event: %s", str(event))
+            logging.debug(f"TCP: Handle Line: event: {event}")
             if not event.valid_message:
-                _LOGGER.error(
-                    "TCP: Handle Line: CRC mismatch, received: %s, calculated: %s",
-                    event.msg_crc,
-                    event.calc_crc,
+                logging.error(
+                    f"TCP: Handle Line: CRC mismatch, received: {event.msg_crc}, calculated: {event.calc_crc}"
                 )
-                raise Exception("CRC mismatch")
-            # TODO callback to Client
-            response = self.SIAClient.process_event(event)
+                raise Exception("CRC mismatch in event, check the logs.")
+            response = f'"ACK"{event.sequence}L0#{event.account}[{sia_client.ending}'
         except Exception as exc:
-            _LOGGER.error("TCP: Handle Line: error: %s", str(exc))
+            logging.error(f"TCP: Handle Line: error: {exc}")
             timestamp = datetime.fromtimestamp(time.time()).strftime(
                 "_%H:%M:%S,%m-%d-%Y"
             )
-            response = '"NAK"0000L0R0A0[]' + timestamp
+            response = f'"NAK"0000L0R0A0[]{timestamp}'
+            # if the line could not be parsed or the crc does not match, the event is invalid and ignored, security risk otherwise.
+            event = None
 
-        header = ("%04x" % len(response)).upper()
-        response = "\n{}{}{}\r".format(
-            SIATCPHandler.crc_calc(response), header, response
-        )
-        byte_response = str.encode(response)
-        self.request.sendall(byte_response)
+        # send the response.
+        try:
+            logging.debug(f"TCP: Handle Line: response: {response}")
+            header = ("%04x" % len(response)).upper()
+            res = f"\n{SIATCPHandler.crc_calc(response)}{header}{response}\r"
+            byte_response = str.encode(res)
+            self.request.sendall(byte_response)
+        except Exception as exp:
+            logging.info(f"Could not send response, error: {exp}")
+
+        # finally run the event process code if the event is valid.
+        if event:
+            sia_client.global_process_event(event=event)
 
     def handle(self):
-        """Method called for handling."""
+        """Overridden method for handle lines."""
         line = b""
         try:
             while True:
                 raw = self.request.recv(1024)
+                print(f"Raw: {raw}")
                 if not raw:
                     return
                 raw = bytearray(raw)
@@ -67,12 +82,10 @@ class SIATCPHandler(socketserver.BaseRequestHandler):
                         raw = raw[splitter + 1 :]
                     else:
                         break
-
+                    print(f"Line handle: {line.decode()}")
                     self.handle_line(line.decode())
         except Exception as exc:
-            _LOGGER.error(
-                "TCP: Handle: last line %s gave error: %s", line.decode(), str(exc)
-            )
+            logging.error(f"TCP: Handle: last line {line.decode()} gave error: {exc}")
             return
 
     @staticmethod

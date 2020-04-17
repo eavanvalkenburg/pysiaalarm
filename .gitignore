@@ -48,3 +48,6 @@ MANIFEST
 
 # Per-project virtualenvs
 .venv*/
+
+# local config files
+local_config.json

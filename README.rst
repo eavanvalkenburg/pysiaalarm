@@ -20,6 +20,5 @@ The client takes these arguments:
 - host: if there is a specific host to talk to, otherwise use "" for any IP.
 - port: the tcp port your alarm system listens to.
 - account_id: the account id as 3-16 ASCII hex characters.
-- [optional] key: encryption key specified in your alarm system 16 ASCII characters
 - function: a function that will be called for every event that is handles, takes only a SIAEvent as parameter and does not pass back anything.
-
+- [optional] key: encryption key specified in your alarm system 16 ASCII characters
