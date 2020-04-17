@@ -1,6 +1,6 @@
-=====
+==========
 pysiaalarm
-=====
+==========
 
 
 Python package for creating a client that talks with SIA-based alarm systems.
