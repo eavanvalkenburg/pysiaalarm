@@ -18,12 +18,11 @@ def func(event: SIAEvent):
     logging.info(event)
     events.append(event)
 
-with open("local_config.json", 'r') as f:
+
+with open("local_config.json", "r") as f:
     config = json.load(f)
 #%%
-client = SIAClient(
-    **config, function=func
-)
+client = SIAClient(**config, function=func)
 #%%
 client.start()
 #%%

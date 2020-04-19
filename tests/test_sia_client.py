@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """Class for tests of pysiaalarm."""
 
+from mock import patch
 import pytest
 import socket
 import logging
 import random
 from pysiaalarm.sia_client import SIAClient
 from pysiaalarm.sia_event import SIAEvent
+from pysiaalarm.sia_errors import *
 from .test_utils import create_test_items
 
 __author__ = "E.A. van Valkenburg"
@@ -94,10 +96,10 @@ class testSIA(object):
 
         def func(event: SIAEvent):
             events.append(event)
-
-        client = SIAClient(
-            host="", port=PORT, account_id=account, key=key, function=func
-        )
+        with patch("pysiaalarm.sia_client.SIAClient._validate_input", return_value=True):
+            client = SIAClient(
+                host="", port=PORT, account_id=account, key=key, function=func
+            )
 
         client.start()
 
@@ -108,3 +110,36 @@ class testSIA(object):
         assert len(events) == count
         if count == 1:
             assert events[0].code == code
+
+
+    @pytest.mark.parametrize(
+        "key, account, port, error",
+        [
+            ("ZZZZZZZZZZZZZZZZ", ACCOUNT, 7777, InvalidKeyFormatError),
+            ("88888888", ACCOUNT, 7777, InvalidKeyLengthError),
+            (KEY, "22", 7777, InvalidAccountLengthError),
+            (KEY, "ZZZ", 7777, InvalidAccountFormatError),
+        ],
+    )
+    def test_sia_key_account_errors(self, key, account, port, error):
+        """Test sia client behaviour."""
+        def func(event: SIAEvent):
+            pass
+        try:
+            with patch("pysiaalarm.sia_client.SIAClient._test_port", return_value=False):
+                SIAClient(
+                    host="", port=port, account_id=account, key=key, function=func
+                )
+        except Exception as exp:
+            assert isinstance(exp, error)
+
+    def test_sia_port_errors(self):
+        """Test sia client behaviour."""
+        def func(event: SIAEvent):
+            pass
+        try:
+            SIAClient(
+                host="", port=80, account_id=ACCOUNT, key=KEY, function=func
+            )
+        except Exception as exp:
+            assert isinstance(exp, PortInUseError)

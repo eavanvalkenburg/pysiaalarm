@@ -3,14 +3,22 @@
 
 from typing import Callable
 from binascii import hexlify, unhexlify
+import socket
 import threading
 import logging
 from Crypto import Random
 from Crypto.Cipher import AES
 
 from pysiaalarm import __version__
-from .sia_event import SIAEvent
-from .sia_tcp_handler import SIAServer, SIATCPHandler
+from pysiaalarm.sia_event import SIAEvent
+from pysiaalarm.sia_tcp_handler import SIAServer, SIATCPHandler
+from pysiaalarm.sia_errors import (
+    InvalidAccountFormatError,
+    InvalidAccountLengthError,
+    InvalidKeyFormatError,
+    InvalidKeyLengthError,
+    PortInUseError,
+)
 
 __author__ = "E.A. van Valkenburg"
 __copyright__ = "E.A. van Valkenburg"
@@ -43,6 +51,7 @@ class SIAClient(threading.Thread):
         self._func = function
         self._host = host
         self._port = port
+        self._validate_input()
         if self._key:
             logging.debug("Hub: init: encryption is enabled.")
             self._encrypted = True
@@ -61,6 +70,45 @@ class SIAClient(threading.Thread):
         global ending
         ending = self._ending
         self.server = SIAServer((self._host, self._port), SIATCPHandler)
+
+    def _test_port(self):
+        """ Test if the port is in use."""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2)  # 2 Second Timeout
+        result = sock.connect_ex((self._host, self._port))
+        if result == 0:
+            sock.close()
+            return False
+        else:
+            sock.close()
+            return True
+
+    def _validate_input(self):
+        """ Validate the input by the user."""
+        port_in_use = self._test_port()
+        if port_in_use:
+            raise PortInUseError
+
+        if self._key:
+            try:
+                int(self._key, 16)
+            except ValueError:
+                raise InvalidKeyFormatError
+            try:
+                assert len(self._key) in (16, 24, 32)
+            except AssertionError:
+                raise InvalidKeyLengthError
+
+        try:
+            int(self._account_id, 16)
+        except ValueError:
+            raise InvalidAccountFormatError
+        try:
+            assert 3 <= len(self._account_id) <= 16
+        except AssertionError:
+            raise InvalidAccountLengthError
+
+        return True
 
     def start(self):
         """Start the SIA TCP Handler."""

@@ -4,6 +4,7 @@ import re
 import logging
 
 from pysiaalarm import __version__
+from .sia_errors import EventFormatError, CodeNotFoundError
 
 __author__ = "E.A. van Valkenburg"
 __copyright__ = "E.A. van Valkenburg"
@@ -29,7 +30,7 @@ class SIAEvent:
         matches = re.findall(regex, line)
         # check if there is at least one match
         if not matches:
-            raise ValueError("SIAEvent: Init: no matches found.")
+            raise EventFormatError("SIAEvent: Init: no matches found.")
         # logging.debug(matches)
         self.msg_crc, self.full_message, self.message_type, self.sequence, self.receiver, self.prefix, self.account, self.encrypted_content, self.content, self.zone, self.code, self.message, self.timestamp = matches[
             0
@@ -49,14 +50,14 @@ class SIAEvent:
             self.description = full.get("description")
             self.concerns = full.get("concerns")
         else:
-            raise LookupError("Code not found: {}".format(self.code))
+            raise CodeNotFoundError("Code not found: {}".format(self.code))
 
     def parse_decrypted(self, new_data: str):
         """When the content was decrypted, update the fields contained within."""
         regex = r".*Nri(\d*)/([a-zA-z]{2})(.*)]_([0-9:,-]*)"
         matches = re.findall(regex, new_data)
         if not matches:
-            raise ValueError("SIAEvent: Parse Decrypted: no matches found.")
+            raise EventFormatError("SIAEvent: Parse Decrypted: no matches found.")
         self.zone, self.code, self.message, self.timestamp = matches[0]
         if self.code:
             self._add_sia()

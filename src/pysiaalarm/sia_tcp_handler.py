@@ -7,6 +7,7 @@ import socketserver
 import logging
 from pysiaalarm.sia_event import SIAEvent
 from pysiaalarm import sia_client
+from pysiaalarm.sia_errors import CRCMismatchError
 
 logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class SIATCPHandler(socketserver.BaseRequestHandler):
                 logging.error(
                     f"TCP: Handle Line: CRC mismatch, received: {event.msg_crc}, calculated: {event.calc_crc}"
                 )
-                raise Exception("CRC mismatch in event, check the logs.")
+                raise CRCMismatchError("CRC mismatch in event, check the logs.")
             response = f'"ACK"{event.sequence}L0#{event.account}[{sia_client.ending}'
         except Exception as exc:
             logging.error(f"TCP: Handle Line: error: {exc}")
