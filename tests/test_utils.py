@@ -10,10 +10,10 @@ def create_test_items(key, content):
     # decrypter = AES.new(
     #     key, AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
     # )
-    encrypter = AES.new(key, AES.MODE_CBC, Random.new().read(AES.block_size))
+    encrypter = AES.new(key.encode("utf8"), AES.MODE_CBC, Random.new().read(AES.block_size))
 
     extra = len(content) % 16
     unencrypted = (16 - extra) * "0" + content
     # encrypted = hexlify(encrypter.encrypt(unencrypted)).decode(encoding="UTF-8").upper()
     # decrypted = decrypter.decrypt(unhexlify(encrypted)).decode(encoding="UTF-8", errors="replace")
-    return hexlify(encrypter.encrypt(unencrypted)).decode(encoding="UTF-8").upper()
+    return hexlify(encrypter.encrypt(unencrypted.encode("utf8"))).decode(encoding="UTF-8").upper()

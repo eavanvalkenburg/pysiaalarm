@@ -143,7 +143,7 @@ class SIAClient(threading.Thread):
     def _decrypt_string(self, event: SIAEvent) -> SIAEvent:
         """Decrypt the encrypted event content and parse it."""
         logging.debug("Hub: Decrypt String: Original: %s", str(event.encrypted_content))
-        resmsg = self._decrypter.decrypt(unhexlify(event.encrypted_content)).decode(
+        resmsg = self._decrypter.decrypt(unhexlify(event.encrypted_content.encode("utf8"))).decode(
             encoding="UTF-8", errors="replace"
         )
         logging.debug(f"Hub: Decrypt String: Decrypted: {resmsg}")
