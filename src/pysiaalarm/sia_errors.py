@@ -27,6 +27,7 @@ class PortInUseError(Exception):
 
     pass
 
+
 class EventFormatError(Exception):
     """ Error for when a event is incorrectly formatted."""
 

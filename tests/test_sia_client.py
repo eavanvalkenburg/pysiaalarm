@@ -8,7 +8,7 @@ import logging
 import random
 from pysiaalarm.sia_client import SIAClient
 from pysiaalarm.sia_event import SIAEvent
-from pysiaalarm.sia_errors import *
+from pysiaalarm.sia_errors import *  # pylint: disable=unused-wildcard-import
 from .test_utils import create_test_items
 
 __author__ = "E.A. van Valkenburg"
@@ -96,10 +96,10 @@ class testSIA(object):
 
         def func(event: SIAEvent):
             events.append(event)
-        with patch("pysiaalarm.sia_client.SIAClient._validate_input", return_value=True):
-            client = SIAClient(
-                host="", port=PORT, account_id=account, key=key, function=func
-            )
+
+        client = SIAClient(
+            host="", port=PORT, account_id=account, key=key, function=func
+        )
 
         client.start()
 
@@ -111,35 +111,48 @@ class testSIA(object):
         if count == 1:
             assert events[0].code == code
 
-
     @pytest.mark.parametrize(
         "key, account, port, error",
         [
             ("ZZZZZZZZZZZZZZZZ", ACCOUNT, 7777, InvalidKeyFormatError),
-            ("88888888", ACCOUNT, 7777, InvalidKeyLengthError),
+            ("158888888888888", ACCOUNT, 7777, InvalidKeyLengthError),
+            ("1688888888888888", ACCOUNT, 7777, None),
+            ("23888888888888888888888", ACCOUNT, 7777, InvalidKeyLengthError),
+            ("248888888888888888888888", ACCOUNT, 7777, None),
+            ("3188888888888888888888888888888", ACCOUNT, 7777, InvalidKeyLengthError),
+            ("32888888888888888888888888888888", ACCOUNT, 7777, None),
             (KEY, "22", 7777, InvalidAccountLengthError),
             (KEY, "ZZZ", 7777, InvalidAccountFormatError),
         ],
     )
     def test_sia_key_account_errors(self, key, account, port, error):
         """Test sia client behaviour."""
+
         def func(event: SIAEvent):
             pass
+
         try:
-            with patch("pysiaalarm.sia_client.SIAClient._test_port", return_value=False):
-                SIAClient(
-                    host="", port=port, account_id=account, key=key, function=func
-                )
+            siac = SIAClient(
+                host="", port=port, account_id=account, key=key, function=func
+            )
+            siac.validate()
+            assert False if error else True
         except Exception as exp:
             assert isinstance(exp, error)
 
-    def test_sia_port_errors(self):
+    @pytest.mark.parametrize("port, error", [(80, PortInUseError), (7777, None)])
+    def test_sia_port_errors(self, port, error):
         """Test sia client behaviour."""
+
         def func(event: SIAEvent):
             pass
+
         try:
-            SIAClient(
-                host="", port=80, account_id=ACCOUNT, key=KEY, function=func
-            )
+            with patch("pysiaalarm.sia_client.SIAClient.test_port", side_effect=error):
+                siac = SIAClient(
+                    host="", port=port, account_id=ACCOUNT, key=None, function=func
+                )
+                siac.test_port()
+                assert True if not error else False
         except Exception as exp:
-            assert isinstance(exp, PortInUseError)
+            assert isinstance(exp, error)

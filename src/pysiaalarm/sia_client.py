@@ -51,17 +51,21 @@ class SIAClient(threading.Thread):
         self._func = function
         self._host = host
         self._port = port
-        self._validate_input()
         if self._key:
             logging.debug("Hub: init: encryption is enabled.")
             self._encrypted = True
             self._key = self._key.encode("utf8")
-            self._decrypter = AES.new(
-                self._key, AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
-            )
-            _encrypter = AES.new(
-                self._key, AES.MODE_CBC, Random.new().read(AES.block_size)
-            )
+            try:
+                self._decrypter = AES.new(
+                    self._key,
+                    AES.MODE_CBC,
+                    unhexlify("00000000000000000000000000000000"),
+                )
+                _encrypter = AES.new(
+                    self._key, AES.MODE_CBC, Random.new().read(AES.block_size)
+                )
+            except ValueError:
+                raise InvalidKeyLengthError
             self._ending = (
                 hexlify(_encrypter.encrypt("00000000000000|]".encode("utf8")))
                 .decode(encoding="UTF-8")
@@ -71,24 +75,22 @@ class SIAClient(threading.Thread):
         ending = self._ending
         self.server = SIAServer((self._host, self._port), SIATCPHandler)
 
-    def _test_port(self):
-        """ Test if the port is in use."""
+    def test_port(self):
+        """Test if the port is in use."""
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(2)  # 2 Second Timeout
-        result = sock.connect_ex((self._host, self._port))
-        if result == 0:
-            sock.close()
-            return False
-        else:
-            sock.close()
+        try:
+            sock.bind((self._host, self._port))
+            logging.debug("No error in bind.")
             return True
-
-    def _validate_input(self):
-        """ Validate the input by the user."""
-        port_in_use = self._test_port()
-        if port_in_use:
+        except socket.error as exp:
+            logging.debug(exp)
+            logging.debug("Error in bind.")
             raise PortInUseError
+        finally:
+            sock.close()
 
+    def validate(self):
+        """Validate the settings by the user."""
         if self._key:
             try:
                 int(self._key, 16)
@@ -98,7 +100,6 @@ class SIAClient(threading.Thread):
                 assert len(self._key) in (16, 24, 32)
             except AssertionError:
                 raise InvalidKeyLengthError
-
         try:
             int(self._account_id, 16)
         except ValueError:
@@ -143,9 +144,9 @@ class SIAClient(threading.Thread):
     def _decrypt_string(self, event: SIAEvent) -> SIAEvent:
         """Decrypt the encrypted event content and parse it."""
         logging.debug("Hub: Decrypt String: Original: %s", str(event.encrypted_content))
-        resmsg = self._decrypter.decrypt(unhexlify(event.encrypted_content.encode("utf8"))).decode(
-            encoding="UTF-8", errors="replace"
-        )
+        resmsg = self._decrypter.decrypt(
+            unhexlify(event.encrypted_content.encode("utf8"))
+        ).decode(encoding="UTF-8", errors="replace")
         logging.debug(f"Hub: Decrypt String: Decrypted: {resmsg}")
         event.parse_decrypted(resmsg)
         return event
