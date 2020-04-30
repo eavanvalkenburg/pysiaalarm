@@ -18,19 +18,27 @@ class SIAEvent:
     """Class for SIA Events."""
 
     def __init__(self, line: str):
-        """Initialize a SIA event message."""
+        """Create a SIA Event from a line.
+
+        Arguments:
+            line {str} -- The line to be parsed.
+
+        Raises:
+            EventFormatError: If the event cannot be parsed according to the SIA spec.
+
+        """
         # Example events: 98100078"*SIA-DCS"5994L0#AAA[5AB718E008C616BF16F6468033A11326B0F7546CAB230910BCA10E4DEBA42283C436E4F8EFF50931070DDE36D5BB5F0C
         # Example events: 66100078"*SIA-DCS"6001L0#AAA[6F7457178C6F0EAD99109E1DC5B75B26EDFBE1AA17361CD48E0B0E340081035F16AD2A25CD3D7F04105EC1EA65BF6341
         # Example events: 2E680078"*SIA-DCS"6002L0#AAA[FDDCDFEC950EDC3F7C438B75CD57B9C91E1CA632806882769097C60292F86BD13D43D3BA7E2F529560DC7B51E6581E58
-        # Example events: 2E680078"SIA-DCS"6002L0#AAA[|Nri1/CL501]_14:12:04,09-25-2019
+        # Example events: 2E680078"SIA-DCS"6002L0#AAA[#AAA|Nri1/CL501]_14:12:04,09-25-2019
         # Example events: 5BFD0078"*SIA-DCS"6003L0#AAA[03D1EA959BCC9E2DA91CACA7AFF472F1CB234708977C4E1E3B86A8ABD45AD9F95F0EFFFF817EE5349572972325BFC856
-        # Example events: 5BFD0078"SIA-DCS"6003L0#AAA[|Nri1/OP501]_14:12:04,09-25-2019
+        # Example events: 5BFD0078"SIA-DCS"6003L0#AAA[#AAA|Nri1/OP501]_14:12:04,09-25-2019
 
         regex = r"(.{4})0[A-F0-9]{3}(\"(SIA-DCS|\*SIA-DCS)\"([0-9]{4})(R[A-F0-9]{1,6})?(L[A-F0-9]{1,6})#([A-F0-9]{3,16})\[([A-F0-9]*)?(.*Nri(\d*)/([a-zA-z]{2})(.*)]_([0-9:,-]*))?)"
         matches = re.findall(regex, line)
         # check if there is at least one match
         if not matches:
-            raise EventFormatError("SIAEvent: Init: no matches found.")
+            raise EventFormatError("No matches found, event was not a SIA Spec event.")
         # logging.debug(matches)
         self.msg_crc, self.full_message, self.message_type, self.sequence, self.receiver, self.prefix, self.account, self.encrypted_content, self.content, self.zone, self.code, self.message, self.timestamp = matches[
             0
@@ -50,20 +58,20 @@ class SIAEvent:
             self.description = full.get("description")
             self.concerns = full.get("concerns")
         else:
-            raise CodeNotFoundError("Code not found: {}".format(self.code))
+            raise CodeNotFoundError("Code not found: &s", self.code)
 
     def parse_decrypted(self, new_data: str):
         """When the content was decrypted, update the fields contained within."""
         regex = r".*Nri(\d*)/([a-zA-z]{2})(.*)]_([0-9:,-]*)"
         matches = re.findall(regex, new_data)
         if not matches:
-            raise EventFormatError("SIAEvent: Parse Decrypted: no matches found.")
+            raise EventFormatError("Parse Decrypted: no matches found.")
         self.zone, self.code, self.message, self.timestamp = matches[0]
         if self.code:
             self._add_sia()
 
-    @staticmethod
-    def crc_calc(msg: str) -> str:
+    @classmethod
+    def crc_calc(cls, msg: str) -> str:
         """Calculate the CRC of the events."""
         crc = 0
         for letter in str.encode(msg):

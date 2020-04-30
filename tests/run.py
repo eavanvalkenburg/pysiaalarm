@@ -4,6 +4,7 @@ import logging
 import json
 from pysiaalarm.sia_client import SIAClient
 from pysiaalarm.sia_event import SIAEvent
+from pysiaalarm.sia_account import SIAAccount
 from pysiaalarm import dist_name
 
 logging.basicConfig(level=logging.DEBUG)
@@ -22,7 +23,8 @@ def func(event: SIAEvent):
 with open("local_config.json", "r") as f:
     config = json.load(f)
 #%%
-client = SIAClient(**config, function=func)
+client = SIAClient(config["host"], config["port"], [SIAAccount(config["account_id"], config["key"])], function=func)
+
 #%%
 client.start()
 #%%
@@ -32,5 +34,8 @@ client.stop()
 #%%
 for ev in events:
     print(ev)
+
+# %%
+len(events)
 
 # %%
