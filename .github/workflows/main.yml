@@ -20,4 +20,4 @@ jobs:
       with:
         python-version: 3.8
     - name: Run setup of PySIAAlarm
-      run: python setup.py
+      run: python setup.py develop
