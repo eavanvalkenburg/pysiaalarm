@@ -22,4 +22,4 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Python Lint (isort/black)
-      uses: eavanvalkenburg/python-lint-action@v1.0.1
+      uses: eavanvalkenburg/python-lint-action@v1.0.2
