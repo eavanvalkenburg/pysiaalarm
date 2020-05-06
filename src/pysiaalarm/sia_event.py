@@ -2,11 +2,13 @@
 """This is a class for SIA Events."""
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 
 from pysiaalarm import __version__
 from pysiaalarm.sia_const import ALL_CODES
-from pysiaalarm.sia_errors import CRCMismatchError, EventFormatError
+from pysiaalarm.sia_errors import CRCMismatchError
+from pysiaalarm.sia_errors import EventFormatError
 
 __author__ = "E.A. van Valkenburg"
 __copyright__ = "E.A. van Valkenburg"

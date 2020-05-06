@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 """This is the class for the actual TCP handler override of the handle method."""
-
 import logging
-from socketserver import BaseRequestHandler, ThreadingTCPServer
-from typing import Callable, Dict
+from socketserver import BaseRequestHandler
+from socketserver import ThreadingTCPServer
+from typing import Callable
+from typing import Dict
 
 from pysiaalarm.sia_account import SIAAccount
 from pysiaalarm.sia_account import SIAResponseType as resp
-from pysiaalarm.sia_errors import (
-    CRCMismatchError,
-    EventFormatError,
-    ReceivedAccountUnknownError,
-)
+from pysiaalarm.sia_errors import CRCMismatchError
+from pysiaalarm.sia_errors import EventFormatError
+from pysiaalarm.sia_errors import ReceivedAccountUnknownError
 from pysiaalarm.sia_event import SIAEvent
 
 logging.getLogger(__name__)
@@ -41,18 +40,18 @@ class SIAServer(ThreadingTCPServer):
         self.accounts = accounts
         self.func = func
 
-    def handle_error(self, request, client_address):
-        """Handle an error gracefully.  May be overridden.
+    # def handle_error(self, request, client_address):
+    #     """Handle an error gracefully.  May be overridden.
 
-        The default is to print a traceback and continue.
+    #     The default is to print a traceback and continue.
 
-        """
-        import traceback
+    #     """
+    #     import traceback
 
-        traceback.print_exc()
-        logging.error(
-            "Last request %s coming from %s gave an error.", request, client_address
-        )
+    #     traceback.print_exc()
+    #     logging.error(
+    #         "Last request %s coming from %s gave an error.", request, client_address
+    #     )
 
 
 class SIATCPHandler(BaseRequestHandler):

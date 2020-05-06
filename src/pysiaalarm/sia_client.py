@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """This is a the main class for the SIA Client."""
-
 import logging
 import socket
 from threading import Thread
-from typing import Callable, List
+from typing import Callable
+from typing import List
 
 from pysiaalarm import __version__
 from pysiaalarm.sia_account import SIAAccount

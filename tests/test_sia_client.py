@@ -1,22 +1,18 @@
 # -*- coding: utf-8 -*-
 """Class for tests of pysiaalarm."""
-
 import logging
 import random
 import socket
 
 import pytest
 from mock import patch
-
 from pysiaalarm.sia_account import SIAAccount
 from pysiaalarm.sia_client import SIAClient
-from pysiaalarm.sia_errors import (
-    InvalidAccountFormatError,
-    InvalidAccountLengthError,
-    InvalidKeyFormatError,
-    InvalidKeyLengthError,
-    PortInUseError,
-)
+from pysiaalarm.sia_errors import InvalidAccountFormatError
+from pysiaalarm.sia_errors import InvalidAccountLengthError
+from pysiaalarm.sia_errors import InvalidKeyFormatError
+from pysiaalarm.sia_errors import InvalidKeyLengthError
+from pysiaalarm.sia_errors import PortInUseError
 from pysiaalarm.sia_event import SIAEvent
 from test_utils import create_test_items
 

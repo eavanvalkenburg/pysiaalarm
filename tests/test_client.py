@@ -3,11 +3,13 @@ import json
 import random
 import socket
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 
 from pysiaalarm.sia_const import ALL_CODES
 from pysiaalarm.sia_event import SIAEvent
-from test_utils import create_test_items
+
+from tests.test_utils import create_test_items  # pylint: disable=no-name-in-module
 
 BASIC_CONTENT = f"|Nri0/<code>000]<timestamp>"
 BASIC_LINE = f'SIA-DCS"<seq>L0#<account>[<content>'

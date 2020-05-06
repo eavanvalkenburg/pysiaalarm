@@ -1,21 +1,18 @@
 """Class for SIA Accounts."""
-
 import logging
-from binascii import hexlify, unhexlify
+from binascii import hexlify
+from binascii import unhexlify
 from datetime import datetime
 from enum import Enum
 from typing import Tuple
 
 from Crypto import Random
 from Crypto.Cipher import AES
-
 from pysiaalarm import __version__
-from pysiaalarm.sia_errors import (
-    InvalidAccountFormatError,
-    InvalidAccountLengthError,
-    InvalidKeyFormatError,
-    InvalidKeyLengthError,
-)
+from pysiaalarm.sia_errors import InvalidAccountFormatError
+from pysiaalarm.sia_errors import InvalidAccountLengthError
+from pysiaalarm.sia_errors import InvalidKeyFormatError
+from pysiaalarm.sia_errors import InvalidKeyLengthError
 from pysiaalarm.sia_event import SIAEvent
 
 __author__ = "E.A. van Valkenburg"

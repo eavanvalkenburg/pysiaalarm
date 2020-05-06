@@ -15,14 +15,4 @@
     "editor.formatOnSave": true,
     "python.formatting.provider": "black",
     "python.terminal.activateEnvInCurrentTerminal": true,
-    "python.sortImports.path": "C:\\Anaconda3\\Scripts\\isort.exe",
-    "python.sortImports.args": [
-        "-rc",
-        "-sp .isort.cfg"
-    ],
-    "[python]": {
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": true
-        }
-    }
 }
