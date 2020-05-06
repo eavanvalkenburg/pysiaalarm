@@ -7,7 +7,7 @@ on:
   push:
     branches: [ dev ]
   pull_request:
-    branches: [ master ]
+    branches: [ dev ]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -21,5 +21,6 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: Python Lint (isort/black)
-      uses: eavanvalkenburg/python-lint-action@v1.0.2
+    - uses: RalfG/python-wheels-manylinux-build@v0.2.2
+      with:
+        python-versions: 'cp37-cp37m cp38-cp38'

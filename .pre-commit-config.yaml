@@ -1,0 +1,6 @@
+repos:
+- repo: https://github.com/cognitedata/python-pre-commit-hooks
+  rev: 7d4fa11
+  hooks:
+  - id: isort
+  - id: black
