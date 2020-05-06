@@ -1,18 +1,22 @@
 """Class for SIA Accounts."""
 
-from binascii import hexlify, unhexlify
 import logging
+from binascii import hexlify, unhexlify
+from datetime import datetime
+from enum import Enum
+from typing import Tuple
+
 from Crypto import Random
 from Crypto.Cipher import AES
 
 from pysiaalarm import __version__
-from pysiaalarm.sia_event import SIAEvent
 from pysiaalarm.sia_errors import (
     InvalidAccountFormatError,
     InvalidAccountLengthError,
     InvalidKeyFormatError,
     InvalidKeyLengthError,
 )
+from pysiaalarm.sia_event import SIAEvent
 
 __author__ = "E.A. van Valkenburg"
 __copyright__ = "E.A. van Valkenburg"
@@ -22,10 +26,31 @@ __version__ = __version__
 logging.getLogger(__name__)
 
 
+class SIAResponseType(Enum):
+    """Class with response types for events."""
+
+    ACK = 1
+    DUH = 2
+    NAK = 3
+
+
+def _create_padded_message(message: str) -> str:
+    """Create padded message, used for encrypted responses."""
+    extra = len(message) % 16
+    return (16 - extra) * "0" + message
+
+
+def _get_timestamp() -> str:
+    """Create a timestamp in the right format."""
+    return datetime.utcnow().strftime("_%H:%M:%S,%m-%d-%Y")
+
+
 class SIAAccount:
     """Class for SIA Account."""
 
-    def __init__(self, account_id: str, key: str = None):
+    def __init__(
+        self, account_id: str, key: str = None, allowed_timeband: (int, int) = (40, 20)
+    ):
         """Create a SIA Account.
 
         Arguments:
@@ -33,63 +58,50 @@ class SIAAccount:
 
         Keyword Arguments:
             key {str} -- The encryption key specified by the alarm system, should be 16,24 or 32 characters hexadecimal. (default: {None})
+            allowed_timeband {(int, int)} -- Seconds before and after current time that a message is valid in, unencrypted messages do not have to have a timestamp. 
 
         """
         SIAAccount.validate_account(account_id, key)
         self.account_id = account_id
         self.key = key.encode("UTF-8") if key else key
+        self.allowed_timeband = allowed_timeband
+        self._create_crypters()
         self.encrypted = True if self.key else False
-        self.decrypter = self._create_decrypter()
-        self.ending = self._create_ending()
 
-    def _create_decrypter(self) -> AES:
-        """Create the decrypter function.
+    def _create_crypters(self):
+        """Create the de- and encrypter functions."""
+        if self.key:
+            self.decrypter = AES.new(
+                self.key, AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
+            )
+            self.encrypter = AES.new(
+                self.key, AES.MODE_CBC, Random.new().read(AES.block_size)
+            )
+        else:
+            self.decrypter = None
+            self.encrypter = None
 
-        Raises:
-            InvalidKeyLengthError: if the key is not a proper string raise this error.
+    def encrypt(self, message: str) -> str:
+        """Encrypt a string, usually used for endings.
+
+        Arguments:
+            message {str} -- String to encrypt.
 
         Returns:
-            AES -- AES object
+            str -- Encrypted string, if encrypted account.
 
         """
-        if self.key:
-            try:
-                return AES.new(
-                    self.key,
-                    AES.MODE_CBC,
-                    unhexlify("00000000000000000000000000000000"),
-                )
-            except ValueError:
-                raise InvalidKeyLengthError
+        if self.encrypted:
+            message = _create_padded_message(message)
+            return (
+                hexlify(self.encrypter.encrypt(message.encode("utf8")))
+                .decode(encoding="UTF-8")
+                .upper()
+            )
         else:
-            return None
+            return message
 
-    def _create_ending(self) -> str:
-        """Create the ending of the response acknowledgement message.
-
-        Raises:
-            InvalidKeyLengthError: if the key is not a proper string raise this error.
-
-        Returns:
-            str -- the ending for acknowledgements.
-
-        """
-        if self.key:
-            try:
-                encrypter = AES.new(
-                    self.key, AES.MODE_CBC, Random.new().read(AES.block_size)
-                )
-                return (
-                    hexlify(encrypter.encrypt("00000000000000|]".encode("utf8")))
-                    .decode(encoding="UTF-8")
-                    .upper()
-                )
-            except ValueError:
-                raise InvalidKeyLengthError
-        else:
-            return "]"
-
-    def _decrypt_string(self, event: SIAEvent) -> SIAEvent:
+    def decrypt(self, event: SIAEvent) -> SIAEvent:
         """Decrypt the event, if the account is encrypted, otherwise pass back the event.
 
         Arguments:
@@ -100,23 +112,41 @@ class SIAAccount:
 
         """
         if self.encrypted:
-            logging.debug("Original: %s", str(event.encrypted_content))
-            resmsg = self.decrypter.decrypt(
+            event.content = self.decrypter.decrypt(
                 unhexlify(event.encrypted_content.encode("utf8"))
             ).decode(encoding="UTF-8", errors="replace")
-            logging.debug("Decrypted: %s", resmsg)
-            event.content = resmsg
-            event.parse_decrypted(resmsg)
+            event.parse_decrypted()
         return event
 
-    def __eq__(self, other):
-        """To implement 'in' operator"""
-        # Comparing with int (assuming "value" is int)
-        if isinstance(other, str):
-            return self.account_id == other
-        # Comparing with another Test object
-        elif isinstance(other, SIAAccount):
-            return self.account_id == other.account_id
+    def create_response(self, event: SIAEvent, response_type: SIAResponseType) -> str:
+        """Create a response message, based on account, event and response type.
+
+        Arguments:
+            event {SIAEvent} -- Event to respond to.
+            response_type {SIAResponseType} -- Response type.
+
+        Returns:
+            str -- Response to send back to sender.
+
+        """
+        if response_type == SIAResponseType.ACK and event:
+            if self.encrypted:
+                return f'"*ACK"{event.sequence}L0#{event.account}[{self.encrypt(_create_padded_message("]")+_get_timestamp())}'
+            else:
+                return f'"ACK"{event.sequence}L0#{event.account}[]'
+        elif response_type == SIAResponseType.DUH and event:
+            return f'"DUH"{event.sequence}L0#{event.account}[]'
+        elif response_type == SIAResponseType.NAK:
+            return f'"NAK"0000L0R0A0[]{_get_timestamp()}'
+        elif not response_type:
+            return None
+        else:
+            logging.warning(
+                "Could not find the right response message for response type: %s and optional event: %s",
+                response_type,
+                event,
+            )
+            return None
 
     @classmethod
     def validate_account(cls, account_id: str = None, key: str = None):

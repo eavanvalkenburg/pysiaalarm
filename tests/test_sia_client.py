@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """Class for tests of pysiaalarm."""
 
-from mock import patch
-import pytest
-import socket
 import logging
 import random
-from pysiaalarm.sia_client import SIAClient
+import socket
+
+import pytest
+from mock import patch
+
 from pysiaalarm.sia_account import SIAAccount
-from pysiaalarm.sia_event import SIAEvent
+from pysiaalarm.sia_client import SIAClient
 from pysiaalarm.sia_errors import (
     InvalidAccountFormatError,
     InvalidAccountLengthError,
@@ -16,7 +17,8 @@ from pysiaalarm.sia_errors import (
     InvalidKeyLengthError,
     PortInUseError,
 )
-from .test_utils import create_test_items
+from pysiaalarm.sia_event import SIAEvent
+from test_utils import create_test_items
 
 __author__ = "E.A. van Valkenburg"
 __copyright__ = "E.A. van Valkenburg"
@@ -48,12 +50,16 @@ def create_test_line(key, account, code, alter_crc=False):
 
 def run_fake_client(host, port, message):
     """Run a socker client and send one message."""
-    fake_client = socket.socket()
-    fake_client.settimeout(1)
-    fake_client.connect((host, port))
+    fake_client = socket.create_connection((host, port))
+    # fake_client = socket.socket()
+    # fake_client.settimeout(1)
+    # fake_client.connect((host, port))
     try:
-        resp = fake_client.send(message)
-        _LOGGER.debug(resp)
+        _LOGGER.debug("Sending message: %s", message)
+        fake_client.sendall(message)
+        data = fake_client.recv(1024)
+        data = bytearray(data)
+        _LOGGER.debug(data.decode())
     except Exception as e:
         raise e
     finally:
@@ -110,7 +116,12 @@ class testSIA(object):
         def func_append(event: SIAEvent):
             events.append(event)
 
-        client = SIAClient(host="", port=PORT, accounts=[SIAAccount(account_id=account, key=key)], function=func_append)
+        client = SIAClient(
+            host="",
+            port=PORT,
+            accounts=[SIAAccount(account_id=account, key=key)],
+            function=func_append,
+        )
         client.start()
         run_fake_client(HOST, PORT, message.encode())
         client.stop()
@@ -136,7 +147,12 @@ class testSIA(object):
     def test_sia_key_account_errors(self, key, account, port, error):
         """Test sia client behaviour."""
         try:
-            SIAClient(host="", port=port, accounts=[SIAAccount(account_id=account, key=key)], function=func, )
+            SIAClient(
+                host="",
+                port=port,
+                accounts=[SIAAccount(account_id=account, key=key)],
+                function=func,
+            )
             assert False if error else True
         except Exception as exp:
             assert isinstance(exp, error)
@@ -146,7 +162,12 @@ class testSIA(object):
         """Test sia client behaviour."""
         try:
             with patch("pysiaalarm.sia_client.SIAClient.test_port", side_effect=error):
-                SIAClient(host="", port=port, accounts=[SIAAccount(account_id=ACCOUNT)], function=func).test_port()
+                SIAClient(
+                    host="",
+                    port=port,
+                    accounts=[SIAAccount(account_id=ACCOUNT)],
+                    function=func,
+                ).test_port()
                 assert True if not error else False
         except Exception as exp:
             assert isinstance(exp, error)

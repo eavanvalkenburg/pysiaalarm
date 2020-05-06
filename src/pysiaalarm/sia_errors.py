@@ -1,3 +1,6 @@
+"""Errors for SIA Server."""
+
+
 class InvalidKeyFormatError(Exception):
     """Error for when the key is not a hex string."""
 
@@ -34,16 +37,11 @@ class EventFormatError(Exception):
     pass
 
 
-class CodeNotFoundError(Exception):
-    """Error for when a event is incorrectly formatted."""
-
-    pass
-
-
 class CRCMismatchError(Exception):
     """Error for when a event does not have matched CRC's."""
 
     pass
+
 
 class ReceivedAccountUnknownError(Exception):
     """Error for when a event is received but cannot be matched to accounts."""
