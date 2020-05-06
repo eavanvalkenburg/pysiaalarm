@@ -1,16 +1,12 @@
 
-name: CI
+name: Build
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
-  push:
-    branches: [ dev ]
-  pull_request:
-    branches: [ dev ]
+  release:
+    types: [created]
 
 jobs:
-  setup_test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,3 +17,6 @@ jobs:
         python-version: 3.8
     - name: Run setup of PySIAAlarm
       run: python setup.py
+    - uses: RalfG/python-wheels-manylinux-build@v0.2.2
+      with:
+        python-versions: 'cp38-cp38'
