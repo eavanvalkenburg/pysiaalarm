@@ -15,6 +15,10 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install twine
     - name: Run setup of PySIAAlarm
       run: python setup.py develop
     - uses: RalfG/python-wheels-manylinux-build@v0.2.2
