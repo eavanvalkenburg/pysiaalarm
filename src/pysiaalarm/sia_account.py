@@ -10,12 +10,10 @@ from Crypto import Random
 from Crypto.Cipher import AES
 
 from pysiaalarm import __version__
-from pysiaalarm.sia_errors import (
-    InvalidAccountFormatError,
-    InvalidAccountLengthError,
-    InvalidKeyFormatError,
-    InvalidKeyLengthError,
-)
+from pysiaalarm.sia_errors import (InvalidAccountFormatError,
+                                   InvalidAccountLengthError,
+                                   InvalidKeyFormatError,
+                                   InvalidKeyLengthError)
 from pysiaalarm.sia_event import SIAEvent
 
 __author__ = "E.A. van Valkenburg"
