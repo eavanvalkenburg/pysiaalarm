@@ -7,11 +7,8 @@ from typing import Callable, Dict
 
 from pysiaalarm.sia_account import SIAAccount
 from pysiaalarm.sia_account import SIAResponseType as resp
-from pysiaalarm.sia_errors import (
-    CRCMismatchError,
-    EventFormatError,
-    ReceivedAccountUnknownError,
-)
+from pysiaalarm.sia_errors import (CRCMismatchError, EventFormatError,
+                                   ReceivedAccountUnknownError)
 from pysiaalarm.sia_event import SIAEvent
 
 logging.getLogger(__name__)
