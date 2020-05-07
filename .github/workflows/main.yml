@@ -23,5 +23,5 @@ jobs:
       run: python setup.py develop
     - name: Test with pytest
       run: |
-        pip install pytest
+        pip install pytest pytest-cov
         pytest
