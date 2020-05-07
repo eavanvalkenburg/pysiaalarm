@@ -2,21 +2,18 @@
 ![Build](https://github.com/eavanvalkenburg/pysiaalarm/workflows/Build/badge.svg?event=release)
 
 <H1> pysiaalarm</H1>
-==========
 
 
 Python package for creating a client that talks with SIA-based alarm systems.
 
 
 <H2>Description</H2>
-===========
 
 This package was created to talk with alarm systems using the SIA protocol, it was tested using a Ajax system, but should support all defined SIA codes. 
 It creates a new thread with a TCP Server running binded to a host and port, the alarm system acts a client that sends messages to that server and the server acknowledges the messages and call the supplied function.
 
 
 <H2>Config </H2>
-==========
 
 <H3>SIAClient</H3>
 
