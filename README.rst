@@ -1,3 +1,6 @@
+![CI](https://github.com/eavanvalkenburg/pysiaalarm/workflows/CI/badge.svg?branch=dev)
+![Build](https://github.com/eavanvalkenburg/pysiaalarm/workflows/Build/badge.svg?event=release)
+
 ==========
 pysiaalarm
 ==========
