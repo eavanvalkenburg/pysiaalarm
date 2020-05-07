@@ -38,7 +38,7 @@ client = SIAClient(
 #%%
 client.start()
 #%%
-time.sleep(3600)
+time.sleep(120)
 #%%
 client.stop()
 #%%
@@ -49,5 +49,6 @@ for ev in events:
 # %%
 print("--------------------------------------------------")
 print(len(events))
+print(client.error_count)
 print("--------------------------------------------------")
 # %%

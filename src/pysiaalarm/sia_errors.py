@@ -35,3 +35,21 @@ class ReceivedAccountUnknownError(Exception):
     """Error for when a event is received but cannot be matched to accounts."""
 
     pass
+
+
+class CRCMismatchError(Exception):
+    """Error for when a event has mismatched CRCs."""
+
+    pass
+
+
+class TimestampError(Exception):
+    """Error for when a event has timestamp outside of the timeband."""
+
+    pass
+
+
+class CodeNotFoundError(Exception):
+    """Error for when a event has a unknown code."""
+
+    pass

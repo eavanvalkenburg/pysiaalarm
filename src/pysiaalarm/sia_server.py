@@ -8,8 +8,11 @@ from typing import Dict
 
 from pysiaalarm.sia_account import SIAAccount
 from pysiaalarm.sia_account import SIAResponseType as resp
+from pysiaalarm.sia_errors import CodeNotFoundError
+from pysiaalarm.sia_errors import CRCMismatchError
 from pysiaalarm.sia_errors import EventFormatError
 from pysiaalarm.sia_errors import ReceivedAccountUnknownError
+from pysiaalarm.sia_errors import TimestampError
 from pysiaalarm.sia_event import SIAEvent
 
 logging.getLogger(__name__)
@@ -61,79 +64,88 @@ class SIATCPHandler(BaseRequestHandler):
                 if splitter > -1:
                     line = raw[1:splitter]
                     raw = raw[splitter + 1 :]
-                    logging.debug("Incoming line: %s", line.decode())
-                    try:
-                        event = None
-                        account = None
-                        event = SIAEvent(line.decode())
-                        if event.valid_message:
-                            account = self.server.accounts.get(event.account)
-                            if account:
-                                event = account.decrypt(event)
-                                logging.debug(
-                                    "Parsed and decrypted (if applicable) event: %s.",
-                                    event,
-                                )
-                                if not event.valid_timestamp(account.allowed_timeband):
-                                    response = resp.NAK
-                                    logging.warning(
-                                        "Event timestamp is no longer valid: %s",
-                                        event.timestamp,
-                                    )
-                                    self.server.error_count["timestamp"] = (
-                                        self.server.error_count["timestamp"] + 1
-                                    )
-                                elif event.code_not_found:
-                                    response = resp.DUH
-                                    logging.warning(
-                                        "Code not found, replying with DUH to account: %s",
-                                        event.account,
-                                    )
-                                    self.server.error_count["code"] = (
-                                        self.server.error_count["code"] + 1
-                                    )
-                                else:
-                                    response = resp.ACK
-                            else:
-                                response = resp.NAK
-                                logging.warning(
-                                    "Unknown or non-existing account was used by the event: %s",
-                                    event,
-                                )
-                                self.server.error_count["account"] = (
-                                    self.server.error_count["account"] + 1
-                                )
-                        else:
-                            response = None
-                            logging.warning("CRC mismatch, ignoring message.")
-                            self.server.error_count["crc"] = (
-                                self.server.error_count["crc"] + 1
-                            )
-                    except EventFormatError as exp:
-                        response = resp.NAK
-                        account = None
-                        logging.warning("Last line: %s gave error: %s.", line, exp)
-                        self.server.error_count["format"] = (
-                            self.server.error_count["format"] + 1
-                        )
-                    finally:
-                        if not account:
-                            account_id = ""
-                            if event:
-                                account_id = event.account
-                            account = SIAAccount(account_id)
-                        self.respond(account.create_response(event, response))
-                    if event and response == resp.ACK:
-                        try:
-                            self.server.func(event)
-                        except Exception as exp:
-                            logging.warning(
-                                "Last event: %s, gave error in user function: %s.",
-                                event,
-                                exp,
-                            )
+                    decoded_line = line.decode()
+                    logging.debug("Incoming line: %s", decoded_line)
+                    self._parse_line(decoded_line)
                 else:
                     break
+
+    def _parse_line(self, line):
+        """Parse a line as a SIAEvent, match with account, check validity, finally respond.
+
+        Arguments:
+            line str -- The line to be parsed.
+
+        """
+        event = None
+        try:
+            # parse as SIAEvent, could throw EventFormatError
+            event = SIAEvent(line)
+
+            # check crc, if wrong throw CRCMismatchError
+            if not event.valid_message:
+                raise CRCMismatchError
+
+            # match to account, if not found throw ReceivedAccountUnknownError
+            account = self.server.accounts.get(event.account)
+            if not account:
+                raise ReceivedAccountUnknownError
+
+            # decrypt, will just return event if not encrypted account.
+            event = account.decrypt(event)
+            logging.debug("Parsed and decrypted (if applicable) event: %s.", event)
+
+            # check valid timestamp, throw TimestampError if not within Timeband.
+            if not event.valid_timestamp(account.allowed_timeband):
+                raise TimestampError
+
+            # check if the code is known, throw CodeNotFoundError otherwise.
+            if event.code_not_found:
+                raise CodeNotFoundError
+
+            # if all good, response with acknowledgement.
+            response = resp.ACK
+        except EventFormatError:
+            response = resp.NAK
+            account = SIAAccount("")
+            self.server.error_count["format"] = self.server.error_count["format"] + 1
+            logging.warning("Last line: %s could not be parsed as a SIAEvent.", line)
+        except CRCMismatchError:
+            response = None
+            account = SIAAccount(event.account)
+            self.server.error_count["crc"] = self.server.error_count["crc"] + 1
+            logging.warning("CRC mismatch, ignoring message.")
+        except ReceivedAccountUnknownError:
+            response = resp.NAK
+            account = SIAAccount(event.account)
+            self.server.error_count["account"] = self.server.error_count["account"] + 1
+            logging.warning(
+                "Unknown or non-existing account (%s) was used by the event: %s",
+                event.account,
+                event,
+            )
+        except TimestampError:
+            response = resp.NAK
+            self.server.error_count["timestamp"] = (
+                self.server.error_count["timestamp"] + 1
+            )
+            logging.warning("Event timestamp is no longer valid: %s", event.timestamp)
+        except CodeNotFoundError:
+            response = resp.DUH
+            self.server.error_count["code"] = self.server.error_count["code"] + 1
+            logging.warning(
+                "Code not found, replying with DUH to account: %s", event.account
+            )
+        finally:
+            self.respond(account.create_response(event, response))
+            # check for event and if the response is acknowledge, which means the event is valid.
+            if event and response == resp.ACK:
+                try:
+                    self.server.func(event)
+                except Exception as exp:
+                    logging.warning(
+                        "Last event: %s, gave error in user function: %s.", event, exp
+                    )
 
     def respond(self, response=None):
         """Respond to the client."""
