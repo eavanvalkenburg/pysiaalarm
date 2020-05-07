@@ -8,7 +8,6 @@ from typing import List
 
 from pysiaalarm import __version__
 from pysiaalarm.sia_account import SIAAccount
-from pysiaalarm.sia_errors import PortInUseError
 from pysiaalarm.sia_event import SIAEvent
 from pysiaalarm.sia_server import SIAServer
 
@@ -44,29 +43,21 @@ class SIAClient(Thread):
         self._port = port
         self._accounts = {a.account_id: a for a in accounts}
         self._func = function
-        self.server = SIAServer((self._host, self._port), self._accounts, self._func)
+        self._error_count = {
+            "crc": 0,
+            "timestamp": 0,
+            "account": 0,
+            "code": 0,
+            "format": 0,
+        }
+        self.server = SIAServer(
+            (self._host, self._port), self._accounts, self._func, self._error_count
+        )
 
-    def test_port(self):
-        """Test if the port is in use.
-
-        Raises:
-            PortInUseError: If the port is in use.
-
-        Returns:
-            bool -- True if all good.
-
-        """
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            sock.bind((self._host, self._port))
-            logging.debug("No error in bind.")
-            return True
-        except socket.error as exp:
-            logging.debug(exp)
-            logging.debug("Error in bind.")
-            raise PortInUseError
-        finally:
-            sock.close()
+    @property
+    def error_count(self):
+        """Return the error_count dict."""
+        return self._error_count
 
     def start(self):
         """Start the SIA TCP Handler thread."""

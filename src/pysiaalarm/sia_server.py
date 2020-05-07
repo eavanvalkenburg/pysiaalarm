@@ -8,7 +8,6 @@ from typing import Dict
 
 from pysiaalarm.sia_account import SIAAccount
 from pysiaalarm.sia_account import SIAResponseType as resp
-from pysiaalarm.sia_errors import CRCMismatchError
 from pysiaalarm.sia_errors import EventFormatError
 from pysiaalarm.sia_errors import ReceivedAccountUnknownError
 from pysiaalarm.sia_event import SIAEvent
@@ -27,6 +26,7 @@ class SIAServer(ThreadingTCPServer):
         server_address: (str, int),
         accounts: Dict[str, SIAAccount],
         func: Callable[[SIAEvent], None],
+        error_count: Dict,
     ):
         """Create a SIA Server.
 
@@ -34,24 +34,13 @@ class SIAServer(ThreadingTCPServer):
             server_address {tuple(string, int)} -- the address the server should listen on.
             accounts Dict[str, SIAAccount] -- accounts as dict with account_id as key, SIAAccount object as value.
             func Callable[[SIAEvent], None] -- Function called for each valid SIA event, that can be matched to a account.
+            error_count Dict -- counter kept by client to give insights in how many errorous events were discarded of each type.
 
         """
         ThreadingTCPServer.__init__(self, server_address, SIATCPHandler)
         self.accounts = accounts
         self.func = func
-
-    # def handle_error(self, request, client_address):
-    #     """Handle an error gracefully.  May be overridden.
-
-    #     The default is to print a traceback and continue.
-
-    #     """
-    #     import traceback
-
-    #     traceback.print_exc()
-    #     logging.error(
-    #         "Last request %s coming from %s gave an error.", request, client_address
-    #     )
+        self.error_count = error_count
 
 
 class SIATCPHandler(BaseRequestHandler):
@@ -91,11 +80,17 @@ class SIATCPHandler(BaseRequestHandler):
                                         "Event timestamp is no longer valid: %s",
                                         event.timestamp,
                                     )
+                                    self.server.error_count["timestamp"] = (
+                                        self.server.error_count["timestamp"] + 1
+                                    )
                                 elif event.code_not_found:
                                     response = resp.DUH
                                     logging.warning(
                                         "Code not found, replying with DUH to account: %s",
                                         event.account,
+                                    )
+                                    self.server.error_count["code"] = (
+                                        self.server.error_count["code"] + 1
                                     )
                                 else:
                                     response = resp.ACK
@@ -105,13 +100,22 @@ class SIATCPHandler(BaseRequestHandler):
                                     "Unknown or non-existing account was used by the event: %s",
                                     event,
                                 )
+                                self.server.error_count["account"] = (
+                                    self.server.error_count["account"] + 1
+                                )
                         else:
                             response = None
                             logging.warning("CRC mismatch, ignoring message.")
+                            self.server.error_count["crc"] = (
+                                self.server.error_count["crc"] + 1
+                            )
                     except EventFormatError as exp:
                         response = resp.NAK
                         account = None
                         logging.warning("Last line: %s gave error: %s.", line, exp)
+                        self.server.error_count["format"] = (
+                            self.server.error_count["format"] + 1
+                        )
                     finally:
                         if not account:
                             account_id = ""
@@ -133,7 +137,6 @@ class SIATCPHandler(BaseRequestHandler):
 
     def respond(self, response=None):
         """Respond to the client."""
-        logging.info("Sending response to client: %s", response)
         if response:
             header = ("%04x" % len(response)).upper()
             res = f"\n{SIAEvent.crc_calc(response)}{header}{response}\r"

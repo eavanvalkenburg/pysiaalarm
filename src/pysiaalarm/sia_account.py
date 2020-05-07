@@ -55,7 +55,7 @@ class SIAAccount:
 
         Keyword Arguments:
             key {str} -- The encryption key specified by the alarm system, should be 16,24 or 32 characters hexadecimal. (default: {None})
-            allowed_timeband {(int, int)} -- Seconds before and after current time that a message is valid in, unencrypted messages do not have to have a timestamp. 
+            allowed_timeband {(int, int)} -- Seconds before and after current time that a message is valid in, unencrypted messages do not have to have a timestamp.
 
         """
         SIAAccount.validate_account(account_id, key)

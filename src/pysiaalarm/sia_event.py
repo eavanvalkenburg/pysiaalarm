@@ -7,7 +7,6 @@ from datetime import timedelta
 
 from pysiaalarm import __version__
 from pysiaalarm.sia_const import ALL_CODES
-from pysiaalarm.sia_errors import CRCMismatchError
 from pysiaalarm.sia_errors import EventFormatError
 
 __author__ = "E.A. van Valkenburg"
@@ -86,7 +85,6 @@ class SIAEvent:
             current_time = datetime.utcnow()
             current_min40 = current_time - timedelta(seconds=allowed_timeband[0])
             current_plus20 = current_time + timedelta(seconds=allowed_timeband[1])
-            logging.info("Comparing between %s and %s", current_min40, current_plus20)
             return current_min40 <= self.timestamp <= current_plus20
         else:
             return True

@@ -15,8 +15,6 @@ from Crypto.Cipher import AES
 from pysiaalarm.sia_const import ALL_CODES
 from pysiaalarm.sia_event import SIAEvent
 
-# from .test_utils import create_test_items  # pylint: disable=no-name-in-module
-
 BASIC_CONTENT = f"|Nri0/<code>000]<timestamp>"
 BASIC_LINE = f'SIA-DCS"<seq>L0#<account>[<content>'
 
@@ -99,6 +97,7 @@ def different_account(account, test_case=None):
 
 
 def timestamp_offset(test_case=None):
+    """Create timestamp offset for testing."""
     if test_case:
         if test_case.get("time"):
             return 100
@@ -114,7 +113,6 @@ def client_program(
     test_case=None,  # [{"code": False, "crc": False, "account": False}]
 ):
     """Create the socket client and start sending messages every 5 seconds, until stopped, or the server disappears."""
-
     logging.info("Test client config: %s", config)
     host = socket.gethostname()  # as both code is running on same pc
     port = config["port"]  # socket server port number
