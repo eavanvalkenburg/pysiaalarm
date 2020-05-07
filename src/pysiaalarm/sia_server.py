@@ -75,38 +75,40 @@ class SIATCPHandler(BaseRequestHandler):
                     logging.debug("Incoming line: %s", line.decode())
                     try:
                         event = None
+                        account = None
                         event = SIAEvent(line.decode())
-                        account = self.server.accounts.get(event.account)
-                        if account:
-                            event = account.decrypt(event)
-                            logging.debug(
-                                "Parsed and decrypted (if applicable) event: %s.", event
-                            )
-                            if not event.valid_timestamp(account.allowed_timeband):
+                        if event.valid_message:
+                            account = self.server.accounts.get(event.account)
+                            if account:
+                                event = account.decrypt(event)
+                                logging.debug(
+                                    "Parsed and decrypted (if applicable) event: %s.",
+                                    event,
+                                )
+                                if not event.valid_timestamp(account.allowed_timeband):
+                                    response = resp.NAK
+                                    logging.warning(
+                                        "Event timestamp is no longer valid: %s",
+                                        event.timestamp,
+                                    )
+                                elif event.code_not_found:
+                                    response = resp.DUH
+                                    logging.warning(
+                                        "Code not found, replying with DUH to account: %s",
+                                        event.account,
+                                    )
+                                else:
+                                    response = resp.ACK
+                            else:
                                 response = resp.NAK
                                 logging.warning(
-                                    "Event timestamp is no longer valid: %s",
-                                    event.timestamp,
+                                    "Unknown or non-existing account was used by the event: %s",
+                                    event,
                                 )
-                            elif event.code_not_found:
-                                response = resp.DUH
-                                logging.warning(
-                                    "Code not found, replying with DUH to account: %s",
-                                    event.account,
-                                )
-                            else:
-                                response = resp.ACK
                         else:
-                            event = None
-                            raise ReceivedAccountUnknownError(
-                                "Unknown or non-existing account was used by the event: &s",
-                                event,
-                            )
-                    except CRCMismatchError:
-                        response = None
-                        account = None
-                        logging.warning("CRC mismatch, ignoring message.")
-                    except (EventFormatError, ReceivedAccountUnknownError) as exp:
+                            response = None
+                            logging.warning("CRC mismatch, ignoring message.")
+                    except EventFormatError as exp:
                         response = resp.NAK
                         account = None
                         logging.warning("Last line: %s gave error: %s.", line, exp)
@@ -117,7 +119,7 @@ class SIATCPHandler(BaseRequestHandler):
                                 account_id = event.account
                             account = SIAAccount(account_id)
                         self.respond(account.create_response(event, response))
-                    if event:
+                    if event and response == resp.ACK:
                         try:
                             self.server.func(event)
                         except Exception as exp:

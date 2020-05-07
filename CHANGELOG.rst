@@ -2,6 +2,11 @@
 Changelog
 =========
 
+Version 0.3
+===========
+
+- Cleaned up a lot of code, made the errors and behaviour more consistent with official SIA DC-09 spec.
+
 Version 0.2
 ===========
 

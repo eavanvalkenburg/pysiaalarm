@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
 """Class for tests of pysiaalarm."""
+import json
 import logging
 import random
 import socket
+import threading
+import time
 
 import pytest
 from mock import patch
 from pysiaalarm.sia_account import SIAAccount
 from pysiaalarm.sia_client import SIAClient
+from pysiaalarm.sia_errors import CRCMismatchError
 from pysiaalarm.sia_errors import InvalidAccountFormatError
 from pysiaalarm.sia_errors import InvalidAccountLengthError
 from pysiaalarm.sia_errors import InvalidKeyFormatError
 from pysiaalarm.sia_errors import InvalidKeyLengthError
 from pysiaalarm.sia_errors import PortInUseError
 from pysiaalarm.sia_event import SIAEvent
-from test_utils import create_test_items
+
+from tests.test_client import client_program
+from tests.test_utils import create_test_items
 
 __author__ = "E.A. van Valkenburg"
 __copyright__ = "E.A. van Valkenburg"
@@ -55,7 +61,6 @@ def run_fake_client(host, port, message):
         fake_client.sendall(message)
         data = fake_client.recv(1024)
         data = bytearray(data)
-        _LOGGER.debug(data.decode())
     except Exception as e:
         raise e
     finally:
@@ -91,40 +96,40 @@ class testSIA(object):
         """Test event parsing methods."""
         event = SIAEvent(line)
         assert event.code == code
-        assert event.account == account
         assert event.type == type
+        assert event.account == account
 
-    @pytest.mark.parametrize(
-        "key, account, code, alter_crc, count",
-        [
-            (KEY, ACCOUNT, "RP", False, 1),
-            (None, ACCOUNT, "RP", False, 1),
-            (None, ACCOUNT, "RP", True, 0),
-            (KEY, ACCOUNT, "RP", True, 0),
-        ],
-    )
-    def test_sia_client(self, key, account, code, alter_crc, count):
-        """Test sia client behaviour."""
-        message = create_test_line(key, account, code, alter_crc)
-        _LOGGER.debug(message)
-        events = []
+    # @pytest.mark.parametrize(
+    #     "key, account, code, alter_crc, count",
+    #     [
+    #         (KEY, ACCOUNT, "RP", False, 1),
+    #         (None, ACCOUNT, "RP", False, 1),
+    #         (None, ACCOUNT, "RP", True, 0),
+    #         (KEY, ACCOUNT, "RP", True, 0),
+    #     ],
+    # )
+    # def test_sia_client(self, key, account, code, alter_crc, count):
+    #     """Test sia client behaviour."""
+    #     message = create_test_line(key, account, code, alter_crc)
+    #     _LOGGER.debug(message)
+    #     events = []
 
-        def func_append(event: SIAEvent):
-            events.append(event)
+    #     def func_append(event: SIAEvent):
+    #         events.append(event)
 
-        client = SIAClient(
-            host="",
-            port=PORT,
-            accounts=[SIAAccount(account_id=account, key=key)],
-            function=func_append,
-        )
-        client.start()
-        run_fake_client(HOST, PORT, message.encode())
-        client.stop()
+    #     client = SIAClient(
+    #         host="",
+    #         port=PORT,
+    #         accounts=[SIAAccount(account_id=account, key=key)],
+    #         function=func_append,
+    #     )
+    #     client.start()
+    #     run_fake_client(HOST, PORT, message.encode())
+    #     client.stop()
 
-        assert len(events) == count
-        if count == 1:
-            assert events[0].code == code
+    #     assert len(events) == count
+    #     if count == 1:
+    #         assert events[0].code == code
 
     @pytest.mark.parametrize(
         "key, account, port, error",
@@ -167,3 +172,47 @@ class testSIA(object):
                 assert True if not error else False
         except Exception as exp:
             assert isinstance(exp, error)
+
+    @pytest.mark.parametrize("config_file", [("tests\\unencrypted_config.json")])
+    def test_client(self, config_file):
+        """Test the client
+
+        Arguments:
+            config_file {str} -- Filename of the config
+        """
+        with open(config_file, "r") as f:
+            config = json.load(f)
+
+        events = []
+
+        def func_append(event: SIAEvent):
+            events.append(event)
+
+        siac = SIAClient(
+            host="",
+            port=config["port"],
+            accounts=[SIAAccount(account_id=config["account_id"], key=config["key"])],
+            function=func_append,
+        )
+        siac.start()
+
+        tests = [
+            {"code": False, "crc": False, "account": False, "time": False},
+            {"code": True, "crc": False, "account": False, "time": False},
+            {"code": False, "crc": True, "account": False, "time": False},
+            {"code": False, "crc": False, "account": True, "time": False},
+            {"code": False, "crc": False, "account": False, "time": True},
+        ]
+
+        t = threading.Thread(
+            target=client_program, name="test_client", args=(config, 1, tests)
+        )
+        t.daemon = True
+        t.start()
+
+        # run for 30 seconds
+        time.sleep(30)
+
+        siac.stop()
+
+        assert len(events) == 1

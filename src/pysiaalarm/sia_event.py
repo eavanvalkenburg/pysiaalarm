@@ -48,8 +48,6 @@ class SIAEvent:
         self.concerns = ""
         self.calc_crc = SIAEvent.crc_calc(self.full_message)
         self._parse_timestamp()
-        if not self.valid_message:
-            raise CRCMismatchError("Event %s had a mismatched CRC", self)
         if self.code:
             self._add_sia()
 

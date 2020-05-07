@@ -2,4 +2,4 @@
 Contributors
 ============
 
-* E.A. van Valkenburg <edvan@microsoft.com>
+* E.A. van Valkenburg <github@vanvalkenburg.eu>
