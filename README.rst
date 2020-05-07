@@ -3,14 +3,14 @@ pysiaalarm
 ==========
 
 
-Python package for creating a client that talks with SIA-based alarm systems.
+Python package for creating a client that talks with SIA-based alarm systems.  Currently tested using a Ajax Systems alarm system. If you have other systems please reach out.
 
 
 Description
 ===========
 
 This package was created to talk with alarm systems using the SIA protocal, it was tested using a Ajax system, but should support all defined SIA codes. 
-It creates a new thread with a TCP Server running binded to a host and port, the alarm system acts a client that sends messages to that server and the server acknowledges the messages and call the supplied function.
+It creates a new thread with a TCP Server running bound to a host and port, the alarm system acts a client that sends messages to that server and the server acknowledges the messages and call the supplied function.
 
 
 Config 
@@ -19,7 +19,7 @@ Config
 The SIAClient takes these arguments:
 
 - host: if there is a specific host to talk to, usually has '' for localhost.
-- port: the tcp port your alarm system listens to.
+- port: the TCP port your alarm system communicates with.
 - accounts: list of type SIAAccount that are to be allowed to send messages to this server
 - function: a function that will be called for every event that it handles, takes only a SIAEvent as parameter and does not pass back anything.
 
