@@ -6,22 +6,19 @@ from threading import Thread
 from typing import Callable
 from typing import List
 
-from pysiaalarm import __version__
-from pysiaalarm.sia_account import SIAAccount
-from pysiaalarm.sia_event import SIAEvent
-from pysiaalarm.sia_server import SIAServer
-
-__author__ = "E.A. van Valkenburg"
-__copyright__ = "E.A. van Valkenburg"
-__license__ = "mit"
-__version__ = __version__
+from . import __author__
+from . import __copyright__
+from . import __license__
+from . import __version__
+from .base_sia_client import BaseSIAClient
+from .sia_account import SIAAccount
+from .sia_event import SIAEvent
+from .sia_server import SIAServer
 
 logging.getLogger(__name__)
 
 
-class SIAClient(Thread):
-    """Class for SIA Clients."""
-
+class SIAClient(Thread, BaseSIAClient):
     def __init__(
         self,
         host: str,
@@ -29,7 +26,7 @@ class SIAClient(Thread):
         accounts: List[SIAAccount],
         function: Callable[[SIAEvent], None],
     ):
-        """Create the SIA Client object.
+        """Create the threaded SIA Client object.
 
         Arguments:
             host {str} -- Host to run the server on, usually would be ""
@@ -39,36 +36,22 @@ class SIAClient(Thread):
 
         """
         Thread.__init__(self)
-        self._host = host
-        self._port = port
-        self._accounts = {a.account_id: a for a in accounts}
-        self._func = function
-        self._error_count = {
-            "crc": 0,
-            "timestamp": 0,
-            "account": 0,
-            "code": 0,
-            "format": 0,
-        }
-        self.server = SIAServer(
-            (self._host, self._port), self._accounts, self._func, self._error_count
+        BaseSIAClient.__init__(self, host, port, accounts, function)
+        self.sia_server = SIAServer(
+            (self._host, self._port), self._accounts, self._func, self._counts
         )
-
-    @property
-    def error_count(self):
-        """Return the error_count dict."""
-        return self._error_count
 
     def start(self):
         """Start the SIA TCP Handler thread."""
-        logging.debug("Starting thread.")
-        self.server_thread = Thread(target=self.server.serve_forever)
+        logging.debug("Starting SIA.")
+        self.server_thread = Thread(target=self.sia_server.serve_forever)
         self.server_thread.daemon = True
         self.server_thread.start()
 
     def stop(self):
         """Stop the SIA TCP Handler thread."""
-        logging.debug("Stopping thread.")
-        self.server.shutdown()
-        self.server.server_close()
+        logging.debug("Stopping SIA.")
+        self.sia_server.shutdown_flag = True
+        self.sia_server.shutdown()
+        self.sia_server.server_close()
         self.server_thread.join()

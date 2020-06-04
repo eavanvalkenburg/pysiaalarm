@@ -1,33 +1,24 @@
-#%%
 import json
 import logging
 import os
 import time
-from importlib import reload
 
-from pysiaalarm import dist_name
-from pysiaalarm.sia_account import SIAAccount
-from pysiaalarm.sia_client import SIAClient
-from pysiaalarm.sia_event import SIAEvent
-
-reload(logging)
-
-print(os.getcwd())
+from pysiaalarm import SIAAccount
+from pysiaalarm import SIAClient
+from pysiaalarm import SIAEvent
 
 logging.basicConfig(level=logging.DEBUG)
 
-#%%
 events = []
 
 
 def func(event: SIAEvent):
-    logging.info(event)
     events.append(event)
 
 
-with open("local_config.json", "r") as f:
+with open("unencrypted_config.json", "r") as f:
     config = json.load(f)
-#%%
+
 client = SIAClient(
     config["host"],
     config["port"],
@@ -35,20 +26,20 @@ client = SIAClient(
     function=func,
 )
 
-#%%
 client.start()
-#%%
-time.sleep(120)
-#%%
-client.stop()
-#%%
-print("--------------------------------------------------")
-for ev in events:
-    print(ev)
 
-# %%
+sleep_time = 120
+print("--------------------------------------------------")
+print(f"Client started... will run for {sleep_time} seconds")
+time.sleep(sleep_time)
+print(f"Client will stop now...")
+print("--------------------------------------------------")
+client.stop()
+
+# for ev in events:
+#     print(ev)
+
 print("--------------------------------------------------")
 print(len(events))
-print(client.error_count)
+print(client.counts)
 print("--------------------------------------------------")
-# %%

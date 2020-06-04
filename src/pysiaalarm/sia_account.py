@@ -8,17 +8,16 @@ from typing import Tuple
 
 from Crypto import Random
 from Crypto.Cipher import AES
-from pysiaalarm import __version__
-from pysiaalarm.sia_errors import InvalidAccountFormatError
-from pysiaalarm.sia_errors import InvalidAccountLengthError
-from pysiaalarm.sia_errors import InvalidKeyFormatError
-from pysiaalarm.sia_errors import InvalidKeyLengthError
-from pysiaalarm.sia_event import SIAEvent
 
-__author__ = "E.A. van Valkenburg"
-__copyright__ = "E.A. van Valkenburg"
-__license__ = "mit"
-__version__ = __version__
+from . import __author__
+from . import __copyright__
+from . import __license__
+from . import __version__
+from .sia_errors import InvalidAccountFormatError
+from .sia_errors import InvalidAccountLengthError
+from .sia_errors import InvalidKeyFormatError
+from .sia_errors import InvalidKeyLengthError
+from .sia_event import SIAEvent
 
 logging.getLogger(__name__)
 
@@ -43,8 +42,6 @@ def _get_timestamp() -> str:
 
 
 class SIAAccount:
-    """Class for SIA Account."""
-
     def __init__(
         self, account_id: str, key: str = None, allowed_timeband: (int, int) = (40, 20)
     ):
@@ -128,22 +125,25 @@ class SIAAccount:
         """
         if response_type == SIAResponseType.ACK and event:
             if self.encrypted:
-                return f'"*ACK"{event.sequence}L0#{event.account}[{self.encrypt(_create_padded_message("]")+_get_timestamp())}'
+                res = f'"*ACK"{event.sequence}L0#{event.account}[{self.encrypt(_create_padded_message("]")+_get_timestamp())}'
             else:
-                return f'"ACK"{event.sequence}L0#{event.account}[]'
+                res = f'"ACK"{event.sequence}L0#{event.account}[]'
         elif response_type == SIAResponseType.DUH and event:
-            return f'"DUH"{event.sequence}L0#{event.account}[]'
+            res = f'"DUH"{event.sequence}L0#{event.account}[]'
         elif response_type == SIAResponseType.NAK:
-            return f'"NAK"0000L0R0A0[]{_get_timestamp()}'
+            res = f'"NAK"0000L0R0A0[]{_get_timestamp()}'
         elif not response_type:
-            return None
+            return b"\n\r"
         else:
             logging.warning(
                 "Could not find the right response message for response type: %s and optional event: %s",
                 response_type,
                 event,
             )
-            return None
+            return b"\n\r"
+
+        header = ("%04x" % len(res)).upper()
+        return f"\n{SIAEvent.crc_calc(res)}{header}{res}\r".encode()
 
     @classmethod
     def validate_account(cls, account_id: str = None, key: str = None):

@@ -5,21 +5,17 @@ import re
 from datetime import datetime
 from datetime import timedelta
 
-from pysiaalarm import __version__
-from pysiaalarm.sia_const import ALL_CODES
-from pysiaalarm.sia_errors import EventFormatError
-
-__author__ = "E.A. van Valkenburg"
-__copyright__ = "E.A. van Valkenburg"
-__license__ = "mit"
-__version__ = __version__
+from . import __author__
+from . import __copyright__
+from . import __license__
+from . import __version__
+from .sia_const import ALL_CODES
+from .sia_errors import EventFormatError
 
 logging.getLogger(__name__)
 
 
 class SIAEvent:
-    """Class for SIA Events."""
-
     def __init__(self, line: str):
         """Create a SIA Event from a line.
 
@@ -28,7 +24,6 @@ class SIAEvent:
 
         Raises:
             EventFormatError: If the event is not formatted according to SIA DC09.
-            CRCMismatchError: Error when there is a mismatch in CRC Codes.
 
         """
         regex = r"([A-F0-9]{4})([A-F0-9]{4})(\"(SIA-DCS|\*SIA-DCS)\"([0-9]{4})(R[A-F0-9]{1,6})?(L[A-F0-9]{1,6})#([A-F0-9]{3,16})\[([A-F0-9]*)?(.*Nri(\d*)/([a-zA-z]{2})(.*)]_([0-9:,-]*))?)"

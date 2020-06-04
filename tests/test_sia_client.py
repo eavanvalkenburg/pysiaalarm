@@ -9,20 +9,16 @@ import time
 
 import pytest
 from mock import patch
-from pysiaalarm.sia_account import SIAAccount
-from pysiaalarm.sia_client import SIAClient
-from pysiaalarm.sia_errors import InvalidAccountFormatError
-from pysiaalarm.sia_errors import InvalidAccountLengthError
-from pysiaalarm.sia_errors import InvalidKeyFormatError
-from pysiaalarm.sia_errors import InvalidKeyLengthError
-from pysiaalarm.sia_event import SIAEvent
+from pysiaalarm import InvalidAccountFormatError
+from pysiaalarm import InvalidAccountLengthError
+from pysiaalarm import InvalidKeyFormatError
+from pysiaalarm import InvalidKeyLengthError
+from pysiaalarm import SIAAccount
+from pysiaalarm import SIAClient
+from pysiaalarm import SIAEvent
 
 from tests.test_client import client_program
 from tests.test_utils import create_test_items
-
-__author__ = "E.A. van Valkenburg"
-__copyright__ = "E.A. van Valkenburg"
-__license__ = "mit"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -136,11 +132,16 @@ class testSIA(object):
         time.sleep(30)
 
         siac.stop()
-        assert siac.error_count == {
-            "crc": 1,
-            "timestamp": 1,
-            "account": 1,
-            "code": 1,
-            "format": 0,
+        assert siac.counts == {
+            "events": 5,
+            "valid_events": 1,
+            "errors": {
+                "crc": 1,
+                "timestamp": 1,
+                "account": 1,
+                "code": 1,
+                "format": 0,
+                "user_code": 0,
+            },
         }
         assert len(events) == 1

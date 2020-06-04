@@ -1,8 +1,7 @@
-![CI](https://github.com/eavanvalkenburg/pysiaalarm/workflows/CI/badge.svg?branch=dev)
+![CI](https://github.com/eavanvalkenburg/pysiaalarm/workflows/CI/badge.svg?branch=master)
 ![Build](https://github.com/eavanvalkenburg/pysiaalarm/workflows/Build/badge.svg?event=release)
 
 <H1>pySIAAlarm</H1>
-
 
 Python package for creating a client that talks with SIA-based alarm systems. Currently tested using a Ajax Systems alarm system. If you have other systems please reach out.
 
@@ -10,12 +9,25 @@ Python package for creating a client that talks with SIA-based alarm systems. Cu
 <H2>Description</H2>
 
 This package was created to talk with alarm systems using the SIA protocol, it was tested using a Ajax system, but should support all defined SIA codes. 
-It creates a new thread with a TCP Server running bound to the host and port, the alarm system acts a client that sends messages to that server and the server acknowledges the messages and call the supplied function.
+It either creates a new thread with a TCP Server or a asyncio coroutine running bound to the host and port, the alarm system acts a client that sends messages to that server and the server acknowledges the messages and call the supplied function.
 
+The asyncio version seems to be faster but that depends on your system.
 
 <H2>Config</H2>
 
+Choose to use the Threaded approach or a Asyncio approach
+
 <H3>SIAClient</H3>
+
+Threaded version:
+```python 
+from pysiaalarm import SIAClient, SIAAccount
+``` 
+Asyncio version:
+```python 
+from pysiaalarm.aio import SIAClient, SIAAccount
+``` 
+
 
 The SIAClient takes these arguments:
 
@@ -31,4 +43,4 @@ SIAAccount takes these arguments:
 - [optional] key: encryption key specified in your alarm system 16, 24, or 32 ASCII characters
 - [optional] allowed_timeband: encrypted messages have a timestamp and those are checked against this timeband, by default the timestamp is allowed between -40 and +20 seconds comparing the timestamp in the message and the current timestamp of the system running the server.
 
-See [`tests/run.py`](tests/run.py) for a complete sample.
+See [`tests/run.py`](tests/run.py) or [`tests/run_aio.py`](tests/run_aio.py) for a complete sample.
