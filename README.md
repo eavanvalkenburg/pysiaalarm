@@ -1,5 +1,6 @@
 ![CI](https://github.com/eavanvalkenburg/pysiaalarm/workflows/CI/badge.svg?branch=master)
-![Build](https://github.com/eavanvalkenburg/pysiaalarm/workflows/Build/badge.svg?event=release)
+![Build](https://github.com/eavanvalkenburg/pysiaalarm/workflows/Build/badge.svg)
+[![PyPI version](https://badge.fury.io/py/pysiaalarm.svg)](https://badge.fury.io/py/pysiaalarm)
 
 <H1>pySIAAlarm</H1>
 
