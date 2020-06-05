@@ -2,7 +2,9 @@
 import asyncio
 import logging
 from typing import Callable
+from typing import Coroutine
 from typing import List
+from typing import Union
 
 from .. import __author__
 from .. import __copyright__
@@ -30,16 +32,18 @@ class SIAClient(BaseSIAClient):
             host {str} -- Host to run the server on, usually would be ""
             port {int} -- The port the server listens to.
             accounts {List[SIAAccount]} -- List of SIA Accounts to add.
-            function {Callable[[SIAEvent], None]} -- The function that gets called for each event.
+            function {Callable[[SIAEvent], None]} -- The function that gets called for each event, can be a asyncio coroutine, otherwise the function gets wrapped to be non-blocking.
 
         """
+        if not asyncio.iscoroutinefunction(function):
+            function = asyncio.coroutine(function)
         BaseSIAClient.__init__(self, host, port, accounts, function)
+        self.sia_server = SIAServer(self._accounts, self._func, self._counts)
 
     def start(self):
         """Start the asynchronous SIA server."""
         logging.debug("Starting SIA.")
         loop = asyncio.get_event_loop()
-        self.sia_server = SIAServer(self._accounts, self._func, self._counts)
         self.coro = asyncio.start_server(
             self.sia_server.handle_line, self._host, self._port, loop=loop
         )

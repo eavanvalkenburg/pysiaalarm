@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """This is a the main class for the SIA Client."""
+import asyncio
 import logging
 import socket
 from threading import Thread
 from typing import Callable
+from typing import Coroutine
 from typing import List
+from typing import Union
 
 from . import __author__
 from . import __copyright__
@@ -35,6 +38,10 @@ class SIAClient(Thread, BaseSIAClient):
             function {Callable[[SIAEvent], None]} -- The function that gets called for each event.
 
         """
+        if asyncio.iscoroutinefunction(function):
+            raise TypeError(
+                "Asyncio coroutines as the function are not supported, please use the aio version of the SIAClient for that."
+            )
         Thread.__init__(self)
         BaseSIAClient.__init__(self, host, port, accounts, function)
         self.sia_server = SIAServer(

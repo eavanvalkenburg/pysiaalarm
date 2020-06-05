@@ -149,7 +149,7 @@ def tcp_client(message, host, port, loop):
 
 def client_program(
     config,
-    time_between=1,
+    time_between=3,
     test_case=None,  # [{"code": False, "crc": False, "account": False}]
 ):
     """Create the socket client and start sending messages every 5 seconds, until stopped, or the server disappears."""
@@ -157,12 +157,19 @@ def client_program(
     host = config["host"]  # as both code is running on same pc
     port = config["port"]  # socket server port number
 
-    index = 0
+    loop = asyncio.get_event_loop()
+    task = loop.create_task(
+        async_send_messages(host, port, loop, test_case, time_between)
+    )
+    loop.run_until_complete(task)
+    loop.close()
+
+
+async def async_send_messages(host, port, loop, test_case, time_between):
+    stop = False
     cases = len(test_case) if test_case else None
     logging.debug("Number of cases: %s", cases)
-    stop = False
-
-    loop = asyncio.get_event_loop()
+    index = 0
     while True and not stop:
         logging.debug("Index: %s", index)
         if cases:
@@ -179,26 +186,13 @@ def client_program(
             f"Message with account: {account}, code: {code}, altered crc: {alter_crc}, timedelta: {timed}"
         )
         # loop.create_task(tcp_client(message, host, port, loop))
-        loop.run_until_complete(tcp_client(message, host, port, loop))
+        await tcp_client(message, host, port, loop)
         if cases:
             if index < cases - 1:
                 index += 1
             else:
                 stop = True
-        # else:
-        # if alter_crc:
-        #     assert len(str.strip(data)) == 0
-        # elif account == "FFFFFFFFF":
-        #     assert data.find("NAK") > 0
-        # elif timed.seconds >= 40:
-        #     assert data.find("NAK") > 0
-        # elif code == "ZZ":
-        #     assert data.find("DUH") > 0
-        # else:
-        #     assert data.find("ACK") > 0
-        # time.sleep(time_between)
-
-    loop.close()
+        await asyncio.sleep(time_between)
 
 
 if __name__ == "__main__":

@@ -3,7 +3,9 @@ import logging
 from abc import ABC
 from abc import abstractmethod
 from typing import Callable
+from typing import Coroutine
 from typing import List
+from typing import Union
 
 from .sia_account import SIAAccount
 from .sia_event import SIAEvent
@@ -26,9 +28,10 @@ class BaseSIAClient(ABC):
             function {Callable[[SIAEvent], None]} -- The function that gets called for each event.
 
         """
+        self.sia_server = None
         self._host = host
         self._port = port
-        self._accounts = {a.account_id: a for a in accounts}
+        self.accounts = accounts
         self._func = function
         self._counts = {
             "events": 0,
@@ -42,6 +45,26 @@ class BaseSIAClient(ABC):
                 "user_code": 0,
             },
         }
+
+    @property
+    def accounts(self) -> List[SIAAccount]:
+        """Return accounts list, ignoring internal structure.
+
+        Returns:
+            List[SIAAccount]: List with SIAAccounts
+        """
+        return list(self._accounts.values())
+
+    @accounts.setter
+    def accounts(self, new_accounts: List[SIAAccount]):
+        """Set the accounts to monitor
+
+        Args:
+            new_accounts (List[SIAAccount]): List of SIAAccounts to monitor.
+        """
+        self._accounts = {a.account_id: a for a in new_accounts}
+        if self.sia_server:
+            self.sia_server.accounts = self._accounts
 
     @property
     def counts(self):

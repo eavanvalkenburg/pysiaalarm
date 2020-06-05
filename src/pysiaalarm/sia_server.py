@@ -4,7 +4,9 @@ import logging
 from socketserver import BaseRequestHandler
 from socketserver import ThreadingTCPServer
 from typing import Callable
+from typing import Coroutine
 from typing import Dict
+from typing import Union
 
 from . import __author__
 from . import __copyright__
