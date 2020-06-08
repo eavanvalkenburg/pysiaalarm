@@ -19,7 +19,7 @@ from .sia_errors import InvalidKeyFormatError
 from .sia_errors import InvalidKeyLengthError
 from .sia_event import SIAEvent
 
-logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class SIAResponseType(Enum):
@@ -135,7 +135,7 @@ class SIAAccount:
         elif not response_type:
             return b"\n\r"
         else:
-            logging.warning(
+            _LOGGER.warning(
                 "Could not find the right response message for response type: %s and optional event: %s",
                 response_type,
                 event,

@@ -15,7 +15,7 @@ from ..sia_account import SIAAccount
 from ..sia_event import SIAEvent
 from .sia_server import SIAServer
 
-logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class SIAClient(BaseSIAClient):
@@ -42,7 +42,7 @@ class SIAClient(BaseSIAClient):
 
     def start(self):
         """Start the asynchronous SIA server."""
-        logging.debug("Starting SIA.")
+        _LOGGER.debug("Starting SIA.")
         loop = asyncio.get_event_loop()
         self.coro = asyncio.start_server(
             self.sia_server.handle_line, self._host, self._port, loop=loop
@@ -51,6 +51,6 @@ class SIAClient(BaseSIAClient):
 
     async def stop(self):
         """Stop the asynchronous SIA server."""
-        logging.info("Stopping SIA.")
+        _LOGGER.info("Stopping SIA.")
         self.sia_server.shutdown_flag = True
         await self.task

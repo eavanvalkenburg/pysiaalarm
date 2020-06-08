@@ -17,7 +17,7 @@ from .sia_account import SIAAccount
 from .sia_account import SIAResponseType as resp
 from .sia_event import SIAEvent
 
-logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class SIAServer(ThreadingTCPServer, BaseSIAServer):
@@ -63,7 +63,7 @@ class SIATCPHandler(BaseRequestHandler):
                 line = raw[1:splitter]
                 raw = raw[splitter + 1 :]
                 decoded_line = line.decode()
-                logging.debug("Incoming line: %s", decoded_line)
+                _LOGGER.debug("Incoming line: %s", decoded_line)
                 self.server.counts["events"] = self.server.counts["events"] + 1
                 event, account, response = self.server.parse_and_check_event(
                     decoded_line
@@ -78,7 +78,7 @@ class SIATCPHandler(BaseRequestHandler):
                     try:
                         self.server.func(event)
                     except Exception as exp:
-                        logging.warning(
+                        _LOGGER.warning(
                             "Last event: %s, gave error in user function: %s.",
                             event,
                             exp,

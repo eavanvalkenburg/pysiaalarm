@@ -15,7 +15,7 @@ from ..sia_account import SIAAccount
 from ..sia_account import SIAResponseType
 from ..sia_event import SIAEvent
 
-logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 empty_bytes = b""
 
 
@@ -54,7 +54,7 @@ class SIAServer(BaseSIAServer):
             if data == empty_bytes or reader.at_eof():
                 break
             line = str.strip(data.decode())
-            logging.debug("Incoming line: %s", line)
+            _LOGGER.debug("Incoming line: %s", line)
             if not line:
                 return
             event = None
@@ -69,7 +69,7 @@ class SIAServer(BaseSIAServer):
             try:
                 await self.func(event)
             except Exception as exp:
-                logging.warning(
+                _LOGGER.warning(
                     "Last event: %s, gave error in user function: %s.", event, exp
                 )
                 self.counts["errors"]["user_code"] = (

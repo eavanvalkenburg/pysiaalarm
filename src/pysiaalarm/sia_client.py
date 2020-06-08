@@ -18,7 +18,7 @@ from .sia_account import SIAAccount
 from .sia_event import SIAEvent
 from .sia_server import SIAServer
 
-logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class SIAClient(Thread, BaseSIAClient):
@@ -50,14 +50,14 @@ class SIAClient(Thread, BaseSIAClient):
 
     def start(self):
         """Start the SIA TCP Handler thread."""
-        logging.debug("Starting SIA.")
+        _LOGGER.debug("Starting SIA.")
         self.server_thread = Thread(target=self.sia_server.serve_forever)
         self.server_thread.daemon = True
         self.server_thread.start()
 
     def stop(self):
         """Stop the SIA TCP Handler thread."""
-        logging.debug("Stopping SIA.")
+        _LOGGER.debug("Stopping SIA.")
         self.sia_server.shutdown_flag = True
         self.sia_server.shutdown()
         self.sia_server.server_close()

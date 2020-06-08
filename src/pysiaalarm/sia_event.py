@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """This is a class for SIA Events."""
-import logging
 import re
 from datetime import datetime
 from datetime import timedelta
@@ -11,8 +10,6 @@ from . import __license__
 from . import __version__
 from .sia_const import ALL_CODES
 from .sia_errors import EventFormatError
-
-logging.getLogger(__name__)
 
 
 class SIAEvent:
@@ -33,7 +30,6 @@ class SIAEvent:
             raise EventFormatError(
                 "No matches found, event was not a SIA Spec event, line was: %s", line
             )
-        # logging.debug(matches)
         self.msg_crc, self.length, self.full_message, self.message_type, self.sequence, self.receiver, self.prefix, self.account, self.encrypted_content, self.content, self.zone, self.code, self.message, self.timestamp = matches[
             0
         ]

@@ -9,7 +9,7 @@ from .sia_account import SIAResponseType
 from .sia_errors import EventFormatError
 from .sia_event import SIAEvent
 
-logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class BaseSIAServer(ABC):
@@ -49,30 +49,30 @@ class BaseSIAServer(ABC):
         try:
             event = SIAEvent(line)
         except EventFormatError:
-            logging.warning("Last line: %s could not be parsed as a SIAEvent.", line)
+            _LOGGER.warning("Last line: %s could not be parsed as a SIAEvent.", line)
             self.counts["errors"]["format"] = self.counts["errors"]["format"] + 1
             return None, SIAAccount(""), SIAResponseType.NAK
 
         if not event.valid_message:
             self.counts["errors"]["crc"] = self.counts["errors"]["crc"] + 1
-            logging.warning("CRC mismatch, ignoring message.")
+            _LOGGER.warning("CRC mismatch, ignoring message.")
             return event, SIAAccount(event.account), None
 
         account = self.accounts.get(event.account)
         if not account:
             self.counts["errors"]["account"] = self.counts["errors"]["account"] + 1
-            logging.warning(
+            _LOGGER.warning(
                 "Unknown or non-existing account (%s) was used by the event: %s",
                 event.account,
                 event,
             )
             return event, SIAAccount(event.account), SIAResponseType.NAK
         event = account.decrypt(event)
-        logging.debug("Parsed event: %s.", event)
+        _LOGGER.debug("Parsed event: %s.", event)
 
         if event.code_not_found:
             self.counts["errors"]["code"] = self.counts["errors"]["code"] + 1
-            logging.warning(
+            _LOGGER.warning(
                 "Code not found, replying with DUH to account: %s", event.account
             )
             return event, account, SIAResponseType.DUH
@@ -80,7 +80,7 @@ class BaseSIAServer(ABC):
         # check valid timestamp, throw TimestampError if not within Timeband.
         if not event.valid_timestamp(account.allowed_timeband):
             self.counts["errors"]["timestamp"] = self.counts["errors"]["timestamp"] + 1
-            logging.warning("Event timestamp is no longer valid: %s", event.timestamp)
+            _LOGGER.warning("Event timestamp is no longer valid: %s", event.timestamp)
             return event, account, SIAResponseType.NAK
 
         return event, account, SIAResponseType.ACK

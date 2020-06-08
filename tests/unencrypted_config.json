@@ -1,6 +1,6 @@
 {
-    "host": "",
-    "port": 8988,
+    "host": "localhost",
+    "port": 8125,
     "account_id": "AAA",
     "key": ""
 }
