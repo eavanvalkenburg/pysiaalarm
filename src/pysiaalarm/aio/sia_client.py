@@ -40,12 +40,16 @@ class SIAClient(BaseSIAClient):
         BaseSIAClient.__init__(self, host, port, accounts, function)
         self.sia_server = SIAServer(self._accounts, self._func, self._counts)
 
-    def start(self):
-        """Start the asynchronous SIA server."""
+    def start(self, **kwargs):
+        """Start the asynchronous SIA server.
+
+        The rest of the arguments are passed directly to asyncio.start_server().
+
+        """
         _LOGGER.debug("Starting SIA.")
         loop = asyncio.get_event_loop()
         self.coro = asyncio.start_server(
-            self.sia_server.handle_line, self._host, self._port, loop=loop
+            self.sia_server.handle_line, self._host, self._port, loop=loop, **kwargs
         )
         self.task = loop.create_task(self.coro)
 
