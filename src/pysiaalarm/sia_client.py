@@ -1,26 +1,22 @@
 # -*- coding: utf-8 -*-
 """This is a the main class for the SIA Client."""
+import asyncio
 import logging
 import socket
 from threading import Thread
-from typing import Callable
-from typing import List
+from typing import Callable, Coroutine, List, Union
 
-from pysiaalarm import __version__
-from pysiaalarm.sia_account import SIAAccount
-from pysiaalarm.sia_event import SIAEvent
-from pysiaalarm.sia_server import SIAServer
+from . import __author__, __copyright__, __license__, __version__
+from .base_sia_client import BaseSIAClient
+from .sia_account import SIAAccount
+from .sia_event import SIAEvent
+from .sia_server import SIAServer
 
-__author__ = "E.A. van Valkenburg"
-__copyright__ = "E.A. van Valkenburg"
-__license__ = "mit"
-__version__ = __version__
-
-logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
-class SIAClient(Thread):
-    """Class for SIA Clients."""
+class SIAClient(Thread, BaseSIAClient):
+    """Class for Sync SIA Client."""
 
     def __init__(
         self,
@@ -29,7 +25,7 @@ class SIAClient(Thread):
         accounts: List[SIAAccount],
         function: Callable[[SIAEvent], None],
     ):
-        """Create the SIA Client object.
+        """Create the threaded SIA Client object.
 
         Arguments:
             host {str} -- Host to run the server on, usually would be ""
@@ -38,37 +34,38 @@ class SIAClient(Thread):
             function {Callable[[SIAEvent], None]} -- The function that gets called for each event.
 
         """
+        if asyncio.iscoroutinefunction(function):
+            raise TypeError(
+                "Asyncio coroutines as the function are not supported, please use the aio version of the SIAClient for that."
+            )
         Thread.__init__(self)
-        self._host = host
-        self._port = port
-        self._accounts = {a.account_id: a for a in accounts}
-        self._func = function
-        self._error_count = {
-            "crc": 0,
-            "timestamp": 0,
-            "account": 0,
-            "code": 0,
-            "format": 0,
-        }
-        self.server = SIAServer(
-            (self._host, self._port), self._accounts, self._func, self._error_count
+        BaseSIAClient.__init__(self, host, port, accounts, function)
+        self.sia_server = SIAServer(
+            (self._host, self._port), self._accounts, self._func, self._counts
         )
 
-    @property
-    def error_count(self):
-        """Return the error_count dict."""
-        return self._error_count
+    def __enter__(self):
+        """Start with as context manager."""
+        self.start()
+        return self
+
+    def __exit__(self, type, value, tb):
+        """End as context manager."""
+        self.stop()
 
     def start(self):
         """Start the SIA TCP Handler thread."""
-        logging.debug("Starting thread.")
-        self.server_thread = Thread(target=self.server.serve_forever)
+        _LOGGER.debug("Starting SIA.")
+        self.server_thread = Thread(
+            target=self.sia_server.serve_forever, name="SIAServerThread"
+        )
         self.server_thread.daemon = True
         self.server_thread.start()
 
     def stop(self):
         """Stop the SIA TCP Handler thread."""
-        logging.debug("Stopping thread.")
-        self.server.shutdown()
-        self.server.server_close()
+        _LOGGER.debug("Stopping SIA.")
+        self.sia_server.shutdown_flag = True
+        self.sia_server.shutdown()
+        self.sia_server.server_close()
         self.server_thread.join()

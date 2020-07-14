@@ -5,7 +5,23 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Debug Tests",
+            "type": "python",
+            "request": "test",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "logToFile": true
+        },
+        {
+            "name": "Python: AIO",
+            "type": "python",
+            "request": "launch",
+            "program": "run_aio.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}\\tests"
+        },
+        {
+            "name": "Python: Thread",
             "type": "python",
             "request": "launch",
             "program": "run.py",

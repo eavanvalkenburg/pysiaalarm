@@ -10,11 +10,24 @@ Description
 ===========
 
 This package was created to talk with alarm systems using the SIA protocal, it was tested using a Ajax system, but should support all defined SIA codes. 
-It creates a new thread with a TCP Server running bound to a host and port, the alarm system acts a client that sends messages to that server and the server acknowledges the messages and call the supplied function.
+It creates a new thread with a TCP Server or a asyncio coroutine running bound to a host and port, the alarm system acts a client that sends messages to that server and the server acknowledges the messages and call the supplied function.
 
 
 Config 
 ==========
+
+For threaded:
+
+.. code-block:: python
+
+    from pysiaalarm import SIAClient, SIAAccount
+
+For asyncio:
+
+.. code-block:: python
+
+    from pysiaalarm.aio import SIAClient, SIAAccount
+
 
 The SIAClient takes these arguments:
 

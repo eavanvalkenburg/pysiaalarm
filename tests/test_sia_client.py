@@ -1,29 +1,37 @@
 # -*- coding: utf-8 -*-
 """Class for tests of pysiaalarm."""
+import asyncio
 import json
 import logging
 import random
 import socket
 import threading
 import time
+from typing import Type
 
 import pytest
 from mock import patch
-from pysiaalarm.sia_account import SIAAccount
-from pysiaalarm.sia_client import SIAClient
-from pysiaalarm.sia_errors import InvalidAccountFormatError
-from pysiaalarm.sia_errors import InvalidAccountLengthError
-from pysiaalarm.sia_errors import InvalidKeyFormatError
-from pysiaalarm.sia_errors import InvalidKeyLengthError
-from pysiaalarm.sia_event import SIAEvent
 
+from pysiaalarm import (
+    InvalidAccountFormatError,
+    InvalidAccountLengthError,
+    InvalidKeyFormatError,
+    InvalidKeyLengthError,
+    SIAAccount,
+    SIAClient,
+    SIAEvent,
+)
+from pysiaalarm.aio import SIAClient as SIAClientA
+from pysiaalarm.sia_account import SIAResponseType
+from pysiaalarm.sia_errors import EventFormatError
 from tests.test_client import client_program
 from tests.test_utils import create_test_items
 
-__author__ = "E.A. van Valkenburg"
-__copyright__ = "E.A. van Valkenburg"
-__license__ = "mit"
+from .create_line import create_line
 
+# from hypothesis import given, settings
+
+logging.basicConfig(level=logging.INFO)
 _LOGGER = logging.getLogger(__name__)
 
 KEY = "AAAAAAAAAAAAAAAA"
@@ -41,28 +49,61 @@ class testSIA(object):
     """Class for pysiaalarm tests."""
 
     @pytest.mark.parametrize(
-        "line, account, type, code",
+        "line, account, type, code, error",
         [
             (
-                '98100078"*SIA-DCS"5994L0#AAA[5AB718E008C616BF16F6468033A11326B0F7546CAB230910BCA10E4DEBA42283C436E4F8EFF50931070DDE36D5BB5F0C',
+                r'60AB0078"*SIA-DCS"5994L0#AAA[5AB718E008C616BF16F6468033A11326B0F7546CAB230910BCA10E4DEBA42283C436E4F8EFF50931070DDE36D5BB5F0C',
                 "AAA",
-                "",
-                "",
+                None,
+                None,
+                Exception,
             ),
             (
-                '2E680078"SIA-DCS"6002L0#AAA[|Nri1/CL501]_14:12:04,09-25-2019',
+                r'E5D50078"SIA-DCS"6002L0#AAA[|Nri1/CL501]_14:12:04,09-25-2019',
                 "AAA",
                 "Closing Report",
                 "CL",
+                Exception,
             ),
+            (
+                r'90820051"SIA-DCS"4738R0001L0001[#006969|Nri04/OP001*NM]DDA2FBB313169D87|#006969',
+                "006969",
+                "Opening Report",
+                "OP",
+                Exception,
+            ),
+            (
+                r'76D80055"*NULL"0000R0L0#AAAB[B4BC8B40D0E6D959D6BEA78E88CC0B2155741A3C44FBB96D476A3E557CAD64D9',
+                "AAAB",
+                None,
+                None,
+                Exception,
+            ),
+            (
+                r'C4160279"SIA-DCS"5268L0#AAA[.Rr\x1d PaG\'5"�\n\x03��|Nri1/WA000]_08:40:47,07-08-2020',
+                "AAA",
+                "Water Alarm",
+                "WA",
+                Exception,
+            ),
+            (r"this is not a parsable event", None, None, None, EventFormatError),
         ],
     )
-    def test_event_parsing(self, line, account, type, code):
+    def test_event_parsing(self, line, account, type, code, error):
         """Test event parsing methods."""
-        event = SIAEvent(line)
-        assert event.code == code
-        assert event.type == type
-        assert event.account == account
+        try:
+            event = SIAEvent(line)
+            print(event.sia_string)
+            assert event.code == code
+            assert event.type == type
+            assert event.account == account
+            print(event.valid_length)
+            print(event.valid_message)
+        except Exception as e:
+            if error == Exception:
+                assert False
+            if e == error:
+                assert True
 
     @pytest.mark.parametrize(
         "key, account, port, error",
@@ -91,8 +132,16 @@ class testSIA(object):
         except Exception as exp:
             assert isinstance(exp, error)
 
-    @pytest.mark.parametrize("config_file", [("tests\\unencrypted_config.json")])
-    def test_client(self, config_file):
+    @pytest.mark.parametrize(
+        "config_file, port_add, fail_func",
+        [
+            ("tests\\unencrypted_config.json", 1, False),
+            ("tests\\encrypted_config.json", 2, False),
+            ("tests\\unencrypted_config.json", 3, True),
+            ("tests\\encrypted_config.json", 4, True),
+        ],
+    )
+    def test_client(self, config_file, port_add, fail_func):
         """Test the client.
 
         Arguments:
@@ -104,11 +153,18 @@ class testSIA(object):
                 config = json.load(f)
         except:  # noqa: E722
             config = {"host": HOST, "port": PORT, "account_id": ACCOUNT, "key": None}
-
+        config["port"] = config["port"] + port_add
         events = []
 
-        def func_append(event: SIAEvent):
-            events.append(event)
+        if fail_func:
+
+            def func_append(event: SIAEvent):
+                raise ValueError("test error in user func")
+
+        else:
+
+            def func_append(event: SIAEvent):
+                events.append(event)
 
         siac = SIAClient(
             host="",
@@ -132,15 +188,207 @@ class testSIA(object):
         t.daemon = True
         t.start()  # stops after the five events have been sent.
 
-        # run for 30 seconds
-        time.sleep(30)
+        # run for 7 seconds
+        time.sleep(10)
 
         siac.stop()
-        assert siac.error_count == {
-            "crc": 1,
-            "timestamp": 1,
-            "account": 1,
-            "code": 1,
-            "format": 0,
+        assert siac.counts == {
+            "events": 5,
+            "valid_events": 1,
+            "errors": {
+                "crc": 1,
+                "timestamp": 1,
+                "account": 1,
+                "code": 1,
+                "format": 0,
+                "user_code": 1 if fail_func else 0,
+            },
         }
-        assert len(events) == 1
+        assert len(events) == 0 if fail_func else 1
+
+    @pytest.mark.parametrize(
+        "config_file, port_add, fail_func",
+        [
+            ("tests\\unencrypted_config.json", 5, False),
+            ("tests\\encrypted_config.json", 6, False),
+            ("tests\\unencrypted_config.json", 7, True),
+            ("tests\\encrypted_config.json", 8, True),
+        ],
+    )
+    async def test_async_client(self, config_file, port_add, fail_func):
+        """Test the client.
+
+        Arguments:
+            config_file {str} -- Filename of the config.
+
+        """
+        try:
+            with open(config_file, "r") as f:
+                config = json.load(f)
+        except:  # noqa: E722
+            config = {"host": HOST, "port": PORT, "account_id": ACCOUNT, "key": None}
+        config["port"] = config["port"] + port_add
+        events = []
+
+        if fail_func:
+
+            async def func_append(event: SIAEvent):
+                raise ValueError("test error in user func")
+
+        else:
+
+            async def func_append(event: SIAEvent):
+                events.append(event)
+
+        siac = SIAClientA(
+            host="",
+            port=config["port"],
+            accounts=[SIAAccount(account_id=config["account_id"], key=config["key"])],
+            function=func_append,
+        )
+        siac.start()
+
+        tests = [
+            {"code": False, "crc": False, "account": False, "time": False},
+            {"code": True, "crc": False, "account": False, "time": False},
+            {"code": False, "crc": True, "account": False, "time": False},
+            {"code": False, "crc": False, "account": True, "time": False},
+            {"code": False, "crc": False, "account": False, "time": True},
+        ]
+
+        t = threading.Thread(
+            target=client_program, name="test_client", args=(config, 1, tests)
+        )
+        t.daemon = True
+        t.start()  # stops after the five events have been sent.
+
+        # run for 7 seconds
+        await asyncio.sleep(10)
+
+        await siac.stop()
+        assert siac.counts == {
+            "events": 5,
+            "valid_events": 1,
+            "errors": {
+                "crc": 1,
+                "timestamp": 1,
+                "account": 1,
+                "code": 1,
+                "format": 0,
+                "user_code": 1 if fail_func else 0,
+            },
+        }
+        assert len(events) == 0 if fail_func else 1
+
+    @pytest.mark.parametrize(
+        ("key, account, code, type, alter_key, wrong_event"),
+        [
+            (None, "AAA", "RP", "SIA-DCS", False, False),
+            (None, "AAA", "WA", "SIA-DCS", False, False),
+            ("AAAAAAAAAAAAAAAA", "AAA", "RP", "SIA-DCS", False, False),
+            (None, "AAA", "RP", "NULL", False, False),
+            ("AAAAAAAAAAAAAAAA", "AAA", "RP", "NULL", False, False),
+            ("AAAAAAAAAAAAAAAA", "AAA", "RP", "NULL", True, False),
+            ("AAAAAAAAAAAAAAAA", "AAA", "RP", "NULL", False, True),
+        ],
+    )
+    def test_server(self, key, account, code, type, alter_key, wrong_event):
+        """Test the server parsing."""
+        config = {"host": HOST, "port": PORT, "account_id": account, "key": key}
+        events = []
+
+        def func_append(event: SIAEvent):
+            events.append(event)
+
+        siac = SIAClient(
+            host="",
+            port=config["port"],
+            accounts=[
+                SIAAccount(
+                    account_id=config["account_id"],
+                    key=config["key"],
+                    allowed_timeband=(None, None),
+                )
+            ],
+            function=func_append,
+        )
+
+        if alter_key:
+            key = key[:-1] + str(int(key[-1], 16) - 1)
+        line = create_line(key, account, code, type)
+        if wrong_event:
+            line = "This is not a SIA Event."
+        _LOGGER.info("Line sent to server: %s", line)
+        ev, acc, resp = siac.sia_server.parse_and_check_event(line)
+        if alter_key or wrong_event:
+            assert ev is None
+            assert resp == SIAResponseType.NAK
+        else:
+            assert resp == SIAResponseType.ACK
+            assert acc.account_id == account
+            assert ev.account == account
+            assert ev.code == code
+
+    def test_accounts(self):
+        """Test the account getting and setting."""
+        acc_list = [
+            SIAAccount(account_id=ACCOUNT, key=KEY, allowed_timeband=(None, None))
+        ]
+        acc_list2 = [
+            SIAAccount(account_id=ACCOUNT, key=KEY, allowed_timeband=(None, None)),
+            SIAAccount(account_id="1112", key=KEY, allowed_timeband=(None, None)),
+        ]
+        siac = SIAClient(
+            host="", port=PORT, accounts=acc_list, function=(lambda ev: print(ev))
+        )
+        assert siac.accounts == acc_list
+        siac.accounts = acc_list2
+        assert siac.accounts == acc_list2
+
+    @pytest.mark.parametrize(
+        ("async_func, async_client, error"),
+        [
+            (False, False, None),
+            (False, True, None),
+            (True, False, TypeError),
+            (True, True, None),
+        ],
+    )
+    def test_func(self, async_func, async_client, error):
+        """Test the function setting."""
+        acc_list = [
+            SIAAccount(account_id=ACCOUNT, key=KEY, allowed_timeband=(None, None))
+        ]
+        if async_func:
+
+            async def func(event):
+                pass
+
+        else:
+
+            def func(event):
+                pass
+
+        try:
+            if async_client:
+                SIAClientA("", PORT, acc_list, func)
+            else:
+                SIAClient("", PORT, acc_list, func)
+            assert error is None
+        except error:
+            assert error is not None
+        except Exception:
+            assert False
+
+    async def test_context(self):
+        """Test the context manager functions."""
+        acc_list = [
+            SIAAccount(account_id=ACCOUNT, key=KEY, allowed_timeband=(None, None))
+        ]
+        with SIAClient(HOST, PORT, acc_list, function=lambda ev: print(ev)) as cl:
+            assert cl.accounts == acc_list
+
+        async with SIAClientA(
+            HOST, PORT, acc_list, function=lambda ev: print(ev)
+        ) as cl:
+            assert cl.accounts == acc_list

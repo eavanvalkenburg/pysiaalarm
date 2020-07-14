@@ -1,9 +1,9 @@
 #!/usr/bin/python
 """Run a test client."""
+import asyncio
 import json
 import logging
 import random
-import socket
 import sys
 import time
 from binascii import hexlify, unhexlify
@@ -12,10 +12,8 @@ from datetime import datetime, timedelta
 from Crypto import Random
 from Crypto.Cipher import AES
 
-from pysiaalarm import SIAEvent
 from pysiaalarm.sia_const import ALL_CODES
-
-from .create_line import create_line
+from pysiaalarm.sia_event import SIAEvent
 
 BASIC_CONTENT = f"|Nri<zone>/<code>000]<timestamp>"
 BASIC_LINE = f'SIA-DCS"<seq>L0#<account>[<content>'
@@ -54,9 +52,7 @@ def create_test_line(key, account, code, timestamp, alter_crc=False):
     line = f'"{"*" if key else ""}{BASIC_LINE.replace("<account>", account).replace("<content>", content).replace("<seq>", seq)}'
     crc = SIAEvent.crc_calc(line)
     leng = int(str(len(line)), 16)
-
     pad = (4 - len(str(leng))) * "0"
-
     length = pad + str(leng)
     if alter_crc:
         crc = ("%04x" % random.randrange(16 ** 4)).upper()
@@ -135,12 +131,25 @@ def timestamp_offset(test_case=None):
         else:
             return 0
     else:
-        return random.randint(0, 1)
+        return random.randint(0, 60)
+
+
+@asyncio.coroutine
+def tcp_client(message, host, port, loop):
+    print(f"Trying to send: {message}")
+
+    reader, writer = yield from asyncio.open_connection(host, port, loop=loop)
+    writer.write(message.encode())
+
+    data = yield from reader.read(100)
+    print(f"Received from server: {data.decode()}")
+
+    writer.close()
 
 
 def client_program(
     config,
-    time_between=5,
+    time_between=3,
     test_case=None,  # [{"code": False, "crc": False, "account": False}]
 ):
     """Create the socket client and start sending messages every 5 seconds, until stopped, or the server disappears."""
@@ -148,12 +157,19 @@ def client_program(
     host = config["host"]  # as both code is running on same pc
     port = config["port"]  # socket server port number
 
-    client_socket = socket.socket()  # instantiate
-    client_socket.connect((host, port))  # connect to the server
-    index = 0
+    loop = asyncio.get_event_loop()
+    task = loop.create_task(
+        async_send_messages(host, port, loop, test_case, time_between)
+    )
+    loop.run_until_complete(task)
+    loop.close()
+
+
+async def async_send_messages(host, port, loop, test_case, time_between):
+    stop = False
     cases = len(test_case) if test_case else None
     logging.debug("Number of cases: %s", cases)
-    stop = False
+    index = 0
     while True and not stop:
         logging.debug("Index: %s", index)
         if cases:
@@ -165,41 +181,18 @@ def client_program(
         account = different_account(config["account_id"], tc)
         timed = timedelta(seconds=timestamp_offset(tc))
         timestamp = get_timestamp(timed)
-        message = create_line(
-            config["key"],
-            account,
-            code,
-            generate=True,
-            timestamp=timestamp,
-            alter_crc=alter_crc,
-        )
-        # message = create_test_line(config["key"], account, code, timestamp, alter_crc)
+        message = create_test_line(config["key"], account, code, timestamp, alter_crc)
         print(
             f"Message with account: {account}, code: {code}, altered crc: {alter_crc}, timedelta: {timed}"
         )
-        print(f"Sending to server: {message}")
-        client_socket.send(message.encode())  # send message
-        data = client_socket.recv(1024).decode()  # receive response
-        print(f"Received from server: {data}")  # show in terminal
+        # loop.create_task(tcp_client(message, host, port, loop))
+        await tcp_client(message, host, port, loop)
         if cases:
             if index < cases - 1:
                 index += 1
             else:
                 stop = True
-        # else:
-        # if alter_crc:
-        #     assert len(str.strip(data)) == 0
-        # elif account == "FFFFFFFFF":
-        #     assert data.find("NAK") > 0
-        # elif timed.seconds >= 40:
-        #     assert data.find("NAK") > 0
-        # elif code == "ZZ":
-        #     assert data.find("DUH") > 0
-        # else:
-        #     assert data.find("ACK") > 0
-        time.sleep(time_between)
-
-    client_socket.close()  # close the connection
+        await asyncio.sleep(time_between)
 
 
 if __name__ == "__main__":

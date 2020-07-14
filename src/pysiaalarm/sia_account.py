@@ -1,26 +1,24 @@
 """Class for SIA Accounts."""
 import logging
-from binascii import hexlify
-from binascii import unhexlify
+from base64 import b64decode, b64encode
+from binascii import hexlify, unhexlify
 from datetime import datetime
 from enum import Enum
 from typing import Tuple
 
 from Crypto import Random
 from Crypto.Cipher import AES
-from pysiaalarm import __version__
-from pysiaalarm.sia_errors import InvalidAccountFormatError
-from pysiaalarm.sia_errors import InvalidAccountLengthError
-from pysiaalarm.sia_errors import InvalidKeyFormatError
-from pysiaalarm.sia_errors import InvalidKeyLengthError
-from pysiaalarm.sia_event import SIAEvent
 
-__author__ = "E.A. van Valkenburg"
-__copyright__ = "E.A. van Valkenburg"
-__license__ = "mit"
-__version__ = __version__
+from . import __author__, __copyright__, __license__, __version__
+from .sia_errors import (
+    InvalidAccountFormatError,
+    InvalidAccountLengthError,
+    InvalidKeyFormatError,
+    InvalidKeyLengthError,
+)
+from .sia_event import SIAEvent
 
-logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class SIAResponseType(Enum):
@@ -33,8 +31,8 @@ class SIAResponseType(Enum):
 
 def _create_padded_message(message: str) -> str:
     """Create padded message, used for encrypted responses."""
-    extra = len(message) % 16
-    return (16 - extra) * "0" + message
+    fill_size = len(message) + 16 - len(message) % 16
+    return message.zfill(fill_size)
 
 
 def _get_timestamp() -> str:
@@ -43,10 +41,13 @@ def _get_timestamp() -> str:
 
 
 class SIAAccount:
-    """Class for SIA Account."""
+    """Class for SIA Accounts."""
 
     def __init__(
-        self, account_id: str, key: str = None, allowed_timeband: (int, int) = (40, 20)
+        self,
+        account_id: str,
+        key: str = None,
+        allowed_timeband: Tuple[int, int] = (40, 20),
     ):
         """Create a SIA Account.
 
@@ -55,15 +56,15 @@ class SIAAccount:
 
         Keyword Arguments:
             key {str} -- The encryption key specified by the alarm system, should be 16,24 or 32 characters hexadecimal. (default: {None})
-            allowed_timeband {(int, int)} -- Seconds before and after current time that a message is valid in, unencrypted messages do not have to have a timestamp.
+            allowed_timeband {Tuple[int, int]} -- Seconds before and after current time that a message is valid in, unencrypted messages do not have to have a timestamp.
 
         """
         SIAAccount.validate_account(account_id, key)
         self.account_id = account_id
-        self.key = key.encode("UTF-8") if key else key
+        self.key = key.encode("utf-8") if key else key
         self.allowed_timeband = allowed_timeband
+        self.encrypted = False
         self._create_crypters()
-        self.encrypted = True if self.key else False
 
     def _create_crypters(self):
         """Create the de- and encrypter functions."""
@@ -72,8 +73,9 @@ class SIAAccount:
                 self.key, AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
             )
             self.encrypter = AES.new(
-                self.key, AES.MODE_CBC, Random.new().read(AES.block_size)
+                self.key, AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
             )
+            self.encrypted = True
         else:
             self.decrypter = None
             self.encrypter = None
@@ -90,11 +92,9 @@ class SIAAccount:
         """
         if self.encrypted:
             message = _create_padded_message(message)
-            return (
-                hexlify(self.encrypter.encrypt(message.encode("utf8")))
-                .decode(encoding="UTF-8")
-                .upper()
-            )
+            encrypted_message = hexlify(self.encrypter.encrypt(message.encode("utf-8")))
+            return encrypted_message.decode(encoding="utf-8").upper()
+
         else:
             return message
 
@@ -108,11 +108,11 @@ class SIAAccount:
             SIAEvent -- Event decrypted, with parsed fields.
 
         """
-        if self.encrypted:
-            event.content = self.decrypter.decrypt(
-                unhexlify(event.encrypted_content.encode("utf8"))
-            ).decode(encoding="UTF-8", errors="replace")
-            event.parse_decrypted()
+        if self.encrypted and event.encrypted_content:
+            decrypted_content = self.decrypter.decrypt(
+                unhexlify(event.encrypted_content)
+            )
+            event.content = decrypted_content.decode("utf-8", errors="backslashreplace")
         return event
 
     def create_response(self, event: SIAEvent, response_type: SIAResponseType) -> str:
@@ -128,22 +128,25 @@ class SIAAccount:
         """
         if response_type == SIAResponseType.ACK and event:
             if self.encrypted:
-                return f'"*ACK"{event.sequence}L0#{event.account}[{self.encrypt(_create_padded_message("]")+_get_timestamp())}'
+                res = f'"*ACK"{event.sequence}L0#{event.account}[{self.encrypt(_create_padded_message("]")+_get_timestamp())}'
             else:
-                return f'"ACK"{event.sequence}L0#{event.account}[]'
+                res = f'"ACK"{event.sequence}L0#{event.account}[]'
         elif response_type == SIAResponseType.DUH and event:
-            return f'"DUH"{event.sequence}L0#{event.account}[]'
+            res = f'"DUH"{event.sequence}L0#{event.account}[]'
         elif response_type == SIAResponseType.NAK:
-            return f'"NAK"0000L0R0A0[]{_get_timestamp()}'
+            res = f'"NAK"0000L0R0A0[]{_get_timestamp()}'
         elif not response_type:
-            return None
+            return b"\n\r"
         else:
-            logging.warning(
+            _LOGGER.warning(
                 "Could not find the right response message for response type: %s and optional event: %s",
                 response_type,
                 event,
             )
-            return None
+            return b"\n\r"
+
+        header = ("%04x" % len(res)).upper()
+        return f"\n{SIAEvent.crc_calc(res)}{header}{res}\r".encode("utf-8")
 
     @classmethod
     def validate_account(cls, account_id: str = None, key: str = None):
