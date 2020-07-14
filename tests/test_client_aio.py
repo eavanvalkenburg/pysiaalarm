@@ -6,12 +6,12 @@ import logging
 import random
 import sys
 import time
-from binascii import hexlify
-from datetime import datetime
-from datetime import timedelta
+from binascii import hexlify, unhexlify
+from datetime import datetime, timedelta
 
 from Crypto import Random
 from Crypto.Cipher import AES
+
 from pysiaalarm.sia_const import ALL_CODES
 from pysiaalarm.sia_event import SIAEvent
 
@@ -22,14 +22,14 @@ BASIC_LINE = f'SIA-DCS"<seq>L0#<account>[<content>'
 def create_test_items(key, content):
     """Create encrypted content."""
     encrypter = AES.new(
-        key.encode("utf8"), AES.MODE_CBC, Random.new().read(AES.block_size)
+        key.encode("utf-8"), AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
     )
 
     extra = len(content) % 16
     unencrypted = (16 - extra) * "0" + content
     return (
-        hexlify(encrypter.encrypt(unencrypted.encode("utf8")))
-        .decode(encoding="UTF-8")
+        hexlify(encrypter.encrypt(unencrypted.encode("utf-8")))
+        .decode(encoding="utf-8")
         .upper()
     )
 

@@ -3,8 +3,7 @@ __author__ = "E.A. van Valkenburg"
 __copyright__ = "E.A. van Valkenburg"
 __license__ = "mit"
 
-from pkg_resources import DistributionNotFound
-from pkg_resources import get_distribution
+from pkg_resources import DistributionNotFound, get_distribution
 
 try:
     dist_name = __name__

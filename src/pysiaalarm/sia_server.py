@@ -1,17 +1,9 @@
-# -*- coding: utf-8 -*-
 """This is the class for the actual TCP handler override of the handle method."""
 import logging
-from socketserver import BaseRequestHandler
-from socketserver import ThreadingTCPServer
-from typing import Callable
-from typing import Coroutine
-from typing import Dict
-from typing import Union
+from socketserver import BaseRequestHandler, ThreadingTCPServer
+from typing import Callable, Dict, Tuple
 
-from . import __author__
-from . import __copyright__
-from . import __license__
-from . import __version__
+from . import __author__, __copyright__, __license__, __version__
 from .base_sia_server import BaseSIAServer
 from .sia_account import SIAAccount
 from .sia_account import SIAResponseType as resp
@@ -28,7 +20,7 @@ class SIAServer(ThreadingTCPServer, BaseSIAServer):
 
     def __init__(
         self,
-        server_address: (str, int),
+        server_address: Tuple[str, int],
         accounts: Dict[str, SIAAccount],
         func: Callable[[SIAEvent], None],
         counts: Dict,
@@ -36,7 +28,7 @@ class SIAServer(ThreadingTCPServer, BaseSIAServer):
         """Create a SIA Server.
 
         Arguments:
-            server_address {tuple(string, int)} -- the address the server should listen on.
+            server_address Tuple[string, int] -- the address the server should listen on.
             accounts Dict[str, SIAAccount] -- accounts as dict with account_id as key, SIAAccount object as value.
             func Callable[[SIAEvent], None] -- Function called for each valid SIA event, that can be matched to a account.
             counts Dict -- counter kept by client to give insights in how many errorous events were discarded of each type.
@@ -47,6 +39,8 @@ class SIAServer(ThreadingTCPServer, BaseSIAServer):
 
 
 class SIATCPHandler(BaseRequestHandler):
+    """Class for TCP Handling."""
+
     _received_data = "".encode()
 
     def handle(self):
@@ -54,14 +48,18 @@ class SIATCPHandler(BaseRequestHandler):
         while True and not self.server.shutdown_flag:
             raw = self.request.recv(1024)
             if not raw:
-                return
+                break
             raw = bytearray(raw)
-            while True and not self.server.shutdown_flag:
+            while len(raw) > 0:  # True and not self.server.shutdown_flag:
+                _LOGGER.debug("Incoming line raw: %s", raw)
                 splitter = raw.find(b"\r")
                 if splitter == -1:
-                    break
-                line = raw[1:splitter]
-                raw = raw[splitter + 1 :]
+                    line = raw
+                    raw = ""
+                    # break
+                else:
+                    line = raw[1:splitter]
+                    raw = raw[splitter + 1 :]
                 decoded_line = line.decode()
                 _LOGGER.debug("Incoming line: %s", decoded_line)
                 self.server.counts["events"] = self.server.counts["events"] + 1

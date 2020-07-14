@@ -1,18 +1,45 @@
 # -*- coding: utf-8 -*-
 """This is a class for SIA Events."""
+import logging
 import re
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 
-from . import __author__
-from . import __copyright__
-from . import __license__
-from . import __version__
+from . import __author__, __copyright__, __license__, __version__
 from .sia_const import ALL_CODES
 from .sia_errors import EventFormatError
 
+_LOGGER = logging.getLogger(__name__)
+
+main_regex = r"""
+(?P<crc>[A-F0-9]{4})
+(?P<length>[A-F0-9]{4})\"
+(?P<encrypted_flag>[*])?
+(?P<message_type>SIA-DCS|NULL)\"
+(?P<sequence>[0-9]{4})
+(?P<receiver>R[A-F0-9]{1,6})?
+(?P<prefix>L[A-F0-9]{1,6})
+[#]?(?P<account>[A-F0-9]{3,16})?
+[\[]
+(?P<rest>.*)
+"""
+MAIN_MATCHER = re.compile(main_regex, re.X)
+
+content_regex = r"""
+[#]?(?P<account>[A-F0-9]{3,16})?
+(?:.*Nri)?
+(?P<zone>\d*)?
+\/?
+(?P<code>[a-zA-z]{2})?
+(?P<message>.*)
+[\]][_]?
+(?P<timestamp>[0-9:,-]*)?
+"""
+CONTENT_MATCHER = re.compile(content_regex, re.X)
+
 
 class SIAEvent:
+    """Class for SIAEvents."""
+
     def __init__(self, line: str):
         """Create a SIA Event from a line.
 
@@ -23,27 +50,80 @@ class SIAEvent:
             EventFormatError: If the event is not formatted according to SIA DC09.
 
         """
-        regex = r"([A-F0-9]{4})([A-F0-9]{4})(\"(SIA-DCS|\*SIA-DCS)\"([0-9]{4})(R[A-F0-9]{1,6})?(L[A-F0-9]{1,6})#([A-F0-9]{3,16})\[([A-F0-9]*)?(.*Nri(\d*)/([a-zA-z]{2})(.*)]_([0-9:,-]*))?)"
-        matches = re.findall(regex, line)
-        # check if there is at least one match
-        if not matches:
+        line_match = MAIN_MATCHER.match(line)
+        if not line_match:
             raise EventFormatError(
                 "No matches found, event was not a SIA Spec event, line was: %s", line
             )
-        self.msg_crc, self.length, self.full_message, self.message_type, self.sequence, self.receiver, self.prefix, self.account, self.encrypted_content, self.content, self.zone, self.code, self.message, self.timestamp = matches[
-            0
-        ]
-        self.type = ""
-        self.description = ""
-        self.concerns = ""
-        self.calc_crc = SIAEvent.crc_calc(self.full_message)
-        self._parse_timestamp()
-        if self.code:
-            self._add_sia()
+        main_content = line_match.groupdict()
 
-    def _add_sia(self):
-        """Find the sia codes based on self.code."""
-        full = ALL_CODES.get(self.code, None)
+        self.type = None
+        self.description = None
+        self.concerns = None
+        self.timestamp = None
+        self._code = None
+        self.zone = None
+        self.type = None
+        self.description = None
+        self.concerns = None
+        self.code_not_found = True
+        self._content = None
+        self.message = None
+        self.msg_crc = main_content["crc"]
+        self.length = main_content["length"]
+        self.encrypted = True if main_content["encrypted_flag"] else False
+        self.message_type = main_content["message_type"]
+        self.sequence = main_content["sequence"]
+        self.receiver = main_content["receiver"]
+        self.prefix = main_content["prefix"]
+        self.account = main_content["account"]
+        if self.encrypted:
+            self.encrypted_content = main_content["rest"]
+        else:
+            self.encrypted_content = None
+            self.content = main_content["rest"]
+        self.full_message = line[8:]
+        self.calc_crc = SIAEvent.crc_calc(self.full_message)
+
+    @property
+    def content(self):
+        """Return the content field."""
+        return self._content
+
+    @content.setter
+    def content(self, new):
+        """Set the content and parse it."""
+        self._content = new
+        matches = CONTENT_MATCHER.match(self._content)
+        if not matches:
+            raise EventFormatError(
+                "Parse content: no matches found in %s", self._content
+            )
+        content = matches.groupdict()
+        if not self.account:
+            self.account = content["account"]
+        self.zone = content["zone"]
+        self.code = content["code"]
+        self.message = content["message"]
+        self.timestamp = (
+            datetime.strptime(content["timestamp"], "%H:%M:%S,%m-%d-%Y")
+            if content["timestamp"]
+            else None
+        )
+        if self.message_type == "NULL" and not self.code:
+            self.code = "RP"
+            self.zone = 0
+
+    @property
+    def code(self):
+        """Return the code field."""
+        return self._code
+
+    @code.setter
+    def code(self, new):
+        """Set self.code and get the related fields for a code."""
+        self._code = new
+        full = ALL_CODES.get(self._code, None)
         if full:
             self.type = full.get("type")
             self.description = full.get("description")
@@ -52,31 +132,15 @@ class SIAEvent:
         else:
             self.code_not_found = True
 
-    def parse_decrypted(self):
-        """When the content was decrypted, update the fields contained within."""
-        regex = r".*Nri(\d*)/([a-zA-z]{2})(.*)]_([0-9:,-]*)"
-        matches = re.findall(regex, self.content)
-        if not matches:
-            raise EventFormatError(
-                "Parse Decrypted: no matches found in %s", self.content
-            )
-        self.zone, self.code, self.message, self.timestamp = matches[0]
-        self._parse_timestamp()
-        if self.code:
-            self._add_sia()
-
-    def _parse_timestamp(self):
-        """Parse the timestamp."""
-        if self.timestamp:
-            self.timestamp = datetime.strptime(self.timestamp, "%H:%M:%S,%m-%d-%Y")
-
     def valid_timestamp(self, allowed_timeband) -> bool:
         """Check if the timestamp is within bounds."""
+        if not allowed_timeband[0]:
+            return True
         if self.timestamp:
             current_time = datetime.utcnow()
-            current_min40 = current_time - timedelta(seconds=allowed_timeband[0])
-            current_plus20 = current_time + timedelta(seconds=allowed_timeband[1])
-            return current_min40 <= self.timestamp <= current_plus20
+            current_min = current_time - timedelta(seconds=allowed_timeband[0])
+            current_plus = current_time + timedelta(seconds=allowed_timeband[1])
+            return current_min <= self.timestamp <= current_plus
         else:
             return True
 
@@ -97,6 +161,7 @@ class SIAEvent:
     @property
     def valid_message(self) -> bool:
         """Check the validity of the message by comparing the sent CRC with the calculated CRC."""
+        # _LOGGER.debug("msg crc: %s, calc crc: %s", self.msg_crc, self.calc_crc)
         return self.msg_crc == self.calc_crc
 
     @property
@@ -116,7 +181,7 @@ class SIAEvent:
 Content: {self.content}, \
 Zone: {self.zone}, \
 Code: {self.code}, \
-Message: {self.message}, \
+Message: {self.message if self.message else ''}, \
 Concerns: {self.concerns}, \
 Type: {self.type}, \
 Description: {self.description}, \
@@ -128,6 +193,6 @@ Length: {self.length}, \
 Sequence: {self.sequence}, \
 CRC: {self.msg_crc}, \
 Calc CRC: {self.calc_crc}, \
-Message type: {self.message_type}, \
+Message type: {self.type}, \
 Encrypted Content: {self.encrypted_content}, \
 Full Message: {self.full_message}."
