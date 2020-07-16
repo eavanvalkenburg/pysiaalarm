@@ -1,15 +1,9 @@
 """This is a the main class for the SIA Client."""
 import asyncio
 import logging
-from typing import Callable
-from typing import Coroutine
-from typing import List
-from typing import Union
+from typing import Callable, Coroutine, List, Union
 
-from .. import __author__
-from .. import __copyright__
-from .. import __license__
-from .. import __version__
+from .. import __author__, __copyright__, __license__, __version__
 from ..base_sia_client import BaseSIAClient
 from ..sia_account import SIAAccount
 from ..sia_event import SIAEvent
@@ -19,6 +13,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SIAClient(BaseSIAClient):
+    """Class for Async SIA Client."""
+
     def __init__(
         self,
         host: str,
@@ -40,6 +36,15 @@ class SIAClient(BaseSIAClient):
         BaseSIAClient.__init__(self, host, port, accounts, function)
         self.sia_server = SIAServer(self._accounts, self._func, self._counts)
 
+    async def __aenter__(self):
+        """Start with as context manager."""
+        self.start()
+        return self
+
+    async def __aexit__(self, type, value, tb):
+        """End as context manager."""
+        await self.stop()
+
     def start(self, **kwargs):
         """Start the asynchronous SIA server.
 
@@ -55,6 +60,6 @@ class SIAClient(BaseSIAClient):
 
     async def stop(self):
         """Stop the asynchronous SIA server."""
-        _LOGGER.info("Stopping SIA.")
+        _LOGGER.debug("Stopping SIA.")
         self.sia_server.shutdown_flag = True
         await self.task

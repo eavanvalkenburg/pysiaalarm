@@ -13,6 +13,12 @@ ALL_CODES = {
         "description": "An event message was not sent due to User action",
         "concerns": "Zone or point",
     },
+    "AF": {
+        "code": "AF",
+        "type": "Arming Event",
+        "description": "Scenario",
+        "concerns": "Zone or point",
+    },
     "AN": {
         "code": "AN",
         "type": "Analog Restoral",
@@ -137,6 +143,18 @@ ALL_CODES = {
         "code": "CA",
         "type": "Automatic Closing",
         "description": "System armed automatically",
+        "concerns": "Area number",
+    },
+    "CB": {
+        "code": "CB",
+        "type": "Arming Event",
+        "description": "Group has been disarmed automatically",
+        "concerns": "Area number",
+    },
+    "CC": {
+        "code": "CC",
+        "type": "Arming Event",
+        "description": "Unsuccessful arming attempt",
         "concerns": "Area number",
     },
     "CD": {
@@ -943,11 +961,29 @@ ALL_CODES = {
         "description": "There has been no zone activity for a programmed amount of time",
         "concerns": "Zone number",
     },
+    "NB": {
+        "code": "NB",
+        "type": "Arming Event",
+        "description": "Scenario",
+        "concerns": "Area number",
+    },
     "NC": {
         "code": "NC",
         "type": "Network Condition",
         "description": "A communications network has a specific reportable condition",
         "concerns": "Network number",
+    },
+    "ND": {
+        "code": "ND",
+        "type": "Arming Event",
+        "description": "Night mode deactivated - duress",
+        "concerns": "Area number",
+    },
+    "NE": {
+        "code": "NE",
+        "type": "Arming Event",
+        "description": "Unsuccessful Night mode activation attempt",
+        "concerns": "Area number",
     },
     "NF": {
         "code": "NF",
@@ -966,6 +1002,18 @@ ALL_CODES = {
         "type": "Perimeter Armed, User Defined",
         "description": "A user defined area has been perimeter armed",
         "concerns": "Area number",
+    },
+    "NO": {
+        "code": "NO",
+        "type": "Arming Event",
+        "description": "Night mode deactivated automatically",
+        "concerns": "Area number",
+    },
+    "NP": {
+        "code": "NP",
+        "type": "Arming Event",
+        "description": "Night mode deactivated using device",
+        "concerns": "Zone or point",
     },
     "NR": {
         "code": "NR",
@@ -989,6 +1037,12 @@ ALL_CODES = {
         "code": "OA",
         "type": "Automatic Opening",
         "description": "System has disarmed automatically",
+        "concerns": "Area number",
+    },
+    "OB": {
+        "code": "OB",
+        "type": "Arming Event",
+        "description": "Group has been disarmed automatically",
         "concerns": "Area number",
     },
     "OC": {
@@ -1093,6 +1147,12 @@ ALL_CODES = {
         "description": "Panic zone has been bypassed",
         "concerns": "Zone or point",
     },
+    "PF": {
+        "code": "PF",
+        "type": "Malfunction",
+        "description": "MotionCam lost connection with hub over photos communication channel",
+        "concerns": "Zone or point",
+    },
     "PH": {
         "code": "PH",
         "type": "Panic Alarm Restore",
@@ -1104,6 +1164,12 @@ ALL_CODES = {
         "type": "Panic Trouble Restore",
         "description": "Trouble condition eliminated",
         "concerns": "Zone or point",
+    },
+    "PO": {
+        "code": "PO",
+        "type": "Malfunction restore",
+        "description": "Connection restored, device in room",
+        "concerns": "Unused",
     },
     "PR": {
         "code": "PR",
@@ -1283,6 +1349,12 @@ ALL_CODES = {
         "code": "SJ",
         "type": "Sprinkler Trouble Restore",
         "description": "Trouble condition eliminated",
+        "concerns": "Zone or point",
+    },
+    "SM": {
+        "code": "SM",
+        "type": "Malfunction",
+        "description": "LeakProtect Malfunction",
         "concerns": "Zone or point",
     },
     "SR": {
@@ -1561,6 +1633,12 @@ ALL_CODES = {
         "description": "CS RECEIVER has received an event from a non-existent account",
         "concerns": "Unused",
     },
+    "XC": {
+        "code": "XC",
+        "type": "Malfunction restore",
+        "description": "Connection restored, device in room",
+        "concerns": "Unused",
+    },
     "XE": {
         "code": "XE",
         "type": "Extra Point",
@@ -1593,7 +1671,7 @@ ALL_CODES = {
     },
     "XL": {
         "code": "XL",
-        "type": "Low Received Signal Strength",
+        "type": "Low Received Signal Strength/Connection Lost",
         "description": "The RF signal strength of a reported event is below minimum level",
         "concerns": "Receiver number",
     },
@@ -1830,5 +1908,17 @@ ALL_CODES = {
         "type": "Freeze Unbypass",
         "description": "Low temperature detection bypass removed",
         "concerns": "Zone or point",
+    },
+    "ZY": {
+        "code": "ZY",
+        "type": "Common Event",
+        "description": "Device was switched on",
+        "concerns": "Hub",
+    },
+    "ZZ": {
+        "code": "ZZ",
+        "type": "Common Event",
+        "description": "turned off",
+        "concerns": "Hub",
     },
 }

@@ -4,15 +4,9 @@ import asyncio
 import logging
 import socket
 from threading import Thread
-from typing import Callable
-from typing import Coroutine
-from typing import List
-from typing import Union
+from typing import Callable, Coroutine, List, Union
 
-from . import __author__
-from . import __copyright__
-from . import __license__
-from . import __version__
+from . import __author__, __copyright__, __license__, __version__
 from .base_sia_client import BaseSIAClient
 from .sia_account import SIAAccount
 from .sia_event import SIAEvent
@@ -22,6 +16,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class SIAClient(Thread, BaseSIAClient):
+    """Class for Sync SIA Client."""
+
     def __init__(
         self,
         host: str,
@@ -48,10 +44,21 @@ class SIAClient(Thread, BaseSIAClient):
             (self._host, self._port), self._accounts, self._func, self._counts
         )
 
+    def __enter__(self):
+        """Start with as context manager."""
+        self.start()
+        return self
+
+    def __exit__(self, type, value, tb):
+        """End as context manager."""
+        self.stop()
+
     def start(self):
         """Start the SIA TCP Handler thread."""
         _LOGGER.debug("Starting SIA.")
-        self.server_thread = Thread(target=self.sia_server.serve_forever)
+        self.server_thread = Thread(
+            target=self.sia_server.serve_forever, name="SIAServerThread"
+        )
         self.server_thread.daemon = True
         self.server_thread.start()
 

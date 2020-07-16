@@ -1,18 +1,11 @@
 """This is the class for the actual TCP handler override of the handle method."""
 import asyncio
 import logging
-from typing import Callable
-from typing import Coroutine
-from typing import Dict
-from typing import Union
+from typing import Callable, Coroutine, Dict, Union
 
-from .. import __author__
-from .. import __copyright__
-from .. import __license__
-from .. import __version__
+from .. import __author__, __copyright__, __license__, __version__
 from ..base_sia_server import BaseSIAServer
-from ..sia_account import SIAAccount
-from ..sia_account import SIAResponseType
+from ..sia_account import SIAAccount, SIAResponseType
 from ..sia_event import SIAEvent
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,6 +13,8 @@ empty_bytes = b""
 
 
 class SIAServer(BaseSIAServer):
+    """Class for SIA Server Async."""
+
     def __init__(
         self,
         accounts: Dict[str, SIAAccount],
@@ -37,7 +32,6 @@ class SIAServer(BaseSIAServer):
         """
         BaseSIAServer.__init__(self, accounts, func, counts)
 
-    @asyncio.coroutine
     async def handle_line(self, reader, writer):
         """Handle for SIA Events.
 

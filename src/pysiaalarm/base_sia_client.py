@@ -1,16 +1,14 @@
 """This is a the main class for the SIA Client."""
-from abc import ABC
-from abc import abstractmethod
-from typing import Callable
-from typing import Coroutine
-from typing import List
-from typing import Union
+from abc import ABC, abstractmethod
+from typing import Callable, Coroutine, List, Union
 
 from .sia_account import SIAAccount
 from .sia_event import SIAEvent
 
 
 class BaseSIAClient(ABC):
+    """Base class for SIA Client."""
+
     def __init__(
         self,
         host: str,
@@ -51,15 +49,17 @@ class BaseSIAClient(ABC):
 
         Returns:
             List[SIAAccount]: List with SIAAccounts
+
         """
         return list(self._accounts.values())
 
     @accounts.setter
     def accounts(self, new_accounts: List[SIAAccount]):
-        """Set the accounts to monitor
+        """Set the accounts to monitor.
 
         Args:
             new_accounts (List[SIAAccount]): List of SIAAccounts to monitor.
+
         """
         self._accounts = {a.account_id: a for a in new_accounts}
         if self.sia_server:
@@ -72,8 +72,8 @@ class BaseSIAClient(ABC):
 
     @abstractmethod
     def start(self):
-        pass
+        """Abstract method for start."""
 
     @abstractmethod
     def stop(self):
-        pass
+        """Abstract method for stop."""

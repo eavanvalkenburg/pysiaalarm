@@ -1,11 +1,9 @@
 """This is the base class with the handling logic for both sia_servers."""
 import logging
 from abc import ABC
-from typing import Callable
-from typing import Dict
+from typing import Callable, Dict, Tuple
 
-from .sia_account import SIAAccount
-from .sia_account import SIAResponseType
+from .sia_account import SIAAccount, SIAResponseType
 from .sia_errors import EventFormatError
 from .sia_event import SIAEvent
 
@@ -13,6 +11,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class BaseSIAServer(ABC):
+    """Base class for SIA Server."""
+
     def __init__(
         self,
         accounts: Dict[str, SIAAccount],
@@ -34,7 +34,7 @@ class BaseSIAServer(ABC):
 
     def parse_and_check_event(
         self, line: str
-    ) -> (SIAEvent, SIAAccount, SIAResponseType):
+    ) -> Tuple[SIAEvent, SIAAccount, SIAResponseType]:
         """Parse and check the line and create the event, check the account and define the response.
 
         Args:
@@ -49,13 +49,20 @@ class BaseSIAServer(ABC):
         try:
             event = SIAEvent(line)
         except EventFormatError:
-            _LOGGER.warning("Last line: %s could not be parsed as a SIAEvent.", line)
             self.counts["errors"]["format"] = self.counts["errors"]["format"] + 1
+            _LOGGER.warning(
+                "Last line could not be parsed as a SIAEvent, line was: %s", line
+            )
             return None, SIAAccount(""), SIAResponseType.NAK
 
         if not event.valid_message:
             self.counts["errors"]["crc"] = self.counts["errors"]["crc"] + 1
-            _LOGGER.warning("CRC mismatch, ignoring message.")
+            _LOGGER.warning(
+                "CRC mismatch, ignoring message. Sent CRC: %s, Calculated CRC: %s. Line was %s",
+                event.msg_crc,
+                event.calc_crc,
+                line,
+            )
             return event, SIAAccount(event.account), None
 
         account = self.accounts.get(event.account)
@@ -67,10 +74,21 @@ class BaseSIAServer(ABC):
                 event,
             )
             return event, SIAAccount(event.account), SIAResponseType.NAK
-        event = account.decrypt(event)
+
+        try:
+            event = account.decrypt(event)
+        except EventFormatError:
+            self.counts["errors"]["format"] = self.counts["errors"]["format"] + 1
+            _LOGGER.warning(
+                "Decrypting last line: %s could not be parsed as a SIAEvent, content: %s",
+                line,
+                event.content,
+            )
+            return None, SIAAccount(""), SIAResponseType.NAK
+
         _LOGGER.debug("Parsed event: %s.", event)
 
-        if event.code_not_found:
+        if event.code_not_found and event.message_type == "SIA-DCS":
             self.counts["errors"]["code"] = self.counts["errors"]["code"] + 1
             _LOGGER.warning(
                 "Code not found, replying with DUH to account: %s", event.account

@@ -6,14 +6,16 @@ import random
 import socket
 import sys
 import time
-from binascii import hexlify
-from datetime import datetime
-from datetime import timedelta
+from binascii import hexlify, unhexlify
+from datetime import datetime, timedelta
 
 from Crypto import Random
 from Crypto.Cipher import AES
+
 from pysiaalarm import SIAEvent
 from pysiaalarm.sia_const import ALL_CODES
+
+from .create_line import create_line
 
 BASIC_CONTENT = f"|Nri<zone>/<code>000]<timestamp>"
 BASIC_LINE = f'SIA-DCS"<seq>L0#<account>[<content>'
@@ -22,14 +24,14 @@ BASIC_LINE = f'SIA-DCS"<seq>L0#<account>[<content>'
 def create_test_items(key, content):
     """Create encrypted content."""
     encrypter = AES.new(
-        key.encode("utf8"), AES.MODE_CBC, Random.new().read(AES.block_size)
+        key.encode("utf-8"), AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
     )
 
     extra = len(content) % 16
     unencrypted = (16 - extra) * "0" + content
     return (
-        hexlify(encrypter.encrypt(unencrypted.encode("utf8")))
-        .decode(encoding="UTF-8")
+        hexlify(encrypter.encrypt(unencrypted.encode("utf-8")))
+        .decode(encoding="utf-8")
         .upper()
     )
 
@@ -107,11 +109,11 @@ def non_existing_code(code, test_case=None):
     """Randomly choose a non-existant code or keep code."""
     if test_case:
         if test_case.get("code"):
-            return "ZZ"
+            return "ZW"
         else:
             return code
     else:
-        return "ZZ" if random.random() < 0.1 else code
+        return "ZW" if random.random() < 0.1 else code
 
 
 def different_account(account, test_case=None):
@@ -163,7 +165,15 @@ def client_program(
         account = different_account(config["account_id"], tc)
         timed = timedelta(seconds=timestamp_offset(tc))
         timestamp = get_timestamp(timed)
-        message = create_test_line(config["key"], account, code, timestamp, alter_crc)
+        message = create_line(
+            config["key"],
+            account,
+            code,
+            generate=True,
+            timestamp=timestamp,
+            alter_crc=alter_crc,
+        )
+        # message = create_test_line(config["key"], account, code, timestamp, alter_crc)
         print(
             f"Message with account: {account}, code: {code}, altered crc: {alter_crc}, timedelta: {timed}"
         )
