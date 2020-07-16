@@ -51,7 +51,6 @@ class SIATCPHandler(BaseRequestHandler):
                 break
             raw = bytearray(raw)
             while len(raw) > 0:  # True and not self.server.shutdown_flag:
-                _LOGGER.debug("Incoming line raw: %s", raw)
                 splitter = raw.find(b"\r")
                 if splitter == -1:
                     line = raw
@@ -60,7 +59,7 @@ class SIATCPHandler(BaseRequestHandler):
                 else:
                     line = raw[1:splitter]
                     raw = raw[splitter + 1 :]
-                decoded_line = line.decode()
+                decoded_line = line.decode("ascii")
                 _LOGGER.debug("Incoming line: %s", decoded_line)
                 self.server.counts["events"] = self.server.counts["events"] + 1
                 event, account, response = self.server.parse_and_check_event(

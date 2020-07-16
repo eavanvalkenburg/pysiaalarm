@@ -95,7 +95,6 @@ class BaseSIAServer(ABC):
             )
             return event, account, SIAResponseType.DUH
 
-        # check valid timestamp, throw TimestampError if not within Timeband.
         if not event.valid_timestamp(account.allowed_timeband):
             self.counts["errors"]["timestamp"] = self.counts["errors"]["timestamp"] + 1
             _LOGGER.warning("Event timestamp is no longer valid: %s", event.timestamp)
