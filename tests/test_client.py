@@ -109,11 +109,11 @@ def non_existing_code(code, test_case=None):
     """Randomly choose a non-existant code or keep code."""
     if test_case:
         if test_case.get("code"):
-            return "ZZ"
+            return "ZW"
         else:
             return code
     else:
-        return "ZZ" if random.random() < 0.1 else code
+        return "ZW" if random.random() < 0.1 else code
 
 
 def different_account(account, test_case=None):

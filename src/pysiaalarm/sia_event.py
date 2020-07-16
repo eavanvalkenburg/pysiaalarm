@@ -161,7 +161,6 @@ class SIAEvent:
     @property
     def valid_message(self) -> bool:
         """Check the validity of the message by comparing the sent CRC with the calculated CRC."""
-        # _LOGGER.debug("msg crc: %s, calc crc: %s", self.msg_crc, self.calc_crc)
         return self.msg_crc == self.calc_crc
 
     @property
@@ -173,7 +172,7 @@ class SIAEvent:
     def sia_string(self) -> str:
         """Create a string with the SIA codes and some other fields."""
         return f"Code: {self.code}, Type: {self.type}, \
-            Description: {self.description}, Concerns: {self.concerns}"
+            Description: {self.description}"
 
     def __str__(self):
         """Return a string of a event."""

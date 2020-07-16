@@ -49,13 +49,20 @@ class BaseSIAServer(ABC):
         try:
             event = SIAEvent(line)
         except EventFormatError:
-            _LOGGER.warning("Last line: %s could not be parsed as a SIAEvent.", line)
             self.counts["errors"]["format"] = self.counts["errors"]["format"] + 1
+            _LOGGER.warning(
+                "Last line could not be parsed as a SIAEvent, line was: %s", line
+            )
             return None, SIAAccount(""), SIAResponseType.NAK
 
         if not event.valid_message:
             self.counts["errors"]["crc"] = self.counts["errors"]["crc"] + 1
-            _LOGGER.warning("CRC mismatch, ignoring message.")
+            _LOGGER.warning(
+                "CRC mismatch, ignoring message. Sent CRC: %s, Calculated CRC: %s. Line was %s",
+                event.msg_crc,
+                event.calc_crc,
+                line,
+            )
             return event, SIAAccount(event.account), None
 
         account = self.accounts.get(event.account)
@@ -71,12 +78,12 @@ class BaseSIAServer(ABC):
         try:
             event = account.decrypt(event)
         except EventFormatError:
+            self.counts["errors"]["format"] = self.counts["errors"]["format"] + 1
             _LOGGER.warning(
                 "Decrypting last line: %s could not be parsed as a SIAEvent, content: %s",
                 line,
                 event.content,
             )
-            self.counts["errors"]["format"] = self.counts["errors"]["format"] + 1
             return None, SIAAccount(""), SIAResponseType.NAK
 
         _LOGGER.debug("Parsed event: %s.", event)
