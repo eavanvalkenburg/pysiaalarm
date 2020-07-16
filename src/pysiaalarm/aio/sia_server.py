@@ -47,11 +47,10 @@ class SIAServer(BaseSIAServer):
                 break
             if data == empty_bytes or reader.at_eof():
                 break
-            line = str.strip(data.decode())
-            _LOGGER.debug("Incoming line: %s", line)
+            line = str.strip(data.decode("ascii"))
             if not line:
                 return
-            event = None
+            _LOGGER.debug("Incoming line: %s", line)
             self.counts["events"] = self.counts["events"] + 1
             event, account, response = self.parse_and_check_event(line)
             writer.write(account.create_response(event, response))

@@ -49,8 +49,8 @@ def create_line(
         if key:
             content = _create_padded_message(content)
         base_line = NULL_LINE
+    _LOGGER.debug("Content to be sent: %s", content)
     content = acc.encrypt(content)
-
     line = f'"{"*" if key else ""}{base_line.replace("<account>", account).replace("<content>", content).replace("<seq>", seq)}'
 
     crc = SIAEvent.crc_calc(line)

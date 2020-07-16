@@ -1,7 +1,5 @@
 """Class for SIA Accounts."""
 import logging
-from base64 import b64decode, b64encode
-from binascii import hexlify, unhexlify
 from datetime import datetime
 from enum import Enum
 from typing import Tuple
@@ -19,6 +17,8 @@ from .sia_errors import (
 from .sia_event import SIAEvent
 
 _LOGGER = logging.getLogger(__name__)
+
+IV = bytes.fromhex("00000000000000000000000000000000")
 
 
 class SIAResponseType(Enum):
@@ -63,22 +63,11 @@ class SIAAccount:
         self.account_id = account_id
         self.key = key.encode("utf-8") if key else key
         self.allowed_timeband = allowed_timeband
-        self.encrypted = False
-        self._create_crypters()
+        self.encrypted = True if key else False
 
-    def _create_crypters(self):
-        """Create the de- and encrypter functions."""
-        if self.key:
-            self.decrypter = AES.new(
-                self.key, AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
-            )
-            self.encrypter = AES.new(
-                self.key, AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
-            )
-            self.encrypted = True
-        else:
-            self.decrypter = None
-            self.encrypter = None
+    def _get_crypter(self):
+        """Give back a encrypter/decrypter."""
+        return AES.new(self.key, AES.MODE_CBC, IV)
 
     def encrypt(self, message: str) -> str:
         """Encrypt a string, usually used for endings.
@@ -90,11 +79,13 @@ class SIAAccount:
             str -- Encrypted string, if encrypted account.
 
         """
-        if self.encrypted:
-            message = _create_padded_message(message)
-            encrypted_message = hexlify(self.encrypter.encrypt(message.encode("utf-8")))
-            return encrypted_message.decode(encoding="utf-8").upper()
-
+        if self.encrypted and message:
+            encr = self._get_crypter()
+            return (
+                encr.encrypt(_create_padded_message(message).encode("ascii"))
+                .hex()
+                .upper()
+            )
         else:
             return message
 
@@ -109,10 +100,10 @@ class SIAAccount:
 
         """
         if self.encrypted and event.encrypted_content:
-            decrypted_content = self.decrypter.decrypt(
-                unhexlify(event.encrypted_content)
+            decr = self._get_crypter()
+            event.content = decr.decrypt(bytes.fromhex(event.encrypted_content)).decode(
+                "ascii", "ignore"
             )
-            event.content = decrypted_content.decode("utf-8", errors="backslashreplace")
         return event
 
     def create_response(self, event: SIAEvent, response_type: SIAResponseType) -> str:
@@ -128,7 +119,7 @@ class SIAAccount:
         """
         if response_type == SIAResponseType.ACK and event:
             if self.encrypted:
-                res = f'"*ACK"{event.sequence}L0#{event.account}[{self.encrypt(_create_padded_message("]")+_get_timestamp())}'
+                res = f'"*ACK"{event.sequence}L0#{event.account}[{self.encrypt("]"+_get_timestamp())}'
             else:
                 res = f'"ACK"{event.sequence}L0#{event.account}[]'
         elif response_type == SIAResponseType.DUH and event:
@@ -146,7 +137,7 @@ class SIAAccount:
             return b"\n\r"
 
         header = ("%04x" % len(res)).upper()
-        return f"\n{SIAEvent.crc_calc(res)}{header}{res}\r".encode("utf-8")
+        return f"\n{SIAEvent.crc_calc(res)}{header}{res}\r".encode("ascii")
 
     @classmethod
     def validate_account(cls, account_id: str = None, key: str = None):

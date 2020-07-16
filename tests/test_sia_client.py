@@ -4,13 +4,16 @@ import asyncio
 import json
 import logging
 import random
+import re
 import socket
 import threading
 import time
 from typing import Type
 
 import pytest
-from mock import patch
+from hypothesis import example, given, settings
+from hypothesis import strategies as st
+from mock import MagicMock, PropertyMock, patch
 
 from pysiaalarm import (
     InvalidAccountFormatError,
@@ -20,16 +23,15 @@ from pysiaalarm import (
     SIAAccount,
     SIAClient,
     SIAEvent,
+    sia_event,
 )
 from pysiaalarm.aio import SIAClient as SIAClientA
-from pysiaalarm.sia_account import SIAResponseType
+from pysiaalarm.sia_account import SIAResponseType, _create_padded_message
 from pysiaalarm.sia_errors import EventFormatError
 from tests.test_client import client_program
 from tests.test_utils import create_test_items
 
 from .create_line import create_line
-
-# from hypothesis import given, settings
 
 logging.basicConfig(level=logging.INFO)
 _LOGGER = logging.getLogger(__name__)
@@ -392,3 +394,24 @@ class testSIA(object):
             HOST, PORT, acc_list, function=lambda ev: print(ev)
         ) as cl:
             assert cl.accounts == acc_list
+
+    content = st.text(st.characters(min_codepoint=32, max_codepoint=126), min_size=1)
+    key = st.from_regex(
+        regex=r"^[0-9A-E]{16}$|^[0-9A-E]{24}$|^[0-9A-E]{32}$", fullmatch=True
+    )
+
+    @given(key, content)
+    @example("AAAAAAAAAAAAAAAA", "|Nri1/GH000]_12:16:13,07-16-2020")
+    @example("AAAAAAAAAAAAAAAA", "|Nri1/ZW000]_12:30:51,07-16-2020")
+    def test_encrypt_decrypt(self, key, content):
+        """Test encryption and decryption."""
+        _LOGGER.debug("Key: %s", key)
+        acc = SIAAccount(ACCOUNT, key)
+        _LOGGER.debug("Unencrypted message: %s", content)
+        message = acc.encrypt(content)
+        with patch("pysiaalarm.SIAEvent") as event:
+            type(event).encrypted_content = PropertyMock(return_value=message)
+            _LOGGER.debug("Encrypted message event: %s", event.encrypted_content)
+            decrypted_event = acc.decrypt(event)
+            _LOGGER.debug("Decrypted message: %s", decrypted_event.content)
+            assert decrypted_event.content == _create_padded_message(content)
