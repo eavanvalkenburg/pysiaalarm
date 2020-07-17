@@ -24,9 +24,16 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def create_line(
-    key, account, code, type="SIA-DCS", generate=True, timestamp=None, alter_crc=False
+    key,
+    account,
+    sia_account,
+    code,
+    type="SIA-DCS",
+    generate=True,
+    timestamp=None,
+    alter_crc=False,
 ):
-    acc = SIAAccount(account, key)
+    # acc =
     if generate:
         seq = str(random.randint(1000, 9999))
         timestamp = (
@@ -50,7 +57,7 @@ def create_line(
             content = _create_padded_message(content)
         base_line = NULL_LINE
     _LOGGER.debug("Content to be sent: %s", content)
-    content = acc.encrypt(content)
+    content = sia_account.encrypt(content)
     line = f'"{"*" if key else ""}{base_line.replace("<account>", account).replace("<content>", content).replace("<seq>", seq)}'
 
     crc = SIAEvent.crc_calc(line)

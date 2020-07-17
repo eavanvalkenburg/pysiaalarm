@@ -15,8 +15,8 @@ async def main():
     events = []
 
     async def func(event: SIAEvent):
-        if random.random() > 0.8:
-            raise ValueError
+        # if random.random() > 0.8:
+        #     raise ValueError
         events.append(event)
 
     with open("local_config.json", "r") as f:
@@ -26,7 +26,7 @@ async def main():
         config["host"], config["port"], account, function=func
     ) as client:
         # client.start()
-        sleep_time = 120
+        sleep_time = 12000
         print("--------------------------------------------------")
 
         # await asyncio.sleep(20)

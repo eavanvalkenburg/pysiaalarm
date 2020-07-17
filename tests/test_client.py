@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from Crypto import Random
 from Crypto.Cipher import AES
 
-from pysiaalarm import SIAEvent
+from pysiaalarm import SIAAccount, SIAEvent
 from pysiaalarm.sia_const import ALL_CODES
 
 from .create_line import create_line
@@ -165,9 +165,11 @@ def client_program(
         account = different_account(config["account_id"], tc)
         timed = timedelta(seconds=timestamp_offset(tc))
         timestamp = get_timestamp(timed)
+        acc = SIAAccount(account, config["key"])
         message = create_line(
             config["key"],
             account,
+            acc,
             code,
             generate=True,
             timestamp=timestamp,
