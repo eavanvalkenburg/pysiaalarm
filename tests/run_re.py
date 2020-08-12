@@ -4,26 +4,9 @@ import re
 logging.basicConfig(level=logging.DEBUG)
 from pysiaalarm import SIAAccount, SIAEvent
 
-# regex = r"""(?P<crc>[A-F0-9]{4})
-#     (?P<length>[A-F0-9]{4})
-#     (?P<type>SIA-DCS|\*SIA-DCS|NULL|\*NULL)
-#     \"
-#     (?P<sequence>[0-9]{4})
-#     (?P<receiver>R[A-F0-9]{1,6})?
-#     (?P<prefix>L[A-F0-9]{1,6})
-#     [#]?
-#     (?P<account>[A-F0-9]{3,16})?
-#     \[[#]?
-#     (?P<encrypted>[A-F0-9]*)?
-#     (?P<account2>[A-F0-9]{3,16})?
-#     .*Nri
-#     (?P<zone>\d*)
-#     /
-#     (?P<code>[a-zA-z]{2})
-#     (?P<message>.*)?
-#     ]_?
-#     (?P<timestamp>[0-9:,-]*)?"""
-prefix_regex = r"""
+# matcher = re.compile(regex, re.X)
+# print(matcher.pattern)
+main_regex = r"""
 (?P<crc>[A-F0-9]{4})
 (?P<length>[A-F0-9]{4})\"
 (?P<encrypted_flag>[*])?
@@ -35,10 +18,28 @@ prefix_regex = r"""
 [\[]
 (?P<rest>.*)
 """
-prefix_matcher = re.compile(prefix_regex, re.X)
+MAIN_MATCHER = re.compile(main_regex, re.X)
+
 content_regex = r"""
 [#]?(?P<account>[A-F0-9]{3,16})?
-(?:.*Nri)
+[|]?
+(?:Nri)?
+(?P<zone>\d*)?
+\/?
+(?P<code>[a-zA-z]{2})?
+(?P<message>.*)
+[\]]
+[_]?
+(?P<timestamp>[0-9:,-]*)?
+"""
+CONTENT_MATCHER = re.compile(content_regex, re.X)
+
+encr_content_regex = r"""
+(?:[^\|\[\]]*)
+[|]?
+[#]?(?P<account>[A-F0-9]{3,16})?
+[|]?
+(?:.*Nri)?
 (?P<zone>\d*)?
 \/?
 (?P<code>[a-zA-z]{2})?
@@ -46,8 +47,7 @@ content_regex = r"""
 [\]][_]?
 (?P<timestamp>[0-9:,-]*)?
 """
-# matcher = re.compile(regex, re.X)
-# print(matcher.pattern)
+ENCR_CONTENT_MATCHER = re.compile(encr_content_regex, re.X)
 
 lines = [
     # r'2E680078"SIA-DCS"6002L0#AAA[|Nri1/CL501]_14:12:04,09-25-2019',
@@ -56,9 +56,20 @@ lines = [
     # r'C4160279"SIA-DCS"5268L0#AAA[.Rr\x1d PaG\'5"�\n\x03��|Nri1/WA000]_08:40:47,07-08-2020',
     # r'68370130"*NULL"6327L0#AAA[9F719719F36B05547CD730D4615FE0A4B5BB7A27A9F500741A07C3F7328FC7A1',
     # r'43580023"SIA-DCS"0084L0#AAA[#AAA|Nri1/XC12]'
-    r'021A0078"*SIA-DCS"0764L0#EA1984[E759F1FE2FDBAF5B30AED69378DF87CF9DA82AA9292D0661E3EBA6DF2AD55AEA4D91968EE8460EC206B8AEAD69B33BCB'
+    r'85DF0078"*SIA-DCS"4480L0#EA1984[83F153789366885D5F83DD5A8D19F691DE6602D5D71342E244C040C5D10D89040444068312750F38DF7E63AD3DE8AD5A'
 ]
 
+encr_content = [
+    r"v V|#EA1984|Nri0/RP0000]_16:57:20,08-11-2020",
+    r" HM|#EA1984|Nri0/RP0000]_19:52:37,08-11-2020",
+    r"T,o |#EA1984|Nri0/RP0000]_20:44:12,08-11-2020",
+    r"_ |#EA1984|Nri0/RP0000]_22:27:02,08-11-2020",
+    r"&* |#EA1984|Nri0/RP0000]_05:19:49,08-12-2020",
+]
+
+# for content in encr_content:
+#     en_content_match = CONTENT_MATCHER.match(content)
+#     print("en_content_match groups", en_content_match.groupdict())
 
 for line in lines:
     # print("Line ", line)
@@ -83,6 +94,7 @@ for line in lines:
     acc = SIAAccount("EA1984", "3BD7E66AA9E2F190")
     ev = SIAEvent(line)
     print(ev)
+    print(ev.encrypted)
     # print(ev.valid_message)
     print(acc.decrypt(ev))
-    print(acc.decrypt(ev))
+    # print(acc.decrypt(ev))
