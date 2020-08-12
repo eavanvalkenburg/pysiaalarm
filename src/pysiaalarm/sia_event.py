@@ -26,6 +26,23 @@ MAIN_MATCHER = re.compile(main_regex, re.X)
 
 content_regex = r"""
 [#]?(?P<account>[A-F0-9]{3,16})?
+[|]?
+(?:Nri)?
+(?P<zone>\d*)?
+\/?
+(?P<code>[a-zA-z]{2})?
+(?P<message>.*)
+[\]]
+[_]?
+(?P<timestamp>[0-9:,-]*)?
+"""
+CONTENT_MATCHER = re.compile(content_regex, re.X)
+
+encr_content_regex = r"""
+(?:[^\|\[\]]*)
+[|]?
+[#]?(?P<account>[A-F0-9]{3,16})?
+[|]?
 (?:.*Nri)?
 (?P<zone>\d*)?
 \/?
@@ -34,7 +51,7 @@ content_regex = r"""
 [\]][_]?
 (?P<timestamp>[0-9:,-]*)?
 """
-CONTENT_MATCHER = re.compile(content_regex, re.X)
+ENCR_CONTENT_MATCHER = re.compile(encr_content_regex, re.X)
 
 
 class SIAEvent:
@@ -94,7 +111,10 @@ class SIAEvent:
     def content(self, new):
         """Set the content and parse it."""
         self._content = new
-        matches = CONTENT_MATCHER.match(self._content)
+        if self.encrypted:
+            matches = ENCR_CONTENT_MATCHER.match(self._content)
+        else:
+            matches = CONTENT_MATCHER.match(self._content)
         if not matches:
             raise EventFormatError(
                 "Parse content: no matches found in %s", self._content

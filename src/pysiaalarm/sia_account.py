@@ -64,6 +64,9 @@ class SIAAccount:
         self.key = key.encode("utf-8") if key else key
         self.allowed_timeband = allowed_timeband
         self.encrypted = True if key else False
+        # if self.encrypted:
+        #     self.decrypter = AES.new(self.key, AES.MODE_CBC, IV)
+        #     self.encrypter = AES.new(self.key, AES.MODE_CBC, IV)
 
     def _get_crypter(self):
         """Give back a encrypter/decrypter."""
@@ -81,6 +84,18 @@ class SIAAccount:
         """
         if self.encrypted and message:
             encr = self._get_crypter()
+            # _LOGGER.debug(
+            #     "Encrypt with New AES: %s",
+            #     encr.encrypt(_create_padded_message(message).encode("ascii"))
+            #     .hex()
+            #     .upper(),
+            # )
+            # _LOGGER.debug(
+            #     "Encrypt with Reused AES: %s",
+            #     self.encrypter.encrypt(_create_padded_message(message).encode("ascii"))
+            #     .hex()
+            #     .upper(),
+            # )
             return (
                 encr.encrypt(_create_padded_message(message).encode("ascii"))
                 .hex()
@@ -101,6 +116,18 @@ class SIAAccount:
         """
         if self.encrypted and event.encrypted_content:
             decr = self._get_crypter()
+            # _LOGGER.debug(
+            #     "Decrypt with New AES: %s",
+            #     decr.decrypt(bytes.fromhex(event.encrypted_content)).decode(
+            #         "ascii", "ignore"
+            #     ),
+            # )
+            # _LOGGER.debug(
+            #     "Decrypt with Reused AES: %s",
+            #     self.decrypter.decrypt(bytes.fromhex(event.encrypted_content)).decode(
+            #         "ascii", "ignore"
+            #     ),
+            # )
             event.content = decr.decrypt(bytes.fromhex(event.encrypted_content)).decode(
                 "ascii", "ignore"
             )
