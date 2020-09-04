@@ -53,8 +53,15 @@ class SIAServer(BaseSIAServer):
             _LOGGER.debug("Incoming line: %s", line)
             self.counts["events"] = self.counts["events"] + 1
             event, account, response = self.parse_and_check_event(line)
-            writer.write(account.create_response(event, response))
-            await writer.drain()
+            try:
+                writer.write(account.create_response(event, response))
+                await writer.drain()
+            except Exception as exp:
+                _LOGGER.warning(
+                    "Exception caught while responding to event: %s, exception: %s",
+                    event,
+                    exp,
+                )
 
             if not (event and response == SIAResponseType.ACK):
                 continue

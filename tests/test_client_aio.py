@@ -60,27 +60,38 @@ def create_test_line(key, account, code, timestamp, alter_crc=False):
 
 
 CODES = [
-    # "BA",
-    # "BR",
-    # "CA",
-    # "CF",
-    # "CG",
-    # "CL",
-    # "CP",
-    # "CQ",
+    "BA",
+    "BR",
+    "CA",
+    "CF",
+    "CG",
+    "CL",
+    "CP",
+    "CQ",
     "GA",
     "GH",
-    # "NL",
-    # "OA",
-    # "OG",
-    # "OP",
-    # "OQ",
-    # "OR",
+    "NL",
+    "OA",
+    "OG",
+    "OP",
+    "OQ",
+    "OR",
     "RP",
-    # "TA",
+    "RP",
+    "RP",
+    "RP",
+    "RP",
+    "RP",
+    "RP",
+    "RP",
+    "RP",
+    "RP",
+    "RP",
+    "RP",
+    "TA",
     "WA",
     "WH",
-    # "YG",
+    "YG",
 ]
 
 
@@ -198,10 +209,10 @@ async def async_send_messages(host, port, loop, test_case, time_between):
 if __name__ == "__main__":
     """Run main with a config."""
     logging.info(sys.argv)
-    if sys.argv[1]:
-        file = sys.argv[1]
-    else:
-        file = "unencrypted_config.json"
+    # if sys.argv and sys.argv[1]:
+    #     file = sys.argv[1]
+    # else:
+    file = "local_config.json"
     with open(file, "r") as f:
         config = json.load(f)
     client_program(config)

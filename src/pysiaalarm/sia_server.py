@@ -65,8 +65,14 @@ class SIATCPHandler(BaseRequestHandler):
                 event, account, response = self.server.parse_and_check_event(
                     decoded_line
                 )
-
-                self.request.sendall(account.create_response(event, response))
+                try:
+                    self.request.sendall(account.create_response(event, response))
+                except Exception as exp:
+                    _LOGGER.warning(
+                        "Exception caught while responding to event: %s, exception: %s",
+                        event,
+                        exp,
+                    )
                 # check for event and if the response is acknowledge, which means the event is valid.
                 if event and response == resp.ACK:
                     self.server.counts["valid_events"] = (
