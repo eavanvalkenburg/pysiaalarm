@@ -1918,7 +1918,7 @@ ALL_CODES = {
     "ZZ": {
         "code": "ZZ",
         "type": "Common Event",
-        "description": "turned off",
+        "description": "Device was switched off",
         "concerns": "Hub",
     },
 }
