@@ -27,9 +27,10 @@ MAIN_MATCHER = re.compile(main_regex, re.X)
 content_regex = r"""
 [#]?(?P<account>[A-F0-9]{3,16})?
 [|]?
-(?:Nri)?
-(?P<zone>\d*)?
-\/?
+(?:N)?
+(ti)?(?P<ts>\d{2}:\d{2})?\/?  #“ti”hh:mm/ time (e.g. ti10:23/).
+(id)?(?P<id>\d*)?\/?  #“id”nnn/ user number, if applicable; otherwise not sent (e.g.
+(ri)?(?P<ri>\d*)?\/?  #“ri”nn/ partition no. (e.g. ri12/ or ri3).
 (?P<code>[a-zA-z]{2})?
 (?P<message>.*)
 [\]]
@@ -43,9 +44,10 @@ encr_content_regex = r"""
 [|]?
 [#]?(?P<account>[A-F0-9]{3,16})?
 [|]?
-(?:.*Nri)?
-(?P<zone>\d*)?
-\/?
+(?:.*N)?
+(ti)?(?P<ts>\d{2}:\d{2})?\/?  #“ti”hh:mm/ time (e.g. ti10:23/).
+(id)?(?P<id>\d*)?\/?  #“id”nnn/ user number, if applicable; otherwise not sent (e.g.
+(ri)?(?P<ri>\d*)?\/?  #“ri”nn/ partition no. (e.g. ri12/ or ri3).
 (?P<code>[a-zA-z]{2})?
 (?P<message>.*)
 [\]][_]?
@@ -79,7 +81,9 @@ class SIAEvent:
         self.concerns = None
         self.timestamp = None
         self._code = None
-        self.zone = None
+        self.ti = None
+        self.id = None
+        self.ri = None
         self.type = None
         self.description = None
         self.concerns = None
@@ -122,7 +126,9 @@ class SIAEvent:
         content = matches.groupdict()
         if not self.account:
             self.account = content["account"]
-        self.zone = content["zone"]
+        self.ti = content["ti"]
+        self.id = content["id"]
+        self.ri = content["ri"]  # renamed from zone
         self.code = content["code"]
         self.message = content["message"]
         self.timestamp = (
@@ -132,7 +138,7 @@ class SIAEvent:
         )
         if self.message_type == "NULL" and not self.code:
             self.code = "RP"
-            self.zone = 0
+            self.ri = 0
 
     @property
     def code(self):
@@ -198,7 +204,7 @@ class SIAEvent:
         """Return a string of a event."""
         return f"\
 Content: {self.content}, \
-Zone: {self.zone}, \
+Zone (ri): {self.ri}, \
 Code: {self.code}, \
 Message: {self.message if self.message else ''}, \
 Concerns: {self.concerns}, \
