@@ -28,7 +28,7 @@ content_regex = r"""
 [#]?(?P<account>[A-F0-9]{3,16})?
 [|]?
 (?:N)?
-(ti)?(?P<ts>\d{2}:\d{2})?\/?  #“ti”hh:mm/ time (e.g. ti10:23/).
+(ti)?(?P<ti>\d{2}:\d{2})?\/?  #“ti”hh:mm/ time (e.g. ti10:23/).
 (id)?(?P<id>\d*)?\/?  #“id”nnn/ user number, if applicable; otherwise not sent (e.g.
 (ri)?(?P<ri>\d*)?\/?  #“ri”nn/ partition no. (e.g. ri12/ or ri3).
 (?P<code>[a-zA-z]{2})?
@@ -45,7 +45,7 @@ encr_content_regex = r"""
 [#]?(?P<account>[A-F0-9]{3,16})?
 [|]?
 (?:.*N)?
-(ti)?(?P<ts>\d{2}:\d{2})?\/?  #“ti”hh:mm/ time (e.g. ti10:23/).
+(ti)?(?P<ti>\d{2}:\d{2})?\/?  #“ti”hh:mm/ time (e.g. ti10:23/).
 (id)?(?P<id>\d*)?\/?  #“id”nnn/ user number, if applicable; otherwise not sent (e.g.
 (ri)?(?P<ri>\d*)?\/?  #“ri”nn/ partition no. (e.g. ri12/ or ri3).
 (?P<code>[a-zA-z]{2})?
