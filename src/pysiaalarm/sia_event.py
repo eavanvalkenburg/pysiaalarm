@@ -27,14 +27,13 @@ MAIN_MATCHER = re.compile(main_regex, re.X)
 content_regex = r"""
 [#]?(?P<account>[A-F0-9]{3,16})?
 [|]?
-(?:N)?
-(ti)?(?P<ti>\d{2}:\d{2})?\/?  #“ti”hh:mm/ time (e.g. ti10:23/).
-(id)?(?P<id>\d*)?\/?  #“id”nnn/ user number, if applicable; otherwise not sent (e.g.
-(ri)?(?P<ri>\d*)?\/?  #“ri”nn/ partition no. (e.g. ri12/ or ri3).
+[N]?
+(?:ti)?(?:(?<=ti)(?P<ti>\d{2}:\d{2}))?\/?
+(?:id)?(?:(?<=id)(?P<id>\d*))?\/?
+(?:ri)?(?:(?<=ri)(?P<ri>\d*))?\/?
 (?P<code>[a-zA-z]{2})?
 (?P<message>.*)
-[\]]
-[_]?
+[\]][_]?
 (?P<timestamp>[0-9:,-]*)?
 """
 CONTENT_MATCHER = re.compile(content_regex, re.X)
@@ -42,12 +41,12 @@ CONTENT_MATCHER = re.compile(content_regex, re.X)
 encr_content_regex = r"""
 (?:[^\|\[\]]*)
 [|]?
-[#]?(?P<account>[A-F0-9]{3,16})?
+[#]?(?P<account>[a-fA-F0-9]{3,16})?
 [|]?
-(?:.*N)?
-(ti)?(?P<ti>\d{2}:\d{2})?\/?  #“ti”hh:mm/ time (e.g. ti10:23/).
-(id)?(?P<id>\d*)?\/?  #“id”nnn/ user number, if applicable; otherwise not sent (e.g.
-(ri)?(?P<ri>\d*)?\/?  #“ri”nn/ partition no. (e.g. ri12/ or ri3).
+[N]?
+(?:ti)?(?:(?<=ti)(?P<ti>\d{2}:\d{2}))?\/?
+(?:id)?(?:(?<=id)(?P<id>\d*))?\/?
+(?:ri)?(?:(?<=ri)(?P<ri>\d*))?\/?
 (?P<code>[a-zA-z]{2})?
 (?P<message>.*)
 [\]][_]?

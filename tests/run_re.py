@@ -23,27 +23,30 @@ MAIN_MATCHER = re.compile(main_regex, re.X)
 content_regex = r"""
 [#]?(?P<account>[A-F0-9]{3,16})?
 [|]?
-(?:N)?
-(ti)?(?P<ts>\d{2}:\d{2})?\/?  #“ti”hh:mm/ time (e.g. ti10:23/).
-(id)?(?P<id>\d*)?\/?  #“id”nnn/ user number, if applicable; otherwise not sent (e.g.
-(ri)?(?P<ri>\d*)?\/?  #“ri”nn/ partition no. (e.g. ri12/ or ri3).
+[N]?
+(?:ti)?(?:(?<=ti)(?P<ti>\d{2}:\d{2}))?\/?
+(?:id)?(?:(?<=id)(?P<id>\d*))?\/?
+(?:ri)?(?:(?<=ri)(?P<ri>\d*))?\/?
 (?P<code>[a-zA-z]{2})?
 (?P<message>.*)
-[\]]
-[_]?
+[\]][_]?
 (?P<timestamp>[0-9:,-]*)?
 """
 CONTENT_MATCHER = re.compile(content_regex, re.X)
 
+# “ti”hh:mm/ time (e.g. ti10:23/).
+# “id”nnn/ user number, if applicable; otherwise not sent (e.g.
+# “ri”nn/ partition no. (e.g. ri12/ or ri3).
+
 encr_content_regex = r"""
 (?:[^\|\[\]]*)
 [|]?
-[#]?(?P<account>[A-F0-9]{3,16})?
+[#]?(?P<account>[a-fA-F0-9]{3,16})?
 [|]?
-(?:.*N)?
-(ti)?(?P<ts>\d{2}:\d{2})?\/?  #“ti”hh:mm/ time (e.g. ti10:23/).
-(id)?(?P<id>\d*)?\/?  #“id”nnn/ user number, if applicable; otherwise not sent (e.g.
-(ri)?(?P<ri>\d*)?\/?  #“ri”nn/ partition no. (e.g. ri12/ or ri3).
+[N]?
+(?:ti)?(?:(?<=ti)(?P<ti>\d{2}:\d{2}))?\/?
+(?:id)?(?:(?<=id)(?P<id>\d*))?\/?
+(?:ri)?(?:(?<=ri)(?P<ri>\d*))?\/?
 (?P<code>[a-zA-z]{2})?
 (?P<message>.*)
 [\]][_]?
@@ -60,6 +63,7 @@ lines = [
     r'43580023"SIA-DCS"0084L0#AAA[#AAA|Nri1/XC12]'
     r'85DF0078"*SIA-DCS"4480L0#EA1984[83F153789366885D5F83DD5A8D19F691DE6602D5D71342E244C040C5D10D89040444068312750F38DF7E63AD3DE8AD5A',
     r'1908002B"SIA-DCS"0000L0#3080[#3080|Nti19:44/id1/ri4/RP]',
+    r'43580023"*SIA-DCS"0084L0#AAA[P$WwA!#|#EA1984|Nri1/NL4]_08:38:13,01-07-2021',
 ]
 
 encr_content = [
@@ -68,11 +72,12 @@ encr_content = [
     r"T,o |#EA1984|Nri0/RP0000]_20:44:12,08-11-2020",
     r"_ |#EA1984|Nri0/RP0000]_22:27:02,08-11-2020",
     r"&* |#EA1984|Nri0/RP0000]_05:19:49,08-12-2020",
+    r"P$WwA!#|#EA1984|Nri1/NL4]_08:38:13,01-07-2021",
 ]
 
-# for content in encr_content:
-#     en_content_match = CONTENT_MATCHER.match(content)
-#     print("en_content_match groups", en_content_match.groupdict())
+for content in encr_content:
+    en_content_match = ENCR_CONTENT_MATCHER.match(content)
+    print("en_content_match groups", en_content_match.groupdict())
 
 for line in lines:
     print("Line ", line)
@@ -95,11 +100,11 @@ for line in lines:
             content = CONTENT_MATCHER.match(prefix.group("rest"))
             if content:
                 print("Groups ", content.groupdict())
-            # print("Groups ", matcher.match(line).groupdict())
-    # acc = SIAAccount("EA1984", "3BD7E66AA9E2F190")
-    # ev = SIAEvent(line)
-    # print(ev)
-    # print(ev.encrypted)
-    # # print(ev.valid_message)
-    # print(acc.decrypt(ev))
-    # print(acc.decrypt(ev))
+# print("Groups ", matcher.match(line).groupdict())
+# acc = SIAAccount("EA1984", "3BD7E66AA9E2F190")
+# ev = SIAEvent(line)
+# print(ev)
+# print(ev.encrypted)
+# # print(ev.valid_message)
+# print(acc.decrypt(ev))
+# print(acc.decrypt(ev))
