@@ -47,7 +47,7 @@ class SIAServer(BaseSIAServer):
                 break
             if data == empty_bytes or reader.at_eof():
                 break
-            line = str.strip(data.decode("ascii"))
+            line = str.strip(data.decode("ascii", errors="ignore"))
             if not line:
                 return
             _LOGGER.debug("Incoming line: %s", line)

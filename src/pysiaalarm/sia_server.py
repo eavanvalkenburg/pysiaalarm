@@ -59,7 +59,7 @@ class SIATCPHandler(BaseRequestHandler):
                 else:
                     line = raw[1:splitter]
                     raw = raw[splitter + 1 :]
-                decoded_line = line.decode("ascii")
+                decoded_line = line.decode("ascii", errors="ignore")
                 _LOGGER.debug("Incoming line: %s", decoded_line)
                 self.server.counts["events"] = self.server.counts["events"] + 1
                 event, account, response = self.server.parse_and_check_event(
