@@ -60,6 +60,8 @@ def create_test_line(key, account, code, timestamp, alter_crc=False):
 
 
 CODES = [
+    "AT",
+    "AR",
     "BA",
     "BR",
     "CA",
@@ -70,23 +72,16 @@ CODES = [
     "CQ",
     "GA",
     "GH",
+    "FA",
+    "FH",
+    "KA",
+    "KH",
     "NL",
     "OA",
     "OG",
     "OP",
     "OQ",
     "OR",
-    "RP",
-    "RP",
-    "RP",
-    "RP",
-    "RP",
-    "RP",
-    "RP",
-    "RP",
-    "RP",
-    "RP",
-    "RP",
     "RP",
     "TA",
     "WA",
@@ -212,7 +207,7 @@ if __name__ == "__main__":
     # if sys.argv and sys.argv[1]:
     #     file = sys.argv[1]
     # else:
-    file = "local_config.json"
+    file = "tests/encrypted_config.json"
     with open(file, "r") as f:
         config = json.load(f)
     client_program(config)

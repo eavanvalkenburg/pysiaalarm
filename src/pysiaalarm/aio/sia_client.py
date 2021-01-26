@@ -35,6 +35,7 @@ class SIAClient(BaseSIAClient):
             function = asyncio.coroutine(function)
         BaseSIAClient.__init__(self, host, port, accounts, function)
         self.sia_server = SIAServer(self._accounts, self._func, self._counts)
+        self.task = None
 
     async def __aenter__(self):
         """Start with as context manager."""
@@ -62,4 +63,5 @@ class SIAClient(BaseSIAClient):
         """Stop the asynchronous SIA server."""
         _LOGGER.debug("Stopping SIA.")
         self.sia_server.shutdown_flag = True
-        await self.task
+        if self.task:
+            await self.task

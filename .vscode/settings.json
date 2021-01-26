@@ -6,7 +6,7 @@
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
-    "python.pythonPath": "C:\\Anaconda3\\python.exe",
+    "python.pythonPath": "/Users/edvan/miniforge3/bin/python",
     "python.linting.flake8Enabled": true,
     "python.linting.enabled": true,
     "python.linting.pydocstyleEnabled": true,
