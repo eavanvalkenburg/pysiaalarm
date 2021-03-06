@@ -11,12 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-    - name: Run setup of PySIAAlarm
-      run: python setup.py develop
-    - name: Test with pytest
-      run: python setup.py test
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - run: tox
+      # - name: Run installs.
+      #   run: pip install -e .[test]
+      # - name: Run setup of PySIAAlarm
+      #   run: python setup.py develop
+      # - name: Test with pytest
+      #   run: python setup.py test
