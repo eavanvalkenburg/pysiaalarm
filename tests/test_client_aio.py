@@ -140,14 +140,14 @@ def timestamp_offset(test_case=None):
         return random.randint(0, 60)
 
 
-@asyncio.coroutine
-def tcp_client(message, host, port, loop):
+async def tcp_client(message, host, port, loop):
+    """Create TCP client."""
     print(f"Trying to send: {message}")
 
-    reader, writer = yield from asyncio.open_connection(host, port, loop=loop)
+    reader, writer = await asyncio.open_connection(host, port, loop=loop)
     writer.write(message.encode())
 
-    data = yield from reader.read(100)
+    data = await reader.read(100)
     print(f"Received from server: {data.decode()}")
 
     writer.close()
@@ -172,6 +172,7 @@ def client_program(
 
 
 async def async_send_messages(host, port, loop, test_case, time_between):
+    """Send message async."""
     stop = False
     cases = len(test_case) if test_case else None
     logging.debug("Number of cases: %s", cases)

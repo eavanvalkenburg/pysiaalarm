@@ -20,6 +20,9 @@ main_regex = r"""
 """
 MAIN_MATCHER = re.compile(main_regex, re.X)
 
+# “ti”hh:mm/ time (e.g. ti10:23/).
+# “id”nnn/ user number, if applicable; otherwise not sent (e.g.
+# “ri”nn/ partition no. (e.g. ri12/ or ri3).
 content_regex = r"""
 [#]?(?P<account>[A-F0-9]{3,16})?
 [|]?
@@ -28,31 +31,26 @@ content_regex = r"""
 (?:id)?(?:(?<=id)(?P<id>\d*))?\/?
 (?:ri)?(?:(?<=ri)(?P<ri>\d*))?\/?
 (?P<code>[a-zA-z]{2})?
-(?P<message>.*)
-[\]][_]?
+(?P<message>\w*)
+[\]]
+(?:\[(?:(?<=\[)(?P<extendeddata>\w*)(?=\]))\])?
+[_]?
 (?P<timestamp>[0-9:,-]*)?
 """
 CONTENT_MATCHER = re.compile(content_regex, re.X)
 
-# “ti”hh:mm/ time (e.g. ti10:23/).
-# “id”nnn/ user number, if applicable; otherwise not sent (e.g.
-# “ri”nn/ partition no. (e.g. ri12/ or ri3).
+encr_content_regex = r"""(?:[^\|\[\]]*)[|]?"""
+ENCR_CONTENT_MATCHER = re.compile(encr_content_regex + content_regex, re.X)
 
-encr_content_regex = r"""
-(?:[^\|\[\]]*)
-[|]?
-[#]?(?P<account>[a-fA-F0-9]{3,16})?
-[|]?
-[N]?
-(?:ti)?(?:(?<=ti)(?P<ti>\d{2}:\d{2}))?\/?
-(?:id)?(?:(?<=id)(?P<id>\d*))?\/?
-(?:ri)?(?:(?<=ri)(?P<ri>\d*))?\/?
-(?P<code>[a-zA-z]{2})?
-(?P<message>.*)
-[\]][_]?
-(?P<timestamp>[0-9:,-]*)?
+heartbeat_regex = r"""
+^S
+(?:R)(?:(?<=R)(?P<receiver>\d{4}))
+(?:L)(?:(?<=L)(?P<prefix>\d{4}))
+\s+\w{8}\s+
+\[(?P<id>\w+)\]$
 """
-ENCR_CONTENT_MATCHER = re.compile(encr_content_regex, re.X)
+
+HEARTBEAT_MATCHER = re.compile(heartbeat_regex, re.X)
 
 lines = [
     r'2E680078"SIA-DCS"6002L0#AAA[|Nri1/CL501]_14:12:04,09-25-2019',
@@ -64,6 +62,8 @@ lines = [
     r'85DF0078"*SIA-DCS"4480L0#EA1984[83F153789366885D5F83DD5A8D19F691DE6602D5D71342E244C040C5D10D89040444068312750F38DF7E63AD3DE8AD5A',
     r'1908002B"SIA-DCS"0000L0#3080[#3080|Nti19:44/id1/ri4/RP]',
     r'43580023"*SIA-DCS"0084L0#AAA[P$WwA!#|#EA1984|Nri1/NL4]_08:38:13,01-07-2021',
+    r'2E680078"SIA-DCS"6002L0#AAA[|Nri1/CL501][A38475345]_14:12:04,09-25-2019',
+    r"SR0001L0001    006969XX    [ID00000000]",
 ]
 
 encr_content = [
@@ -74,6 +74,13 @@ encr_content = [
     r"&* |#EA1984|Nri0/RP0000]_05:19:49,08-12-2020",
     r"P$WwA!#|#EA1984|Nri1/NL4]_08:38:13,01-07-2021",
 ]
+unen_content = [
+    r"#006969|Nri04/OP001NM]",
+]
+
+for content in unen_content:
+    content_match = CONTENT_MATCHER.match(content)
+    print("unen_content_match groups", content_match.groupdict())
 
 for content in encr_content:
     en_content_match = ENCR_CONTENT_MATCHER.match(content)
@@ -84,8 +91,8 @@ for line in lines:
     # print(SIAEvent(line))
     prefix = MAIN_MATCHER.match(line)
     # re.match(prefix_regex, line, re.X)
-    print("Groups", prefix.groupdict())
     if prefix:
+        print("Groups", prefix.groupdict())
         if prefix.group("encrypted_flag"):
             # if re.search(r"(\*SIA-DCS|\*NULL)", line):
             encrypted_content = prefix.group("rest")
@@ -100,6 +107,10 @@ for line in lines:
             content = CONTENT_MATCHER.match(prefix.group("rest"))
             if content:
                 print("Groups ", content.groupdict())
+    else:
+        heartbeat = HEARTBEAT_MATCHER.match(line)
+        if heartbeat:
+            print("Groups ", heartbeat.groupdict())
 # print("Groups ", matcher.match(line).groupdict())
 # acc = SIAAccount("EA1984", "3BD7E66AA9E2F190")
 # ev = SIAEvent(line)

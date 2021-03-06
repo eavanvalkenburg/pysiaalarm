@@ -27,6 +27,7 @@ class SIAResponseType(Enum):
     ACK = 1
     DUH = 2
     NAK = 3
+    RSP = 4
 
 
 def _create_padded_message(message: str) -> str:
@@ -133,12 +134,15 @@ class SIAAccount:
             )
         return event
 
-    def create_response(self, event: SIAEvent, response_type: SIAResponseType) -> str:
+    def create_response(
+        self, event: SIAEvent, response_type: SIAResponseType, x_data: str = None
+    ) -> str:
         """Create a response message, based on account, event and response type.
 
         Arguments:
             event {SIAEvent} -- Event to respond to.
             response_type {SIAResponseType} -- Response type.
+            x_data {str} -- Extended data field to add to RSP field.
 
         Returns:
             str -- Response to send back to sender.
@@ -146,11 +150,18 @@ class SIAAccount:
         """
         if response_type == SIAResponseType.ACK and event:
             if self.encrypted:
-                res = f'"*ACK"{event.sequence}L0#{event.account}[{self.encrypt("]"+_get_timestamp())}'
+                res = f'"*ACK"{event.sequence}R{event.receiver}L{event.line}#{event.account}[{self.encrypt("]"+_get_timestamp())}'
             else:
-                res = f'"ACK"{event.sequence}L0#{event.account}[]'
+                res = f'"ACK"{event.sequence}R{event.receiver}L{event.line}#{event.account}[]'
         elif response_type == SIAResponseType.DUH and event:
-            res = f'"DUH"{event.sequence}L0#{event.account}[]'
+            res = (
+                f'"DUH"{event.sequence}R{event.receiver}L{event.line}#{event.account}[]'
+            )
+        elif response_type == SIAResponseType.RSP and event:
+            if self.encrypted:
+                res = f'"*RSP"{event.sequence}R{event.receiver}L{event.line}#{event.account}[{self.encrypt(f"][{x_data}]"+_get_timestamp())}'
+            else:
+                res = f'"RSP"{event.sequence}R{event.receiver}L{event.line}#{event.account}[][{x_data}]'
         elif response_type == SIAResponseType.NAK:
             res = f'"NAK"0000L0R0A0[]{_get_timestamp()}'
         elif not response_type:
@@ -165,6 +176,11 @@ class SIAAccount:
 
         header = ("%04x" % len(res)).upper()
         return f"\n{SIAEvent.crc_calc(res)}{header}{res}\r".encode("ascii")
+
+    @classmethod
+    def create_accountless_response(cls, response: SIAResponseType):
+        """Create a response for accountless events."""
+        return f'"{response.name}"'
 
     @classmethod
     def validate_account(cls, account_id: str = None, key: str = None):

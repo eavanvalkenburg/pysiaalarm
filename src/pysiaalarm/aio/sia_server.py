@@ -53,8 +53,12 @@ class SIAServer(BaseSIAServer):
             _LOGGER.debug("Incoming line: %s", line)
             self.counts["events"] = self.counts["events"] + 1
             event, account, response = self.parse_and_check_event(line)
+            if account:
+                resp = account.create_response(event, response)
+            else:
+                resp = SIAAccount.create_accountless_response(response)
             try:
-                writer.write(account.create_response(event, response))
+                writer.write(resp)
                 await writer.drain()
             except Exception as exp:
                 _LOGGER.warning(

@@ -20,6 +20,7 @@ __pycache__/*
 .pydevproject
 .settings
 .idea
+.vscode
 tags
 
 # Package files
@@ -31,11 +32,11 @@ tags
 # Unittest and coverage
 htmlcov/*
 .coverage
+.coverage.*
 .tox
-junit.xml
+junit*.xml
 coverage.xml
 .pytest_cache/
-.hypothesis
 
 # Build and docs folder/files
 build/*
@@ -49,6 +50,4 @@ MANIFEST
 
 # Per-project virtualenvs
 .venv*/
-
-# local config files
-local_config.json
+.conda*/

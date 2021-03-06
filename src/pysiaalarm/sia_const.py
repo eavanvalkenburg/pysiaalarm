@@ -1922,3 +1922,114 @@ ALL_CODES = {
         "concerns": "Hub",
     },
 }
+
+XDATA = {
+    "A": {
+        "name": "Authentication Hash",
+        "description": "A hash of the message that allows the message to be authenticated.",
+        "length": 12,
+        "characters": "ASCII",
+    },
+    "C": {
+        "name": "Supervision Category",
+        "description": "An identifier for the number of communication paths and link supervision category",
+        "length": 64,
+        "characters": "ASCII",
+    },
+    "H": {
+        "name": "Time of Occurence",
+        "description": "Time that event occurred (may be different than message time stamp)",
+        "length": 21,
+        "characters": "ASCII",
+    },
+    "I": {
+        "name": "Alarm Text",
+        "description": "Alarm text which may be a description of the event or a comment regarding the event.",
+        "length": 256,
+        "characters": "Win1252",
+    },
+    "J": {
+        "name": "Network Path",
+        "description": "Manufacturer specific identifier for the path that was used for the communication",
+        "length": 1,
+        "characters": "ASCII",
+    },
+    "K": {
+        "name": "Encryption Key",
+        "description": "Key exchange request from CSR to PE (up to 256 bits)",
+        "length": 64,
+        "characters": "ASCII",
+    },
+    "L": {
+        "name": "Location",
+        "description": "Location of event on site",
+        "length": 256,
+        "characters": "Win1252",
+    },
+    "M": {
+        "name": "MAC Address",
+        "description": "MAC address of the PE.",
+        "length": 12,
+        "characters": "ASCII",
+    },
+    "N": {
+        "name": "Network Address",
+        "description": "Hardware network address associated with the communication on path used.",
+        "length": 128,
+        "characters": "ASCII",
+    },
+    "P": {
+        "name": "Authentication Hash",
+        "description": "contains a message used to support programming or other interactive operations with the receiver",
+        "length": 256,
+        "characters": "Win1252",
+    },
+    "O": {
+        "name": "Building Name",
+        "description": "Building name.",
+        "length": 256,
+        "characters": "Win1252",
+    },
+    "R": {
+        "name": "Room",
+        "description": "Room of the event.",
+        "length": 256,
+        "characters": "Win1252",
+    },
+    "S": {
+        "name": "Site name",
+        "description": "Site name describing the premises.",
+        "length": 256,
+        "characters": "Win1252",
+    },
+    "T": {
+        "name": "Alarm Trigger",
+        "description": "Trigger for the event.",
+        "length": 1,
+        "characters": "ASCII",
+    },
+    "V": {
+        "name": "Verification",
+        "description": "information about audio or video information that may be associated with the event report.",
+        "length": 256,
+        "characters": "Win1252",
+    },
+    "X": {
+        "name": "Longitude",
+        "description": "Location of event, longitude.",
+        "length": 12,
+        "characters": "ASCII",
+    },
+    "Y": {
+        "name": "Latitude",
+        "description": "Location of event, latitude.",
+        "length": 12,
+        "characters": "ASCII",
+    },
+    "Z": {
+        "name": "Altitude",
+        "description": "Location of event, altitude.",
+        "length": 12,
+        "characters": "ASCII",
+    },
+}

@@ -68,7 +68,7 @@ class testSIA(object):
                 Exception,
             ),
             (
-                r'90820051"SIA-DCS"4738R0001L0001[#006969|Nri04/OP001*NM]DDA2FBB313169D87|#006969',
+                r'90820051"SIA-DCS"4738R0001L0001[#006969|Nri04/OP001NM]',
                 "006969",
                 "Opening Report",
                 "OP",
@@ -209,6 +209,7 @@ class testSIA(object):
         }
         assert len(events) == 0 if fail_func else 1
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "config_file, port_add, fail_func",
         [
@@ -265,7 +266,7 @@ class testSIA(object):
         t.daemon = True
         t.start()  # stops after the five events have been sent.
 
-        # run for 7 seconds
+        # run for 7 seconds, so sleep for 10
         await asyncio.sleep(10)
 
         await siac.stop()
@@ -386,6 +387,7 @@ class testSIA(object):
         except Exception:
             assert False
 
+    @pytest.mark.asyncio
     async def test_context(self):
         """Test the context manager functions."""
         acc_list = [

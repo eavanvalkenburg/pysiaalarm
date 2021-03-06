@@ -5,20 +5,21 @@ import re
 from datetime import datetime, timedelta
 
 from . import __author__, __copyright__, __license__, __version__
-from .sia_const import ALL_CODES
+from .sia_const import ALL_CODES, XDATA
 from .sia_errors import EventFormatError
 
 _LOGGER = logging.getLogger(__name__)
 
+
 main_regex = r"""
-(?P<crc>[A-F0-9]{4})
-(?P<length>[A-F0-9]{4})\"
+(?P<crc>[A-Fa-f0-9]{4})
+(?P<length>[A-Fa-f0-9]{4})\"
 (?P<encrypted_flag>[*])?
 (?P<message_type>SIA-DCS|NULL)\"
 (?P<sequence>[0-9]{4})
-(?P<receiver>R[A-F0-9]{1,6})?
-(?P<prefix>L[A-F0-9]{1,6})
-[#]?(?P<account>[A-F0-9]{3,16})?
+(?P<receiver>R[A-Fa-f0-9]{1,6})?
+(?P<line>L[A-Fa-f0-9]{1,6})
+[#]?(?P<account>[A-Fa-f0-9]{3,16})?
 [\[]
 (?P<rest>.*)
 """
@@ -32,46 +33,36 @@ content_regex = r"""
 (?:id)?(?:(?<=id)(?P<id>\d*))?\/?
 (?:ri)?(?:(?<=ri)(?P<ri>\d*))?\/?
 (?P<code>[a-zA-z]{2})?
-(?P<message>.*)
-[\]][_]?
+(?P<message>\w*)
+[\]]
+(?:\[(?:(?<=\[)(?P<xdata>\w*)(?=\]))\])?
+[_]?
 (?P<timestamp>[0-9:,-]*)?
 """
 CONTENT_MATCHER = re.compile(content_regex, re.X)
 
-encr_content_regex = r"""
-(?:[^\|\[\]]*)
-[|]?
-[#]?(?P<account>[a-fA-F0-9]{3,16})?
-[|]?
-[N]?
-(?:ti)?(?:(?<=ti)(?P<ti>\d{2}:\d{2}))?\/?
-(?:id)?(?:(?<=id)(?P<id>\d*))?\/?
-(?:ri)?(?:(?<=ri)(?P<ri>\d*))?\/?
-(?P<code>[a-zA-z]{2})?
-(?P<message>.*)
-[\]][_]?
-(?P<timestamp>[0-9:,-]*)?
-"""
-ENCR_CONTENT_MATCHER = re.compile(encr_content_regex, re.X)
+encr_content_regex = r"""(?:[^\|\[\]]*)[|]?"""
+ENCR_CONTENT_MATCHER = re.compile(encr_content_regex + content_regex, re.X)
 
 
 class SIAEvent:
     """Class for SIAEvents."""
 
-    def __init__(self, line: str):
+    def __init__(self, incoming: str):
         """Create a SIA Event from a line.
 
         Arguments:
-            line {str} -- The line to be parsed.
+            incoming {str} -- The line to be parsed.
 
         Raises:
             EventFormatError: If the event is not formatted according to SIA DC09.
 
         """
-        line_match = MAIN_MATCHER.match(line)
+        line_match = MAIN_MATCHER.match(incoming)
         if not line_match:
             raise EventFormatError(
-                "No matches found, event was not a SIA Spec event, line was: %s", line
+                "No matches found, event was not a SIA Spec event, line was: %s",
+                incoming,
             )
         main_content = line_match.groupdict()
 
@@ -95,14 +86,15 @@ class SIAEvent:
         self.message_type = main_content["message_type"]
         self.sequence = main_content["sequence"]
         self.receiver = main_content["receiver"]
-        self.prefix = main_content["prefix"]
+        self.line = main_content["line"]  # renamed from prefix
         self.account = main_content["account"]
+        self._extended_data = None
         if self.encrypted:
             self.encrypted_content = main_content["rest"]
         else:
             self.encrypted_content = None
             self.content = main_content["rest"]
-        self.full_message = line[8:]
+        self.full_message = incoming[8:]
         self.calc_crc = SIAEvent.crc_calc(self.full_message)
 
     @property
@@ -130,6 +122,7 @@ class SIAEvent:
         self.ri = content["ri"]  # renamed from zone
         self.code = content["code"]
         self.message = content["message"]
+        self.extended_data = content["xdata"]
         self.timestamp = (
             datetime.strptime(content["timestamp"], "%H:%M:%S,%m-%d-%Y")
             if content["timestamp"]
@@ -156,6 +149,19 @@ class SIAEvent:
             self.code_not_found = False
         else:
             self.code_not_found = True
+
+    @property
+    def extended_data(self):
+        """Return extended data."""
+        return self._extended_data
+
+    @extended_data.setter
+    def extended_data(self, value):
+        """Set extended data."""
+        if value:
+            xdata = XDATA.get(value[0])
+            xdata["value"] = value[1:]
+            self._extended_data = xdata
 
     def valid_timestamp(self, allowed_timeband) -> bool:
         """Check if the timestamp is within bounds."""
@@ -211,7 +217,7 @@ Type: {self.type}, \
 Description: {self.description}, \
 Account: {self.account}, \
 Receiver: {self.receiver}, \
-Prefix: {self.prefix}, \
+Line: {self.line}, \
 Timestamp: {self.timestamp}, \
 Length: {self.length}, \
 Sequence: {self.sequence}, \

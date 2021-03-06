@@ -1,5 +1,6 @@
 """This is the base class with the handling logic for both sia_servers."""
 import logging
+import re
 from abc import ABC
 from typing import Callable, Dict, Tuple
 
@@ -8,6 +9,16 @@ from .sia_errors import EventFormatError
 from .sia_event import SIAEvent
 
 _LOGGER = logging.getLogger(__name__)
+
+# sample OH: SR0001L0001    006969XX    [ID00000000]
+oh_regex = r"""
+^S
+(?:R)(?:(?<=R)(?:\d{4}))
+(?:L)(?:(?<=L)(?:\d{4}))
+\s+\w{8}\s+
+\[(?:\w+)\]$
+"""
+OH_MATCHER = re.compile(oh_regex, re.X)
 
 
 class BaseSIAServer(ABC):
@@ -48,12 +59,22 @@ class BaseSIAServer(ABC):
         """
         try:
             event = SIAEvent(line)
-        except EventFormatError:
-            self.counts["errors"]["format"] = self.counts["errors"]["format"] + 1
-            _LOGGER.warning(
-                "Last line could not be parsed as a SIAEvent, line was: %s", line
-            )
-            return None, SIAAccount(""), SIAResponseType.NAK
+            # TODO: add heartbeat handle return Event, None, ACK
+        except EventFormatError as e:
+            try:
+                _LOGGER.debug("Not a SIA Event, checking OH.")
+                oh_event = OH_MATCHER.match(line)
+                if oh_event:
+                    return None, None, SIAResponseType.ACK
+                else:
+                    raise EventFormatError from e
+            except EventFormatError:
+                self.counts["errors"]["format"] = self.counts["errors"]["format"] + 1
+                _LOGGER.warning(
+                    "Last line could not be parsed as a SIAEvent or OHEvent, line was: %s",
+                    line,
+                )
+                return None, None, SIAResponseType.NAK
 
         if not event.valid_message:
             self.counts["errors"]["crc"] = self.counts["errors"]["crc"] + 1
@@ -84,7 +105,7 @@ class BaseSIAServer(ABC):
                 line,
                 event.content,
             )
-            return None, SIAAccount(""), SIAResponseType.NAK
+            return None, None, SIAResponseType.NAK
 
         _LOGGER.debug("Parsed event: %s.", event)
 
