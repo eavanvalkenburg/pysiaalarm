@@ -188,14 +188,6 @@ class testSIA(object):
         ]
 
         await async_send_messages(config, tests, 1)
-        # t = threading.Thread(
-        #     target=client_program, name="test_client", args=(config, 1, tests)
-        # )
-        # t.daemon = True
-        # t.start()  # stops after the five events have been sent.
-
-        # # run for 7 seconds
-        # time.sleep(10)
 
         siac.stop()
         assert siac.counts == {
@@ -264,16 +256,6 @@ class testSIA(object):
         ]
 
         await async_send_messages(config, tests, 1)
-
-        # t = threading.Thread(
-        #     target=client_program, name="test_client", args=(config, 1, tests)
-        # )
-        # t.daemon = True
-        # t.start()  # stops after the five events have been sent.
-
-        # run for 7 seconds, so sleep for 10
-        # await asyncio.sleep(10)
-
         _LOGGER.debug("Registered events: %s", siac.counts)
 
         await siac.stop()
@@ -305,7 +287,13 @@ class testSIA(object):
     )
     def test_server(self, key, account, code, type, alter_key, wrong_event):
         """Test the server parsing."""
-        config = {"host": HOST, "port": PORT, "account_id": account, "key": key}
+        port_add = random.randint(0, 5)
+        config = {
+            "host": HOST,
+            "port": PORT + port_add,
+            "account_id": account,
+            "key": key,
+        }
         events = []
 
         def func_append(event: SIAEvent):
@@ -313,7 +301,7 @@ class testSIA(object):
 
         siac = SIAClient(
             host="",
-            port=config["port"],
+            port=config["port"] + port_add,
             accounts=[
                 SIAAccount(
                     account_id=config["account_id"],
@@ -340,8 +328,8 @@ class testSIA(object):
             assert acc.account_id == account
             assert ev.account == account
             assert ev.code == code
-        line = create_line(key, account, sia_acc, code, type)
-        ev, acc, resp = siac.sia_server.parse_and_check_event(line)
+        # line = create_line(key, account, sia_acc, code, type)
+        # ev, acc, resp = siac.sia_server.parse_and_check_event(line)
 
     def test_accounts(self):
         """Test the account getting and setting."""
@@ -415,13 +403,13 @@ class testSIA(object):
         async with SIAClientA(HOST, PORT, acc_list, function=async_func) as cl:
             assert cl.accounts == acc_list
 
-    content = st.text(
-        st.characters(min_codepoint=32, max_codepoint=126), min_size=4, max_size=15
-    ).filter(lambda x: bool(re.fullmatch(r"^(?![0]+).*(?<![0]{1,14})$", x)))
-    # ^(?=.*\d)(?=.*[B-Zb-z]{2,}).*$
-    key = st.from_regex(
-        regex=r"^[0-9A-E]{16}$|^[0-9A-E]{24}$|^[0-9A-E]{32}$", fullmatch=True
-    )
+    # content = st.text(
+    #     st.characters(min_codepoint=32, max_codepoint=126), min_size=4, max_size=15
+    # ).filter(lambda x: bool(re.fullmatch(r"^(?![0]+).*(?<![0]{1,14})$", x)))
+    # # ^(?=.*\d)(?=.*[B-Zb-z]{2,}).*$
+    # key = st.from_regex(
+    #     regex=r"^[0-9A-E]{16}$|^[0-9A-E]{24}$|^[0-9A-E]{32}$", fullmatch=True
+    # )
 
     # @given(key, content)
     # @example("AAAAAAAAAAAAAAAA", "|Nri1/GH000]_12:16:13,07-16-2020")
