@@ -53,11 +53,10 @@ class SIAClient(BaseSIAClient):
 
         """
         _LOGGER.debug("Starting SIA.")
-        loop = asyncio.get_event_loop()
         self.coro = asyncio.start_server(
-            self.sia_server.handle_line, self._host, self._port, loop=loop, **kwargs
+            self.sia_server.handle_line, self._host, self._port, **kwargs
         )
-        self.task = loop.create_task(self.coro)
+        self.task = asyncio.create_task(self.coro)
 
     async def stop(self):
         """Stop the asynchronous SIA server."""

@@ -20,6 +20,9 @@ from .create_line import create_line
 BASIC_CONTENT = f"|Nri<zone>/<code>000]<timestamp>"
 BASIC_LINE = f'SIA-DCS"<seq>L0#<account>[<content>'
 
+logging.basicConfig(level=logging.INFO)
+_LOGGER = logging.getLogger(__name__)
+
 
 def create_test_items(key, content):
     """Create encrypted content."""
@@ -144,18 +147,22 @@ def client_program(
     test_case=None,  # [{"code": False, "crc": False, "account": False}]
 ):
     """Create the socket client and start sending messages every 5 seconds, until stopped, or the server disappears."""
-    logging.info("Test client config: %s", config)
+    _LOGGER.info("Test client config: %s", config)
     host = config["host"]  # as both code is running on same pc
     port = config["port"]  # socket server port number
 
     client_socket = socket.socket()  # instantiate
-    client_socket.connect((host, port))  # connect to the server
+    try:
+        client_socket.connect((host, port))  # connect to the server
+    except ConnectionRefusedError:
+        _LOGGER.error("Connection refused in test_client.py.")
+        return
     index = 0
     cases = len(test_case) if test_case else None
-    logging.debug("Number of cases: %s", cases)
+    _LOGGER.info("Number of cases: %s", cases)
     stop = False
     while True and not stop:
-        logging.debug("Index: %s", index)
+        _LOGGER.debug("Index: %s", index)
         if cases:
             tc = test_case[index]
         else:
@@ -176,13 +183,13 @@ def client_program(
             alter_crc=alter_crc,
         )
         # message = create_test_line(config["key"], account, code, timestamp, alter_crc)
-        print(
+        _LOGGER.debug(
             f"Message with account: {account}, code: {code}, altered crc: {alter_crc}, timedelta: {timed}"
         )
-        print(f"Sending to server: {message}")
+        _LOGGER.debug(f"Sending to server: {message}")
         client_socket.send(message.encode())  # send message
         data = client_socket.recv(1024).decode()  # receive response
-        print(f"Received from server: {data}")  # show in terminal
+        _LOGGER.debug(f"Received from server: {data}")  # show in terminal
         if cases:
             if index < cases - 1:
                 index += 1
@@ -206,7 +213,7 @@ def client_program(
 
 if __name__ == "__main__":
     """Run main with a config."""
-    logging.info(sys.argv)
+    _LOGGER.info(sys.argv)
     if sys.argv[1]:
         file = sys.argv[1]
     else:

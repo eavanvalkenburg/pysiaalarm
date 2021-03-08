@@ -18,6 +18,9 @@ from pysiaalarm.sia_event import SIAEvent
 BASIC_CONTENT = f"|Nri<zone>/<code>000]<timestamp>"
 BASIC_LINE = f'SIA-DCS"<seq>L0#<account>[<content>'
 
+logging.basicConfig(level=logging.INFO)
+_LOGGER = logging.getLogger(__name__)
+
 
 def create_test_items(key, content):
     """Create encrypted content."""
@@ -111,11 +114,11 @@ def non_existing_code(code, test_case=None):
     """Randomly choose a non-existant code or keep code."""
     if test_case:
         if test_case.get("code"):
-            return "ZZ"
+            return "ZX"
         else:
             return code
     else:
-        return "ZZ" if random.random() < 0.1 else code
+        return "ZX" if random.random() < 0.1 else code
 
 
 def different_account(account, test_case=None):
@@ -140,45 +143,29 @@ def timestamp_offset(test_case=None):
         return random.randint(0, 60)
 
 
-async def tcp_client(message, host, port, loop):
+async def tcp_client(message, host, port):
     """Create TCP client."""
-    print(f"Trying to send: {message}")
+    _LOGGER.debug(f"Trying to send: {message}")
 
-    reader, writer = await asyncio.open_connection(host, port, loop=loop)
+    reader, writer = await asyncio.open_connection(host, port)
     writer.write(message.encode())
 
     data = await reader.read(100)
-    print(f"Received from server: {data.decode()}")
+    _LOGGER.debug(f"Received from server: {data.decode()}")
 
     writer.close()
 
 
-def client_program(
-    config,
-    time_between=3,
-    test_case=None,  # [{"code": False, "crc": False, "account": False}]
-):
-    """Create the socket client and start sending messages every 5 seconds, until stopped, or the server disappears."""
-    logging.info("Test client config: %s", config)
+async def async_send_messages(config, test_case, time_between):
+    """Send message async."""
     host = config["host"]  # as both code is running on same pc
     port = config["port"]  # socket server port number
-
-    loop = asyncio.get_event_loop()
-    task = loop.create_task(
-        async_send_messages(host, port, loop, test_case, time_between)
-    )
-    loop.run_until_complete(task)
-    loop.close()
-
-
-async def async_send_messages(host, port, loop, test_case, time_between):
-    """Send message async."""
     stop = False
     cases = len(test_case) if test_case else None
-    logging.debug("Number of cases: %s", cases)
+    _LOGGER.debug("Number of cases: %s", cases)
     index = 0
     while True and not stop:
-        logging.debug("Index: %s", index)
+        _LOGGER.debug("Index: %s", index)
         if cases:
             tc = test_case[index]
         else:
@@ -189,11 +176,10 @@ async def async_send_messages(host, port, loop, test_case, time_between):
         timed = timedelta(seconds=timestamp_offset(tc))
         timestamp = get_timestamp(timed)
         message = create_test_line(config["key"], account, code, timestamp, alter_crc)
-        print(
+        _LOGGER.debug(
             f"Message with account: {account}, code: {code}, altered crc: {alter_crc}, timedelta: {timed}"
         )
-        # loop.create_task(tcp_client(message, host, port, loop))
-        await tcp_client(message, host, port, loop)
+        await tcp_client(message, host, port)
         if cases:
             if index < cases - 1:
                 index += 1
@@ -204,11 +190,11 @@ async def async_send_messages(host, port, loop, test_case, time_between):
 
 if __name__ == "__main__":
     """Run main with a config."""
-    logging.info(sys.argv)
-    # if sys.argv and sys.argv[1]:
-    #     file = sys.argv[1]
-    # else:
-    file = "tests/encrypted_config.json"
+    _LOGGER.info(sys.argv)
+    if sys.argv and sys.argv[1]:
+        file = sys.argv[1]
+    else:
+        file = "tests/encrypted_config.json"
     with open(file, "r") as f:
         config = json.load(f)
-    client_program(config)
+    asyncio.get_event_loop().run_until_complete(async_send_messages(config, None, 3))

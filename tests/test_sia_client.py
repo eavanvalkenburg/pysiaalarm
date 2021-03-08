@@ -28,7 +28,7 @@ from pysiaalarm import (
 from pysiaalarm.aio import SIAClient as SIAClientA
 from pysiaalarm.sia_account import SIAResponseType, _create_padded_message
 from pysiaalarm.sia_errors import EventFormatError
-from tests.test_client import client_program
+from tests.test_client_aio import async_send_messages
 from tests.test_utils import create_test_items
 
 from .create_line import create_line
@@ -135,6 +135,7 @@ class testSIA(object):
         except Exception as exp:
             assert isinstance(exp, error)
 
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "config_file, port_add, fail_func",
         [
@@ -144,7 +145,7 @@ class testSIA(object):
             ("tests\\encrypted_config.json", 4, True),
         ],
     )
-    def test_client(self, config_file, port_add, fail_func):
+    async def test_client(self, config_file, port_add, fail_func):
         """Test the client.
 
         Arguments:
@@ -185,14 +186,15 @@ class testSIA(object):
             {"code": False, "crc": False, "account": False, "time": True},
         ]
 
-        t = threading.Thread(
-            target=client_program, name="test_client", args=(config, 1, tests)
-        )
-        t.daemon = True
-        t.start()  # stops after the five events have been sent.
+        await async_send_messages(config, tests, 1)
+        # t = threading.Thread(
+        #     target=client_program, name="test_client", args=(config, 1, tests)
+        # )
+        # t.daemon = True
+        # t.start()  # stops after the five events have been sent.
 
-        # run for 7 seconds
-        time.sleep(10)
+        # # run for 7 seconds
+        # time.sleep(10)
 
         siac.stop()
         assert siac.counts == {
@@ -260,14 +262,18 @@ class testSIA(object):
             {"code": False, "crc": False, "account": False, "time": True},
         ]
 
-        t = threading.Thread(
-            target=client_program, name="test_client", args=(config, 1, tests)
-        )
-        t.daemon = True
-        t.start()  # stops after the five events have been sent.
+        await async_send_messages(config, tests, 1)
+
+        # t = threading.Thread(
+        #     target=client_program, name="test_client", args=(config, 1, tests)
+        # )
+        # t.daemon = True
+        # t.start()  # stops after the five events have been sent.
 
         # run for 7 seconds, so sleep for 10
-        await asyncio.sleep(10)
+        # await asyncio.sleep(10)
+
+        _LOGGER.debug("Registered events: %s", siac.counts)
 
         await siac.stop()
         assert siac.counts == {
