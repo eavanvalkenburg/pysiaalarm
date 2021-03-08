@@ -1,13 +1,14 @@
 """This is a the main class for the SIA Client."""
 import asyncio
 import logging
-from typing import Callable, Coroutine, List, Union
+from typing import Callable, List
 
 from .. import __author__, __copyright__, __license__, __version__
 from ..base_sia_client import BaseSIAClient
 from ..sia_account import SIAAccount
 from ..sia_event import SIAEvent
 from .sia_server import SIAServer
+from ..sia_const import Protocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ class SIAClient(BaseSIAClient):
         port: int,
         accounts: List[SIAAccount],
         function: Callable[[SIAEvent], None],
+        protocol: Protocol = Protocol.TCP,
     ):
         """Create the asynchronous SIA Client object.
 
@@ -29,13 +31,19 @@ class SIAClient(BaseSIAClient):
             port {int} -- The port the server listens to.
             accounts {List[SIAAccount]} -- List of SIA Accounts to add.
             function {Callable[[SIAEvent], None]} -- The function that gets called for each event, can be a asyncio coroutine, otherwise the function gets wrapped to be non-blocking.
+            protocol {Protocol Enum} -- Protocol to use, TCP or UDP.
 
         """
         if not asyncio.iscoroutinefunction(function):
-            function = asyncio.coroutine(function)
-        BaseSIAClient.__init__(self, host, port, accounts, function)
-        self.sia_server = SIAServer(self._accounts, self._func, self._counts)
+            raise TypeError("Function should be a coroutine, create with async def.")
+        BaseSIAClient.__init__(self, host, port, accounts, function, protocol)
         self.task = None
+        if self.protocol == Protocol.TCP:
+            self.sia_server = SIAServer(self._accounts, self._func, self._counts)
+        else:
+            raise NotImplementedError(
+                "UDP is not yet supported for asyncio version of SIA."
+            )
 
     async def __aenter__(self):
         """Start with as context manager."""

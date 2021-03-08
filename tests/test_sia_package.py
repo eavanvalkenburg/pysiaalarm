@@ -28,8 +28,9 @@ from pysiaalarm import (
 from pysiaalarm.aio import SIAClient as SIAClientA
 from pysiaalarm.sia_account import SIAResponseType, _create_padded_message
 from pysiaalarm.sia_errors import EventFormatError
-from tests.test_client_aio import async_send_messages
-from tests.test_utils import create_test_items
+from tests.test_alarm_aio import async_send_messages
+
+# from tests.test_utils import create_test_item
 
 from .create_line import create_line
 
@@ -396,16 +397,29 @@ class testSIA(object):
     @pytest.mark.asyncio
     async def test_context(self):
         """Test the context manager functions."""
+
+        def func(ev):
+            print(ev)
+
+        async def async_func(ev):
+            print(ev)
+
         acc_list = [
             SIAAccount(account_id=ACCOUNT, key=KEY, allowed_timeband=(None, None))
         ]
-        with SIAClient(HOST, PORT, acc_list, function=lambda ev: print(ev)) as cl:
+        with SIAClient(HOST, PORT, acc_list, function=func) as cl:
             assert cl.accounts == acc_list
 
-        async with SIAClientA(
-            HOST, PORT, acc_list, function=lambda ev: print(ev)
-        ) as cl:
+        # test with Async func
+        async with SIAClientA(HOST, PORT, acc_list, function=async_func) as cl:
             assert cl.accounts == acc_list
+
+        # test with sync func in async package
+        try:
+            async with SIAClientA(HOST, PORT + 1, acc_list, function=func) as cl:
+                assert cl.accounts == acc_list
+        except TypeError:
+            _LOGGER.debug("Expected type error.")
 
     content = st.text(
         st.characters(min_codepoint=32, max_codepoint=126), min_size=4, max_size=15

@@ -11,6 +11,8 @@ from .base_sia_client import BaseSIAClient
 from .sia_account import SIAAccount
 from .sia_event import SIAEvent
 from .sia_server import SIAServer
+from .sia_udp_server import SIAUDPServer
+from .sia_const import Protocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,6 +26,7 @@ class SIAClient(Thread, BaseSIAClient):
         port: int,
         accounts: List[SIAAccount],
         function: Callable[[SIAEvent], None],
+        protocol: Protocol = Protocol.TCP,
     ):
         """Create the threaded SIA Client object.
 
@@ -32,6 +35,7 @@ class SIAClient(Thread, BaseSIAClient):
             port {int} -- The port the server listens to.
             accounts {List[SIAAccount]} -- List of SIA Accounts to add.
             function {Callable[[SIAEvent], None]} -- The function that gets called for each event.
+            protocol {Protocol Enum} -- Protocol to use, TCP or UDP.
 
         """
         if asyncio.iscoroutinefunction(function):
@@ -39,10 +43,15 @@ class SIAClient(Thread, BaseSIAClient):
                 "Asyncio coroutines as the function are not supported, please use the aio version of the SIAClient for that."
             )
         Thread.__init__(self)
-        BaseSIAClient.__init__(self, host, port, accounts, function)
-        self.sia_server = SIAServer(
-            (self._host, self._port), self._accounts, self._func, self._counts
-        )
+        BaseSIAClient.__init__(self, host, port, accounts, function, protocol)
+        if self.protocol == Protocol.TCP:
+            self.sia_server = SIAServer(
+                (self._host, self._port), self._accounts, self._func, self._counts
+            )
+        else:
+            self.sia_server = SIAUDPServer(
+                (self._host, self._port), self._accounts, self._func, self._counts
+            )
 
     def __enter__(self):
         """Start with as context manager."""
@@ -54,7 +63,7 @@ class SIAClient(Thread, BaseSIAClient):
         self.stop()
 
     def start(self):
-        """Start the SIA TCP Handler thread."""
+        """Start the SIA Handler thread."""
         _LOGGER.debug("Starting SIA.")
         self.server_thread = Thread(
             target=self.sia_server.serve_forever, name="SIAServerThread"

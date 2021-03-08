@@ -4,6 +4,7 @@ from typing import Callable, Coroutine, List, Union
 
 from .sia_account import SIAAccount
 from .sia_event import SIAEvent
+from .sia_const import Protocol
 
 
 class BaseSIAClient(ABC):
@@ -15,6 +16,7 @@ class BaseSIAClient(ABC):
         port: int,
         accounts: List[SIAAccount],
         function: Callable[[SIAEvent], None],
+        protocol: Protocol = Protocol.TCP,
     ):
         """Create the SIA Client object.
 
@@ -23,11 +25,13 @@ class BaseSIAClient(ABC):
             port {int} -- The port the server listens to.
             accounts {List[SIAAccount]} -- List of SIA Accounts to add.
             function {Callable[[SIAEvent], None]} -- The function that gets called for each event.
+            protocol {Protocol Enum} -- Protocol to use, TCP or UDP.
 
         """
         self.sia_server = None
         self._host = host
         self._port = port
+        self.protocol = protocol
         self.accounts = accounts
         self._func = function
         self._counts = {

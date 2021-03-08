@@ -1,4 +1,13 @@
 """Constants for SIA."""
+from enum import Enum
+
+
+class Protocol(Enum):
+    """Protocol enumerator for SIA."""
+
+    TCP = 1
+    UDP = 2
+
 
 ALL_CODES = {
     "AA": {
@@ -719,6 +728,12 @@ ALL_CODES = {
         "code": "JA",
         "type": "User code Tamper",
         "description": "Too many unsuccessful attempts have been made to enter a user ID",
+        "concerns": "Area number",
+    },
+    "JC": {
+        "code": "JC",
+        "type": "User code tamper canceled",
+        "description": "Break password restore",
         "concerns": "Area number",
     },
     "JD": {
