@@ -12,35 +12,32 @@ logging.basicConfig(level=logging.INFO)
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_tcp_sender(message, host, port):
-    """Create TCP client."""
-    _LOGGER.debug(f"Trying to send: {message}")
-
-    reader, writer = await asyncio.open_connection(host, port, reuse_address=True)
-    writer.write(message.encode())
-    data = await reader.read(100)
-    _LOGGER.debug(f"Received from server: {data.decode()}")
-    writer.close()
-
-
 async def async_send_messages(config, test_case, time_between):
     """Send message async."""
     host = config["host"]
     port = config["port"]
+    reader, writer = await asyncio.open_connection(host, port)
     if test_case:
         _LOGGER.debug("Number of cases: %s", len(test_case))
         for tc in test_case:
             message = create_line(config, tc)
             _LOGGER.debug("Message: %s", message)
-            await async_tcp_sender(message, host, port)
+            writer.write(message.encode())
+            data = await reader.read(100)
+            _LOGGER.debug(f"Received from server: {data.decode()}")
             await asyncio.sleep(time_between)
+        writer.close()
         return
-
-    while True:
-        message = create_line(config, None)
-        _LOGGER.debug("Message: %s", message)
-        await async_tcp_sender(message, host, port)
-        await asyncio.sleep(time_between)
+    try:
+        while True:
+            message = create_line(config, None)
+            _LOGGER.debug("Message: %s", message)
+            writer.write(message.encode())
+            data = await reader.read(100)
+            _LOGGER.debug(f"Received from server: {data.decode()}")
+            await asyncio.sleep(time_between)
+    finally:
+        writer.close()
 
 
 if __name__ == "__main__":

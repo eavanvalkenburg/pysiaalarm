@@ -1,5 +1,5 @@
 {
-    "host": "localhost",
+    "host": "",
     "port": 8125,
     "account_id": "AAA",
     "key": ""
