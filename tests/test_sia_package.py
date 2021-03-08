@@ -363,7 +363,7 @@ class testSIA(object):
         ("async_func, async_client, error"),
         [
             (False, False, None),
-            (False, True, None),
+            (False, True, TypeError),
             (True, False, TypeError),
             (True, True, None),
         ],
@@ -389,20 +389,21 @@ class testSIA(object):
             else:
                 SIAClient("", PORT, acc_list, func)
             assert error is None
-        except error:
-            assert error is not None
-        except Exception:
-            assert False
+        except Exception as e:
+            if type(e) == error:
+                assert True
+            else:
+                assert False
 
     @pytest.mark.asyncio
     async def test_context(self):
         """Test the context manager functions."""
 
         def func(ev):
-            print(ev)
+            pass
 
         async def async_func(ev):
-            print(ev)
+            pass
 
         acc_list = [
             SIAAccount(account_id=ACCOUNT, key=KEY, allowed_timeband=(None, None))
@@ -410,16 +411,9 @@ class testSIA(object):
         with SIAClient(HOST, PORT, acc_list, function=func) as cl:
             assert cl.accounts == acc_list
 
-        # test with Async func
+        # test Async
         async with SIAClientA(HOST, PORT, acc_list, function=async_func) as cl:
             assert cl.accounts == acc_list
-
-        # test with sync func in async package
-        try:
-            async with SIAClientA(HOST, PORT + 1, acc_list, function=func) as cl:
-                assert cl.accounts == acc_list
-        except TypeError:
-            _LOGGER.debug("Expected type error.")
 
     content = st.text(
         st.characters(min_codepoint=32, max_codepoint=126), min_size=4, max_size=15
