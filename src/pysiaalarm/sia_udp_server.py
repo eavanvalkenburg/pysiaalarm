@@ -46,7 +46,7 @@ class SIAUDPHandler(BaseRequestHandler):
     def handle(self):
         """Overwritten method for the RequestHandler."""
         while True and not self.server.shutdown_flag:
-            raw = self.request[0].strip()
+            raw = self.request[0]
             socket = self.request[1]
             if not raw:
                 break
@@ -70,7 +70,6 @@ class SIAUDPHandler(BaseRequestHandler):
                     socket.sendto(
                         account.create_response(event, response), self.client_address
                     )
-                    # self.request.sendall(account.create_response(event, response))
                 except Exception as exp:
                     _LOGGER.warning(
                         "Exception caught while responding to event: %s, exception: %s",

@@ -299,7 +299,7 @@ class testSIA(object):
         def func_append(event: SIAEvent):
             events.append(event)
 
-        siac = SIAClient(
+        siac = SIAClientA(
             host="",
             port=config["port"] + port_add,
             accounts=[
