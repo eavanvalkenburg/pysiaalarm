@@ -287,7 +287,7 @@ class testSIA(object):
     )
     def test_server(self, key, account, code, type, alter_key, wrong_event):
         """Test the server parsing."""
-        port_add = random.randint(0, 5)
+        port_add = random.randint(1, 5)
         config = {
             "host": HOST,
             "port": PORT + port_add,
@@ -299,7 +299,7 @@ class testSIA(object):
         def func_append(event: SIAEvent):
             events.append(event)
 
-        siac = SIAClientA(
+        siac = SIAClient(
             host="",
             port=config["port"] + port_add,
             accounts=[

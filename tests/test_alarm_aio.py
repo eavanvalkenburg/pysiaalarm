@@ -16,7 +16,7 @@ async def async_tcp_sender(message, host, port):
     """Create TCP client."""
     _LOGGER.debug(f"Trying to send: {message}")
 
-    reader, writer = await asyncio.open_connection(host, port)
+    reader, writer = await asyncio.open_connection(host, port, reuse_address=True)
     writer.write(message.encode())
     data = await reader.read(100)
     _LOGGER.debug(f"Received from server: {data.decode()}")
