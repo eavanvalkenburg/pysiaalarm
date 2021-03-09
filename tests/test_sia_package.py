@@ -4,17 +4,8 @@ import asyncio
 import json
 import logging
 import random
-import re
-import socket
-import threading
-import time
-from typing import Type
-import concurrent.futures
-from functools import partial
 
 import pytest
-from hypothesis import example, given, settings
-from hypothesis import strategies as st
 from unittest.mock import patch
 
 # from mock import MagicMock, PropertyMock, patch
@@ -27,15 +18,12 @@ from pysiaalarm import (
     SIAAccount,
     SIAClient,
     SIAEvent,
-    sia_event,
 )
 from pysiaalarm.aio import SIAClient as SIAClientA
 from pysiaalarm.sia_account import SIAResponseType, _create_padded_message
 from pysiaalarm.sia_errors import EventFormatError
 from tests.test_alarm_aio import async_send_messages
 from tests.test_alarm import send_messages
-
-# from tests.test_utils import create_test_item
 
 from .create_line import create_line
 
@@ -46,6 +34,8 @@ KEY = "AAAAAAAAAAAAAAAA"
 ACCOUNT = "1111"
 HOST = "localhost"
 PORT = 7777
+
+# pytestmark = pytest.mark.asyncio
 
 
 def get_func(type="sync"):
@@ -69,6 +59,8 @@ def get_func(type="sync"):
 
 class testSIA(object):
     """Class for pysiaalarm tests."""
+
+    pytestmark = pytest.mark.asyncio
 
     @pytest.mark.parametrize(
         "line, account, type, code, error",
@@ -129,37 +121,36 @@ class testSIA(object):
             if e == error:
                 assert True
 
+    # @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "key, account, port, error",
+        "key, account, error",
         [
-            ("ZZZZZZZZZZZZZZZZ", ACCOUNT, 7777, InvalidKeyFormatError),
-            ("158888888888888", ACCOUNT, 7777, InvalidKeyLengthError),
-            ("1688888888888888", ACCOUNT, 7777, None),
+            ("ZZZZZZZZZZZZZZZZ", ACCOUNT, InvalidKeyFormatError),
+            ("158888888888888", ACCOUNT, InvalidKeyLengthError),
+            ("1688888888888888", ACCOUNT, None),
             (
                 "23888888888888888888888",
                 ACCOUNT,
-                7777,
                 InvalidKeyLengthError,
             ),
-            ("248888888888888888888888", ACCOUNT, 7777, None),
+            ("248888888888888888888888", ACCOUNT, None),
             (
                 "3188888888888888888888888888888",
                 ACCOUNT,
-                7777,
                 InvalidKeyLengthError,
             ),
-            ("32888888888888888888888888888888", ACCOUNT, 7777, None),
-            (KEY, "22", 7777, InvalidAccountLengthError),
-            (KEY, "ZZZ", 7777, InvalidAccountFormatError),
+            ("32888888888888888888888888888888", ACCOUNT, None),
+            (KEY, "22", InvalidAccountLengthError),
+            (KEY, "ZZZ", InvalidAccountFormatError),
         ],
     )
     @pytest.mark.sync
-    def test_sia_key_account_errors(self, key, account, port, error):
+    def test_sia_key_account_errors(self, unused_tcp_port_factory, key, account, error):
         """Test sia client behaviour."""
         try:
             SIAClient(
                 host="",
-                port=port,
+                port=unused_tcp_port_factory(),
                 accounts=[SIAAccount(account_id=account, key=key)],
                 function=get_func("sync"),
             )
@@ -167,18 +158,20 @@ class testSIA(object):
         except Exception as exp:
             assert isinstance(exp, error)
 
-    @pytest.mark.asyncio
+    # @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "config_file, port_add, fail_func",
+        "config_file, fail_func",
         [
-            ("tests\\unencrypted_config.json", 1, False),
-            ("tests\\encrypted_config.json", 2, False),
-            ("tests\\unencrypted_config.json", 3, True),
-            ("tests\\encrypted_config.json", 4, True),
+            ("tests\\unencrypted_config.json", False),
+            ("tests\\encrypted_config.json", False),
+            ("tests\\unencrypted_config.json", True),
+            ("tests\\encrypted_config.json", True),
         ],
     )
     @pytest.mark.aio
-    async def test_client(self, config_file, port_add, fail_func):
+    async def test_client(
+        self, event_loop, unused_tcp_port_factory, config_file, fail_func
+    ):
         """Test the client.
 
         Arguments:
@@ -190,7 +183,7 @@ class testSIA(object):
                 config = json.load(f)
         except:  # noqa: E722
             config = {"host": HOST, "port": PORT, "account_id": ACCOUNT, "key": None}
-        config["port"] = config["port"] + port_add
+        config["port"] = unused_tcp_port_factory()
         events = []
 
         if fail_func:
@@ -220,7 +213,7 @@ class testSIA(object):
         ]
 
         await async_send_messages(config, tests, 1)
-        
+
         siac.stop()
         assert siac.counts == {
             "events": 5,
@@ -236,41 +229,21 @@ class testSIA(object):
         }
         assert len(events) == 0 if fail_func else 1
 
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize(
-        "config_file, port_add, fail_func",
-        [
-            ("tests\\unencrypted_config.json", 5, False),
-            ("tests\\encrypted_config.json", 6, False),
-            ("tests\\unencrypted_config.json", 7, True),
-            ("tests\\encrypted_config.json", 8, True),
-        ],
-    )
+    # @pytest.mark.asyncio
     @pytest.mark.aio
-    async def test_async_client(self, config_file, port_add, fail_func):
-        """Test the client.
+    async def test_async_client(self, event_loop, unused_tcp_port_factory):
+        """Test the async client."""
+        config = {
+            "host": HOST,
+            "port": unused_tcp_port_factory(),
+            "account_id": ACCOUNT,
+            "key": KEY,
+        }
 
-        Arguments:
-            config_file {str} -- Filename of the config.
-
-        """
-        try:
-            with open(config_file, "r") as f:
-                config = json.load(f)
-        except:  # noqa: E722
-            config = {"host": HOST, "port": PORT, "account_id": ACCOUNT, "key": None}
-        config["port"] = config["port"] + port_add
         events = []
 
-        if fail_func:
-
-            async def func_append(event: SIAEvent):
-                raise ValueError("test error in user func")
-
-        else:
-
-            async def func_append(event: SIAEvent):
-                events.append(event)
+        async def func_append(event: SIAEvent):
+            events.append(event)
 
         siac = SIAClientA(
             host="",
@@ -278,7 +251,7 @@ class testSIA(object):
             accounts=[SIAAccount(account_id=config["account_id"], key=config["key"])],
             function=func_append,
         )
-        siac.start()
+        await siac.start()
 
         tests = [
             {"code": False, "crc": False, "account": False, "time": False},
@@ -288,9 +261,12 @@ class testSIA(object):
             {"code": False, "crc": False, "account": False, "time": True},
         ]
 
-        th = threading.Thread(target=send_messages, args=(config, tests, 1))
-        th.start()
-        th.join()
+        async def run_test():
+            await async_send_messages(config, tests, 1)
+            await asyncio.sleep(3)
+
+        await run_test()
+
         _LOGGER.debug("Registered events: %s", siac.counts)
 
         await siac.stop()
@@ -303,10 +279,9 @@ class testSIA(object):
                 "account": 1,
                 "code": 1,
                 "format": 0,
-                "user_code": 1 if fail_func else 0,
+                "user_code": 0,
             },
         }
-        assert len(events) == 0 if fail_func else 1
 
     @pytest.mark.parametrize(
         ("key, account, code, type, alter_key, wrong_event"),
@@ -384,6 +359,7 @@ class testSIA(object):
         siac.accounts = acc_list2
         assert siac.accounts == acc_list2
 
+    # @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ("async_func, async_client, error"),
         [
@@ -394,18 +370,27 @@ class testSIA(object):
         ],
     )
     @pytest.mark.aio
-    def test_func(self, async_func, async_client, error):
+    def test_func(self, unused_tcp_port_factory, async_func, async_client, error):
         """Test the function setting."""
         acc_list = [
             SIAAccount(account_id=ACCOUNT, key=KEY, allowed_timeband=(None, None))
         ]
+        port = unused_tcp_port_factory()
         try:
             if async_client:
                 SIAClientA(
-                    "", PORT, acc_list, get_func("aio" if async_func else "sync")
+                    "",
+                    port,
+                    acc_list,
+                    get_func("aio" if async_func else "sync"),
                 )
             else:
-                SIAClient("", PORT, acc_list, get_func("aio" if async_func else "sync"))
+                SIAClient(
+                    "",
+                    port,
+                    acc_list,
+                    get_func("aio" if async_func else "sync"),
+                )
             assert error is None
         except Exception as e:
             if type(e) == error:
@@ -413,42 +398,22 @@ class testSIA(object):
             else:
                 assert False
 
-    @pytest.mark.asyncio
+    # @pytest.mark.asyncio
     @pytest.mark.aio
-    @patch("asyncio.start_server")
-    async def test_context(self, mock_start):
+    # @patch("asyncio.start_server")
+    async def test_context(self, event_loop, unused_tcp_port_factory):  # , mock_start):
         """Test the context manager functions."""
-        acc_list = [
-            SIAAccount(account_id=ACCOUNT, key=KEY, allowed_timeband=(None, None))
-        ]
-        with SIAClient(HOST, PORT, acc_list, function=get_func("sync")) as cl:
-            assert cl.accounts == acc_list
+        with patch("asyncio.start_server"):
+            acc_list = [
+                SIAAccount(account_id=ACCOUNT, key=KEY, allowed_timeband=(None, None))
+            ]
+            with SIAClient(
+                HOST, unused_tcp_port_factory(), acc_list, function=get_func("sync")
+            ) as cl:
+                assert cl.accounts == acc_list
 
-        # test Async
-        async with SIAClientA(HOST, PORT, acc_list, function=get_func("aio")) as cl:
-            assert cl.accounts == acc_list
-
-    # content = st.text(
-    #     st.characters(min_codepoint=32, max_codepoint=126), min_size=4, max_size=15
-    # ).filter(lambda x: bool(re.fullmatch(r"^(?![0]+).*(?<![0]{1,14})$", x)))
-    # # ^(?=.*\d)(?=.*[B-Zb-z]{2,}).*$
-    # key = st.from_regex(
-    #     regex=r"^[0-9A-E]{16}$|^[0-9A-E]{24}$|^[0-9A-E]{32}$", fullmatch=True
-    # )
-
-    # @given(key, content)
-    # @example("AAAAAAAAAAAAAAAA", "|Nri1/GH000]_12:16:13,07-16-2020")
-    # @example("AAAAAAAAAAAAAAAA", "|Nri1/ZW000]_12:30:51,07-16-2020")
-    # def test_encrypt_decrypt(self, key, content):
-    #     """Test encryption and decryption."""
-    #     _LOGGER.debug("Key: %s", key)
-    #     acc = SIAAccount(ACCOUNT, key)
-    #     _LOGGER.debug("Unencrypted message: %s", content)
-    #     message = acc.encrypt(content)
-    #     with patch("pysiaalarm.SIAEvent") as event:
-    #         type(event).encrypted_content = PropertyMock(return_value=message)
-    #         _LOGGER.debug("Encrypted message event: %s", event.encrypted_content)
-    #         decrypted_event = acc.decrypt(event)
-    #         _LOGGER.debug("Decrypted message: %s", decrypted_event.content)
-    #         out_content = decrypted_event.content[-len(content) :]
-    #         assert out_content == content
+            # test Async
+            async with SIAClientA(
+                HOST, unused_tcp_port_factory(), acc_list, function=get_func("aio")
+            ) as cl:
+                assert cl.accounts == acc_list

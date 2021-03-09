@@ -38,37 +38,47 @@ class SIAClient(BaseSIAClient):
             raise TypeError("Function should be a coroutine, create with async def.")
         BaseSIAClient.__init__(self, host, port, accounts, function, protocol)
         self.task = None
+        self.transport = None
+        self.dgprotocol = None
+        self.sia_server = None
         if self.protocol == Protocol.TCP:
             self.sia_server = SIAServer(self._accounts, self._func, self._counts)
-        else:
-            raise NotImplementedError(
-                "UDP is not yet supported for asyncio version of SIA."
-            )
 
-    async def __aenter__(self):
+    async def __aenter__(self, **kwargs):
         """Start with as context manager."""
-        self.start()
+        await self.start(**kwargs)
         return self
 
     async def __aexit__(self, type, value, tb):
         """End as context manager."""
         await self.stop()
 
-    def start(self, **kwargs):
+    async def start(self, **kwargs):
         """Start the asynchronous SIA server.
 
         The rest of the arguments are passed directly to asyncio.start_server().
 
         """
         _LOGGER.debug("Starting SIA.")
-        self.coro = asyncio.start_server(
-            self.sia_server.handle_line, self._host, self._port, **kwargs
-        )
-        self.task = asyncio.create_task(self.coro)
+        if self.protocol == Protocol.TCP:
+            self.coro = asyncio.start_server(
+                self.sia_server.handle_line, self._host, self._port, **kwargs
+            )
+            self.task = asyncio.create_task(self.coro)
+        else:
+            loop = asyncio.get_running_loop()
+            self.transport, self.dgprotocol = await loop.create_datagram_endpoint(
+                lambda: SIAServer(self._accounts, self._func, self._counts),
+                local_addr=(self._host, self._port),
+                **kwargs,
+            )
 
     async def stop(self):
         """Stop the asynchronous SIA server."""
         _LOGGER.debug("Stopping SIA.")
-        self.sia_server.shutdown_flag = True
-        if self.task:
-            await self.task
+        if self.protocol == Protocol.TCP:
+            self.sia_server.shutdown_flag = True
+            if self.task:
+                await self.task
+        else:
+            self.transport.close()

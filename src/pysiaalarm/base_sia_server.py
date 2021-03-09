@@ -7,6 +7,7 @@ from typing import Callable, Dict, Tuple
 from .sia_account import SIAAccount, SIAResponseType
 from .sia_errors import EventFormatError
 from .sia_event import SIAEvent
+from .sia_const import Protocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class BaseSIAServer(ABC):
         accounts: Dict[str, SIAAccount],
         func: Callable[[SIAEvent], None],
         counts: Dict,
+        protocol: Protocol = Protocol.TCP,
     ):
         """Create a SIA Server.
 
@@ -36,11 +38,12 @@ class BaseSIAServer(ABC):
             accounts Dict[str, SIAAccount] -- accounts as dict with account_id as key, SIAAccount object as value.
             func Callable[[SIAEvent], None] -- Function called for each valid SIA event, that can be matched to a account.
             counts Dict -- counter kept by client to give insights in how many errorous events were discarded of each type.
-
+            protocol Protocol -- protocol to use for communication.
         """
         self.accounts = accounts
         self.func = func
         self.counts = counts
+        self.protocol = protocol
         self.shutdown_flag = False
 
     def parse_and_check_event(
