@@ -136,7 +136,7 @@ class SIAServer(BaseSIAServer):
         writer.close()
 
     def connection_made(self, transport) -> None:
-        """Connection made function for datagrams."""
+        """Connect callback for datagrams."""
         self.transport = transport
 
     async def datagram_received(self, data, addr):

@@ -1,5 +1,6 @@
 """Utils for testing pysiaalarm."""
 import time
+import logging
 from binascii import hexlify, unhexlify
 from datetime import datetime, timedelta
 
@@ -8,16 +9,94 @@ from Crypto import Random
 from Crypto.Cipher import AES
 
 from pysiaalarm.sia_event import SIAEvent
+from pysiaalarm.sia_account import _create_padded_message
 from pysiaalarm.sia_const import ALL_CODES
 
+logging.basicConfig(level=logging.INFO)
+_LOGGER = logging.getLogger(__name__)
+
 BASIC_CONTENT = f"|Nri<zone>/<code>000]<timestamp>"
-BASIC_LINE = f'SIA-DCS"<seq>L0#<account>[<content>'
+BASE_LINE = f'<type>"<seq>L0#<account>[<content>'
+UNKNOWN_CODE = "ZX"
+
+KEY = "AAAAAAAAAAAAAAAA"
+ACCOUNT = "1111"
+HOST = "127.0.0.1"
+PORT = 7777
 
 
-def create_test_item(key, content):
+def create_random_line(config):
+    """Create a full test line with some random values."""
+    return create_test_line(
+        account="FFFFFFFFF" if random.random() < 0.1 else config["account_id"],
+        key=config["key"],
+        code=UNKNOWN_CODE if random.random() < 0.1 else _get_random_code(),
+        seq=str(random.randint(1000, 9999)),
+        time_offset=timedelta(seconds=random.randint(0, 100)),
+        alter_crc=random.random() < 0.1,
+    )
+
+
+def create_line_from_test_case(config, tc):
+    """Create a full test line."""
+    return create_test_line(
+        account="FFFFFFFFF" if tc.get("account") else config["account_id"],
+        key=config["key"],
+        code=UNKNOWN_CODE if tc.get("code") else _get_random_code(),
+        seq=str(random.randint(1000, 9999)),
+        time_offset=timedelta(seconds=100 if tc.get("time") else 0),
+        alter_crc=True if tc.get("crc") else False,
+    )
+
+
+def create_test_line(
+    account,
+    key,
+    code,
+    seq="7654",
+    time_offset=timedelta(0),
+    msg_type="SIA-DCS",
+    alter_crc=False,
+    alter_key=False,
+    wrong_event=False,
+    use_fixed_time=False,
+):
+    """Create a test line, with encrytion if key is supplied."""
+    if wrong_event:
+        return "This is not a SIA Event."
+    timestamp = _get_timestamp(time_offset)
+    if use_fixed_time:
+        timestamp = "_16:04:02,07-09-2020"
+    if key:
+        if alter_key:
+            key = key[:-1] + str(int(key[-1], 16) - 1)
+    line = _construct_string(msg_type, seq, account, code, timestamp, key)
+    if alter_crc:
+        crc = ("%04x" % random.randrange(16 ** 4)).upper()
+    else:
+        crc = SIAEvent.crc_calc(line)
+    leng = str(int(str(len(line)), 16)).zfill(4)
+    return rf"{crc}{leng}{line}"
+
+def _construct_string(msg_type, seq, account, code, timestamp, key=None):
+    """Construct the string based on the inputs."""
+    return f'"{"*" if key else ""}{msg_type}"{seq}L0#{account}[{_construct_content(msg_type, "0" if code == "RP" else "1", code, timestamp, key)}'
+
+def _construct_content(msg_type, zone, code, timestamp, key=None):
+    """Construct the content of the message."""
+    cont = f"]{timestamp}"
+    if msg_type == "SIA-DCS":
+        cont = f"|Nri{zone}/{code}000" + cont 
+    if key:
+        return _encrypt_content(key, cont)
+    return cont
+
+def _encrypt_content(key, content):
     """Create encrypted content."""
+    if not isinstance(key, bytes):
+        key = key.encode("utf-8")
     encrypter = AES.new(
-        key.encode("utf-8"), AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
+        key, AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
     )
 
     extra = len(content) % 16
@@ -29,117 +108,12 @@ def create_test_item(key, content):
     )
 
 
-def create_line(config, tc=None):
-    """Create a full test line."""
-    alter_crc = random_alter_crc(tc)
-    code = non_existing_code(random_code(), tc)
-    account = different_account(config["account_id"], tc)
-    timed = timedelta(seconds=timestamp_offset(tc))
-    timestamp = get_timestamp(timed)
-    return create_test_line(config["key"], account, code, timestamp, alter_crc)
-
-
-def get_timestamp(timed) -> str:
+def _get_timestamp(timed: timedelta) -> str:
     """Create a timestamp in the right format."""
     return (datetime.utcnow() - timed).strftime("_%H:%M:%S,%m-%d-%Y")
 
 
-def create_test_line(key, account, code, timestamp, alter_crc=False):
-    """Create a test line, with encrytion if key is supplied."""
-    seq = str(random.randint(1000, 9999))
-    content = (
-        BASIC_CONTENT.replace("<zone>", "0" if code == "RP" else "1")
-        .replace("<code>", code)
-        .replace("<timestamp>", timestamp)
-    )
-    if key:
-        content = create_test_item(key, content)
-    line = f'"{"*" if key else ""}{BASIC_LINE.replace("<account>", account).replace("<content>", content).replace("<seq>", seq)}'
-    crc = SIAEvent.crc_calc(line)
-    leng = int(str(len(line)), 16)
-    pad = (4 - len(str(leng))) * "0"
-    length = pad + str(leng)
-    if alter_crc:
-        crc = ("%04x" % random.randrange(16 ** 4)).upper()
-    return f"\n{crc}{length}{line}\r"
-
-
-# CODES = [
-#     "AT",
-#     "AR",
-#     "BA",
-#     "BR",
-#     "CA",
-#     "CF",
-#     "CG",
-#     "CL",
-#     "CP",
-#     "CQ",
-#     "GA",
-#     "GH",
-#     "FA",
-#     "FH",
-#     "KA",
-#     "KH",
-#     "NL",
-#     "OA",
-#     "OG",
-#     "OP",
-#     "OQ",
-#     "OR",
-#     "RP",
-#     "TA",
-#     "WA",
-#     "WH",
-#     "YG",
-# ]
-
-
-def random_code(test_case=None):
-    """Choose a random code."""
+def _get_random_code() -> str:
+    """Get a random code from all codes."""
     codes = [code for code in ALL_CODES]
     return random.choice(codes)
-
-
-def random_alter_crc(test_case=None):
-    """Choose a random bool for alter_crc."""
-    if test_case:
-        if test_case.get("crc"):
-            return True
-        else:
-            return False
-    else:
-        return random.random() < 0.1
-
-
-def non_existing_code(code, test_case=None):
-    """Randomly choose a non-existant code or keep code."""
-    if test_case:
-        if test_case.get("code"):
-            return "ZX"
-        else:
-            return code
-    else:
-        return "ZX" if random.random() < 0.1 else code
-
-
-def different_account(account, test_case=None):
-    """Randomly choose a non-existant account or keep account."""
-    if test_case:
-        if test_case.get("account"):
-            return "FFFFFFFFF"
-        else:
-            return account
-    else:
-        return "FFFFFFFFF" if random.random() < 0.1 else account
-
-
-def timestamp_offset(test_case=None):
-    """Create timestamp offset for testing."""
-    if test_case:
-        if test_case.get("time"):
-            return 100
-        else:
-            return 0
-    else:
-        return random.randint(0, 60)

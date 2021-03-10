@@ -5,7 +5,7 @@ import json
 import logging
 import sys
 
-from .test_utils import create_line
+from .test_utils import create_line_from_test_case, create_random_line
 
 
 logging.basicConfig(level=logging.INFO)
@@ -20,7 +20,7 @@ async def async_send_messages(config, test_case, time_between):
     if test_case:
         _LOGGER.debug("Number of cases: %s", len(test_case))
         for tc in test_case:
-            message = create_line(config, tc)
+            message = create_line_from_test_case(config, tc)
             _LOGGER.debug("Message: %s", message)
             writer.write(message.encode())
             data = await reader.read(100)
@@ -30,7 +30,7 @@ async def async_send_messages(config, test_case, time_between):
         return
     try:
         while True:
-            message = create_line(config, None)
+            message = create_random_line(config)
             _LOGGER.debug("Message: %s", message)
             writer.write(message.encode())
             data = await reader.read(100)

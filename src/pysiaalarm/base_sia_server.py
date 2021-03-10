@@ -62,7 +62,6 @@ class BaseSIAServer(ABC):
         """
         try:
             event = SIAEvent(line)
-            # TODO: add heartbeat handle return Event, None, ACK
         except EventFormatError as e:
             try:
                 _LOGGER.debug("Not a SIA Event, checking OH.")
@@ -108,7 +107,7 @@ class BaseSIAServer(ABC):
                 line,
                 event.content,
             )
-            return None, None, SIAResponseType.NAK
+            return event, None, SIAResponseType.NAK
 
         _LOGGER.debug("Parsed event: %s.", event)
 
