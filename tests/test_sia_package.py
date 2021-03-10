@@ -195,21 +195,15 @@ class testSIA(object):
             function=async_event_handler,
         )
         await siac.start()
+        await asyncio.sleep(0.01)
 
         def run_test():
             send_messages(config, tests, 1)
 
-        # await asyncio.gather(
-        #     asyncio.to_thread(run_test),
-        #     asyncio.sleep(10),
-        # )
-
-        # await run_test()
         t = threading.Thread(target=run_test, name="send_messages")
         t.daemon = True
         t.start()  # stops after the five events have been sent.
-
-        # run for 7 seconds
+        # t.join()
         await asyncio.sleep(10)
         _LOGGER.debug("Registered events: %s", siac.counts)
 
