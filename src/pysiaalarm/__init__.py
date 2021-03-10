@@ -31,3 +31,4 @@ from .sia_errors import (
 )
 from .sia_event import SIAEvent
 from .sia_server import SIAServer
+from .sia_const import Protocol

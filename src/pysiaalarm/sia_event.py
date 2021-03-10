@@ -115,6 +115,7 @@ class SIAEvent:
                 "Parse content: no matches found in %s", self._content
             )
         content = matches.groupdict()
+        _LOGGER.debug("Content matches: %s", content)
         if not self.account:
             self.account = content["account"]
         self.ti = content["ti"]

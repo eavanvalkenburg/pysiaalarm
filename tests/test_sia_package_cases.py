@@ -1,3 +1,4 @@
+# from typing import Protocol
 from pysiaalarm import (
     InvalidAccountFormatError,
     InvalidAccountLengthError,
@@ -6,6 +7,7 @@ from pysiaalarm import (
     SIAAccount,
     SIAClient,
     SIAEvent,
+    Protocol,
 )
 from pysiaalarm.sia_errors import EventFormatError
 from pysiaalarm.sia_account import SIAResponseType
@@ -26,7 +28,7 @@ class EventParsing:
             "AAA",
             None,
             None,
-            Exception,
+            None,
         )
 
     def case_cl(self):
@@ -36,7 +38,7 @@ class EventParsing:
             "AAA",
             "Closing Report",
             "CL",
-            Exception,
+            None,
         )
 
     def case_op(self):
@@ -46,7 +48,7 @@ class EventParsing:
             "006969",
             "Opening Report",
             "OP",
-            Exception,
+            None,
         )
 
     def case_null(self):
@@ -56,7 +58,7 @@ class EventParsing:
             "AAAB",
             None,
             None,
-            Exception,
+            None,
         )
 
     def case_wa(self):
@@ -66,7 +68,7 @@ class EventParsing:
             "AAA",
             "Water Alarm",
             "WA",
-            Exception,
+            None,
         )
 
     def case_eventformaterror(self):
@@ -126,56 +128,85 @@ class AccountSetup:
         return (KEY, "ZZZ", InvalidAccountFormatError)
 
 
-class TestClient:
+class TestEncrypted:
+    """Test class for encrypted and non-encrypted."""
+
+    def case_encrypted(self):
+        return KEY
+
+    def case_unencrypted(self):
+        return None
+
+
+class TestProtocols:
+    """Test class for protocols."""
+
+    def case_tcp(self):
+        return Protocol.TCP
+
+    def case_udp(self):
+        return Protocol.UDP
+
+
+class TestSyncAsync:
+    """Test cases for Async vs Sync."""
+
+    def case_sync(self):
+        return True
+
+    def case_async(self):
+        return False
+
+
+class TestFunc:
+    """Test cases for failing function or not."""
+
+    def case_good_func(self):
+        return False
+
+    def case_bad_func(self):
+        return True
+
+
+class TestConfigs:
     """Test class for client.
 
-    Emits these fields: "config, fail_func"
+    Emits these fields: "config"
 
     """
 
-    def case_unencrypted_config_good_func(self):
+    def case_unencrypted_config(self):
         """Test unencrypted config and a good func."""
-        return ({"host": HOST, "account_id": ACCOUNT, "key": ""}, False)
+        return {"host": HOST, "account_id": ACCOUNT, "key": ""}
 
-    def case_encrypted_config_good_func(self):
+    def case_encrypted_config(self):
         """Test encrypted config and a good func."""
-        return ({"host": HOST, "account_id": ACCOUNT, "key": KEY}, False)
+        return {"host": HOST, "account_id": ACCOUNT, "key": KEY}
 
-    def case_unencrypted_config_bad_func(self):
-        """Test unencrypted config and a bad func."""
-        return ({"host": HOST, "account_id": ACCOUNT, "key": ""}, True)
+class TestMessageType:
+    """Test class for Message types."""
 
-    def case_encrypted_config_bad_func(self):
-        """Test encrypted config and a bad func."""
-        return ({"host": HOST, "account_id": ACCOUNT, "key": KEY}, True)
+    def case_sia(self):
+        return "SIA-DCS"
+
+    def case_null(self):
+        return "NULL"
 
 
 class ParseAndCheckEvent:
     """Test cases for parse and check event function.
 
-    Emits these fields: "account_id, key, code, msg_type, alter_key, wrong_event, response"
+    Emits these fields: "account_id, code, msg_type, alter_key, wrong_event, response"
 
     """
 
-    def case_unencrypted_rp(self):
+    def case_rp(self):
         """Test unencrypted parsing of RP event."""
-        return (ACCOUNT, None, "RP", "SIA-DCS", False, False, SIAResponseType.ACK)
+        return ("RP", False, False, SIAResponseType.ACK)
 
-    def case_unencrypted_wa(self):
+    def case_wa(self):
         """Test unencrypted parsing of WA event."""
-        return (ACCOUNT, None, "WA", "SIA-DCS", False, False, SIAResponseType.ACK)
-
-    def case_encrypted_rp(self):
-        """Test encrypted parsing of RP event."""
-        return (ACCOUNT, KEY, "RP", "SIA-DCS", False, False, SIAResponseType.ACK)
-
-    def case_unencrypted_rp_null(self):
-        """Test encrypted parsing of RP event."""
-        return (ACCOUNT, None, "RP", "NULL", False, False, SIAResponseType.ACK)
-
-    def case_encrypted_rp_null(self):
-        """Test encrypted parsing of RP event."""
-        return (ACCOUNT, KEY, "RP", "NULL", False, False, SIAResponseType.ACK)
+        return ("WA", False, False, SIAResponseType.ACK)
 
     def case_altered_key(self):
         """Test encrypted parsing of RP event.
@@ -183,32 +214,8 @@ class ParseAndCheckEvent:
         Altered key means the event can be parsed as a SIA Event but the content cannot be decrypted.
 
         """
-        return (ACCOUNT, KEY, "RP", "NULL", True, False, SIAResponseType.NAK)
+        return ("RP", True, False, SIAResponseType.NAK)
 
     def case_wrong_event(self):
         """Test encrypted parsing of RP event."""
-        return (ACCOUNT, KEY, "RP", "NULL", False, True, SIAResponseType.NAK)
-
-
-class FuncErrors:
-    """Test class for function errors.
-
-    Emits these fields: "async_client, async_func, error_type"
-
-    """
-
-    def case_sync_sync_success(self):
-        """Test case for sync client and sync func."""
-        return (False, False, None)
-
-    def case_async_async_success(self):
-        """Test case for async client and async func."""
-        return (True, True, None)
-
-    def case_sync_async_fail(self):
-        """Test case for sync client and async func."""
-        return (False, True, TypeError)
-
-    def case_async_sync_fail(self):
-        """Test case for async client and sync func."""
-        return (True, False, TypeError)
+        return ("RP", False, True, SIAResponseType.NAK)
