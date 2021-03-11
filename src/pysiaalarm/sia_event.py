@@ -124,11 +124,15 @@ class SIAEvent:
         self.code = content["code"]
         self.message = content["message"]
         self.extended_data = content["xdata"]
-        self.timestamp = (
-            datetime.strptime(content["timestamp"], "%H:%M:%S,%m-%d-%Y")
-            if content["timestamp"]
-            else None
-        )
+        if content["timestamp"]:
+            try:
+                ts = datetime.strptime(content["timestamp"], "%H:%M:%S,%m-%d-%Y")
+                self.timestamp = ts
+            except ValueError:
+                _LOGGER.warning(
+                    "Timestamp could not be parsed as a timestamp: %s",
+                    content["timestamp"],
+                )
         if self.message_type == "NULL" and not self.code:
             self.code = "RP"
             self.ri = 0
