@@ -67,6 +67,36 @@ class EventParsing:
 
     """
 
+    def case_dc04(self):
+        """Test case DC04 format - NOT SUPPORTED so throws an error."""
+        return (
+            r'<x0A>CE110032"SIA-DCS"9876R579BDFL789ABC#12345A[#12345A|NFA129]<x0D>',
+            "12345A",
+            None,
+            None,
+            EventFormatError,
+        )
+
+    def case_dc05(self):
+        """Test case DC05 format with ADM-CID - NOT SUPPORTED so throws an error."""
+        return (
+            r'<x0A>87CD0037"ADM-CID"9876R579BDFL789ABC#12345A[#12345A|1110 00 129]<x0D>',
+            "12345A",
+            None,
+            None,
+            EventFormatError,
+        )
+
+    def case_xdata(self):
+        """Input a closing report event in SIA DC-09 with xdata"""
+        return (
+            r'E5D50078"SIA-DCS"6002L0#AAA[|Nri1/CL501][M0026B9E4268B]_14:12:04,09-25-2019',
+            "AAA",
+            "Closing Report",
+            "CL",
+            None,
+        )
+
     # TODO: add tests for different SIA versions (DC-04, DC09, DC09X)
     def case_encrypted(self):
         """Input a encrypted line."""
@@ -79,7 +109,7 @@ class EventParsing:
         )
 
     def case_cl(self):
-        """Input a closing report event."""
+        """Input a closing report event in SIA DC-09."""
         return (
             r'E5D50078"SIA-DCS"6002L0#AAA[|Nri1/CL501]_14:12:04,09-25-2019',
             "AAA",
