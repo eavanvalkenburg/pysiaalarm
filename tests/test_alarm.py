@@ -17,13 +17,16 @@ logging.basicConfig(level=logging.INFO)
 _LOGGER = logging.getLogger(__name__)
 
 
-def send_messages(config, test_case=None, time_between=5, protocol=Protocol.TCP):
+def send_messages(config, test_case=None, time_between=5):
     """Create the socket client and start sending messages every 5 seconds, until stopped, or the server disappears."""
     _LOGGER.info("Test client config: %s", config)
-    host = config["host"]  # as both code is running on same pc
-    port = config["port"]  # socket server port number
-    # socket.SOCK_DGRAM
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM if protocol == Protocol.TCP else socket.SOCK_DGRAM) as sock:
+    host = config["host"]
+    port = config["port"]
+    protocol = (
+        socket.SOCK_STREAM if config["protocol"] == Protocol.TCP else socket.SOCK_DGRAM
+    )
+
+    with socket.socket(socket.AF_INET, protocol) as sock:
         try:
             sock.connect((host, port))  # connect to the server
         except ConnectionRefusedError:

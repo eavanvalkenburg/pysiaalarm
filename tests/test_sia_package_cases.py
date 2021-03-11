@@ -1,17 +1,63 @@
-# from typing import Protocol
 from pysiaalarm import (
     InvalidAccountFormatError,
     InvalidAccountLengthError,
     InvalidKeyFormatError,
     InvalidKeyLengthError,
-    SIAAccount,
-    SIAClient,
-    SIAEvent,
     Protocol,
 )
 from pysiaalarm.sia_errors import EventFormatError
 from pysiaalarm.sia_account import SIAResponseType
-from tests.test_utils import ACCOUNT, KEY, HOST
+from tests.test_utils import ACCOUNT, KEY
+
+
+def encrypted_encrypted():
+    """Return a key for a encrypted test."""
+    return KEY
+
+
+def encrypted_unencrypted():
+    """Return None for a unencrypted test."""
+    return None
+
+
+def proto_tcp():
+    """Return TCP protocol."""
+    return Protocol.TCP
+
+
+def proto_udp():
+    """Return UDP protocol."""
+    return Protocol.UDP
+
+
+def sync_sync():
+    """Return True for running a sync/threaded test."""
+    return True
+
+
+def sync_async():
+    """Return False for running a async test."""
+    return False
+
+
+def handler_good():
+    """Return True for a good event handler."""
+    return True
+
+
+def handler_bad():
+    """Return False for a bad event handler."""
+    return False
+
+
+def msg_siadcs():
+    """Test class for Message type SIA-DCS"""
+    return "SIA-DCS"
+
+
+def msg_null():
+    """Test class for Message type SIA-DCS"""
+    return "NULL"
 
 
 class EventParsing:
@@ -21,6 +67,7 @@ class EventParsing:
 
     """
 
+    # TODO: add tests for different SIA versions (DC-04, DC09, DC09X)
     def case_encrypted(self):
         """Input a encrypted line."""
         return (
@@ -126,71 +173,6 @@ class AccountSetup:
     def case_InvalidAccountFormat(self):
         """Test invalid account format."""
         return (KEY, "ZZZ", InvalidAccountFormatError)
-
-
-class TestEncrypted:
-    """Test class for encrypted and non-encrypted."""
-
-    def case_encrypted(self):
-        return KEY
-
-    def case_unencrypted(self):
-        return None
-
-
-class TestProtocols:
-    """Test class for protocols."""
-
-    def case_tcp(self):
-        return Protocol.TCP
-
-    def case_udp(self):
-        return Protocol.UDP
-
-
-class TestSyncAsync:
-    """Test cases for Async vs Sync."""
-
-    def case_sync(self):
-        return True
-
-    def case_async(self):
-        return False
-
-
-class TestFunc:
-    """Test cases for failing function or not."""
-
-    def case_good_func(self):
-        return False
-
-    def case_bad_func(self):
-        return True
-
-
-class TestConfigs:
-    """Test class for client.
-
-    Emits these fields: "config"
-
-    """
-
-    def case_unencrypted_config(self):
-        """Test unencrypted config and a good func."""
-        return {"host": HOST, "account_id": ACCOUNT, "key": ""}
-
-    def case_encrypted_config(self):
-        """Test encrypted config and a good func."""
-        return {"host": HOST, "account_id": ACCOUNT, "key": KEY}
-
-class TestMessageType:
-    """Test class for Message types."""
-
-    def case_sia(self):
-        return "SIA-DCS"
-
-    def case_null(self):
-        return "NULL"
 
 
 class ParseAndCheckEvent:
