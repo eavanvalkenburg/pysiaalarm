@@ -69,7 +69,9 @@ def create_test_line(
         timestamp = "_16:04:02,07-09-2020"
     if key:
         if alter_key:
+            _LOGGER.debug("Old key: %s", key)
             key = key[:-1] + str(int(key[-1], 16) - 1)
+            _LOGGER.debug("New key: %s", key)
     line = _construct_string(msg_type, seq, account, code, timestamp, key)
     if alter_crc:
         crc = ("%04x" % random.randrange(16 ** 4)).upper()
@@ -78,18 +80,21 @@ def create_test_line(
     leng = str(int(str(len(line)), 16)).zfill(4)
     return rf"{crc}{leng}{line}"
 
+
 def _construct_string(msg_type, seq, account, code, timestamp, key=None):
     """Construct the string based on the inputs."""
     return f'"{"*" if key else ""}{msg_type}"{seq}L0#{account}[{_construct_content(msg_type, "0" if code == "RP" else "1", code, timestamp, key)}'
+
 
 def _construct_content(msg_type, zone, code, timestamp, key=None):
     """Construct the content of the message."""
     cont = f"]{timestamp}"
     if msg_type == "SIA-DCS":
-        cont = f"|Nri{zone}/{code}000" + cont 
+        cont = f"|Nri{zone}/{code}000" + cont
     if key:
         return _encrypt_content(key, cont)
     return cont
+
 
 def _encrypt_content(key, content):
     """Create encrypted content."""

@@ -43,7 +43,7 @@ def account_list(account):
 @parametrize_with_cases("good", prefix="handler_")
 @parametrize_with_cases("key", prefix="encrypted_")
 @parametrize_with_cases("sync", prefix="sync_")
-@parametrize_with_cases("protocol", prefix="proto_", glob="*tcp")
+@parametrize_with_cases("protocol", prefix="proto_")#, glob="*tcp")
 def create_client(
     unused_tcp_port_factory,
     event_handler,
@@ -208,7 +208,7 @@ class testSIA(object):
         t.daemon = True
         t.start()  # stops after the five events have been sent.
 
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(5)
         _LOGGER.debug("Registered events: %s", client.counts)
 
         if sync:
@@ -274,7 +274,8 @@ class testSIA(object):
             assert ev.account == ACCOUNT
             assert ev.encrypted == True
             assert ev.encrypted_content is not None
-            assert resp == response
+            if msg_type == "SIA-DCS":
+                assert resp == response
         else:
             if not alter_key:
                 assert resp == response

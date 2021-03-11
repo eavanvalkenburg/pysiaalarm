@@ -36,18 +36,36 @@ class SIAServer(BaseSIAServer):
         """
         BaseSIAServer.__init__(self, accounts, func, counts, protocol)
 
-    async def _respond(self, response, writer=None, addr=None):
+    async def _respond(self, event, account, resp_type, writer=None, addr=None):
         """Respond to the message using the right approach."""
-        if writer:
-            writer.write(response)
-            await writer.drain()
-            return
+        response = (
+            account.create_response(event, resp_type)
+            if account
+            else SIAAccount.create_accountless_response(resp_type)
+        )
+        try:
+            if writer:
+                writer.write(response)
+                await writer.drain()
+                return
+        except Exception as exp:
+            _LOGGER.error(
+                "Exception caught while responding to event: %s, exception: %s",
+                event,
+                exp,
+            )
+        try:
+            if self.transport and addr:
+                self.transport.sendto(response, addr)
+                return
+        except Exception as exp:
+            _LOGGER.error(
+                "Exception caught while responding to event: %s, exception: %s",
+                event,
+                exp,
+            )
 
-        if self.transport and addr:
-            self.transport.sendto(response, addr)
-            return
-
-        _LOGGER.error(
+        _LOGGER.warning(
             "If both writer and transport are empty there is no way to respond!"
         )
 
@@ -58,30 +76,12 @@ class SIAServer(BaseSIAServer):
             return
         _LOGGER.debug("Incoming line: %s", line)
         self.counts["events"] = self.counts["events"] + 1
-        event, account, response = self.parse_and_check_event(line)
-        if account:
-            resp = account.create_response(event, response)
-        else:
-            resp = SIAAccount.create_accountless_response(response)
-        try:
-            await self._respond(resp, writer=writer, addr=addr)
-        except Exception as exp:
-            _LOGGER.warning(
-                "Exception caught while responding to event: %s, exception: %s",
-                event,
-                exp,
-            )
 
-        if not (event and response == SIAResponseType.ACK):
-            return
-        self.counts["valid_events"] = self.counts["valid_events"] + 1
-        try:
-            await self.func(event)
-        except Exception as exp:
-            _LOGGER.warning(
-                "Last event: %s, gave error in user function: %s.", event, exp
-            )
-            self.counts["errors"]["user_code"] = self.counts["errors"]["user_code"] + 1
+        event, account, resp_type = self.parse_and_check_event(line)
+
+        await self._respond(event, account, resp_type, writer=writer, addr=addr)
+        if event and resp_type == SIAResponseType.ACK:
+            await self.async_func_wrap(event)
 
     async def handle_line(self, reader, writer):
         """Handle line for SIA Events. This supports TCP connections.
@@ -99,39 +99,6 @@ class SIAServer(BaseSIAServer):
             if data == empty_bytes or reader.at_eof():
                 break
             await self._handle_data(data, reader=reader, writer=writer)
-            # line = str.strip(data.decode("ascii", errors="ignore"))
-            # if not line:
-            #     return
-            # _LOGGER.debug("Incoming line: %s", line)
-            # self.counts["events"] = self.counts["events"] + 1
-            # event, account, response = self.parse_and_check_event(line)
-            # if account:
-            #     resp = account.create_response(event, response)
-            # else:
-            #     resp = SIAAccount.create_accountless_response(response)
-            # try:
-            #     await self._respond(resp, writer=writer)
-            #     # writer.write(resp)
-            #     # await writer.drain()
-            # except Exception as exp:
-            #     _LOGGER.warning(
-            #         "Exception caught while responding to event: %s, exception: %s",
-            #         event,
-            #         exp,
-            #     )
-
-            # if not (event and response == SIAResponseType.ACK):
-            #     continue
-            # self.counts["valid_events"] = self.counts["valid_events"] + 1
-            # try:
-            #     await self.func(event)
-            # except Exception as exp:
-            #     _LOGGER.warning(
-            #         "Last event: %s, gave error in user function: %s.", event, exp
-            #     )
-            #     self.counts["errors"]["user_code"] = (
-            #         self.counts["errors"]["user_code"] + 1
-            #     )
 
         writer.close()
 
@@ -139,36 +106,10 @@ class SIAServer(BaseSIAServer):
         """Connect callback for datagrams."""
         self.transport = transport
 
-    async def datagram_received(self, data, addr):
+    def datagram_received(self, data, addr):
         """Receive and process datagrams. This support UDP connections."""
-        await self._handle_data(data, addr=addr)
-        # line = str.strip(data.decode("ascii", errors="ignore"))
-        # if not line:
-        #     return
-        # _LOGGER.debug("Incoming line: %s", line)
-        # self.counts["events"] = self.counts["events"] + 1
-        # event, account, response = self.parse_and_check_event(line)
-        # if account:
-        #     resp = account.create_response(event, response)
-        # else:
-        #     resp = SIAAccount.create_accountless_response(response)
-        # try:
-        #     await self._respond(resp, addr=addr)
-        #     # self.transport.sendto(resp, addr)
-        # except Exception as exp:
-        #     _LOGGER.warning(
-        #         "Exception caught while responding to event: %s, exception: %s",
-        #         event,
-        #         exp,
-        #     )
+        asyncio.create_task(self._handle_data(data, addr=addr))
 
-        # if not (event and response == SIAResponseType.ACK):
-        #     return
-        # self.counts["valid_events"] = self.counts["valid_events"] + 1
-        # try:
-        #     await self.func(event)
-        # except Exception as exp:
-        #     _LOGGER.warning(
-        #         "Last event: %s, gave error in user function: %s.", event, exp
-        #     )
-        #     self.counts["errors"]["user_code"] = self.counts["errors"]["user_code"] + 1
+    def connection_lost(self):
+        """Close and reset transport when connection lost."""
+        self.transport.close()

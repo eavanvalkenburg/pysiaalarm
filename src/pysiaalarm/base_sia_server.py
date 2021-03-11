@@ -1,4 +1,5 @@
 """This is the base class with the handling logic for both sia_servers."""
+import asyncio
 import logging
 import re
 from abc import ABC
@@ -124,3 +125,25 @@ class BaseSIAServer(ABC):
             return event, account, SIAResponseType.NAK
 
         return event, account, SIAResponseType.ACK
+
+    async def async_func_wrap(self, event):
+        """Wrap the user function in a try."""
+        self.counts["valid_events"] = self.counts["valid_events"] + 1
+        try:
+            await self.func(event)
+        except Exception as exp:
+            _LOGGER.warning(
+                "Last event: %s, gave error in user function: %s.", event, exp
+            )
+            self.counts["errors"]["user_code"] = self.counts["errors"]["user_code"] + 1
+
+    def func_wrap(self, event):
+        """Wrap the user function in a try."""
+        self.counts["valid_events"] = self.counts["valid_events"] + 1
+        try:
+            self.func(event)
+        except Exception as exp:
+            _LOGGER.warning(
+                "Last event: %s, gave error in user function: %s.", event, exp
+            )
+            self.counts["errors"]["user_code"] = self.counts["errors"]["user_code"] + 1

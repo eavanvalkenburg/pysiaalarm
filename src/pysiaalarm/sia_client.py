@@ -2,16 +2,14 @@
 """This is a the main class for the SIA Client."""
 import asyncio
 import logging
-import socket
 from threading import Thread
-from typing import Callable, Coroutine, List, Union
+from typing import Callable, List
 
 from . import __author__, __copyright__, __license__, __version__
 from .base_sia_client import BaseSIAClient
 from .sia_account import SIAAccount
 from .sia_event import SIAEvent
-from .sia_server import SIAServer
-from .sia_udp_server import SIAUDPServer
+from .sia_server import SIAServer, SIAUDPServer
 from .sia_const import Protocol
 
 _LOGGER = logging.getLogger(__name__)
