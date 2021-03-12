@@ -49,6 +49,12 @@ class SIAEvent:
     """Class for SIAEvents."""
 
     # TODO: Add support for ADM-CID: https://li0r.files.wordpress.com/2012/07/sia-dc-05-1999-09_contact_id.pdf
+    # contents of ADM-CID in SIA:
+    # 6 – Event Qualifier.
+    # 7-9 – Event Code.
+    # 10-11 – Group/Partition Number.
+    # 12-14 – Zone Number. Ahh, finely something useful. This is the number of the zone that triggered the alarm.
+    # 15 – Checksum.
 
     def __init__(self, incoming: str):
         """Create a SIA Event from a line.
