@@ -226,7 +226,7 @@ class ParseAndCheckEvent:
         Altered key means the event can be parsed as a SIA Event but the content cannot be decrypted.
 
         """
-        return ("RP", True, False, SIAResponseType.NAK)
+        return ("RP", True, False, [SIAResponseType.NAK, SIAResponseType.DUH])
 
     def case_wrong_event(self):
         """Test encrypted parsing of RP event."""

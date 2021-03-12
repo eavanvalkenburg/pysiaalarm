@@ -43,7 +43,7 @@ def account_list(account):
 @parametrize_with_cases("good", prefix="handler_")
 @parametrize_with_cases("key", prefix="encrypted_")
 @parametrize_with_cases("sync", prefix="sync_")
-@parametrize_with_cases("protocol", prefix="proto_")#, glob="*tcp")
+@parametrize_with_cases("protocol", prefix="proto_")  # , glob="*tcp")
 def create_client(
     unused_tcp_port_factory,
     event_handler,
@@ -269,16 +269,25 @@ class testSIA(object):
 
         if wrong_event:
             assert ev is None
-            assert resp == response
+            if isinstance(response, list):
+                assert resp in response
+            else:
+                assert resp == response
         elif alter_key and key is not None:
             assert ev.account == ACCOUNT
             assert ev.encrypted == True
             assert ev.encrypted_content is not None
             if msg_type == "SIA-DCS":
-                assert resp == response
+                if isinstance(response, list):
+                    assert resp in response
+                else:
+                    assert resp == response
         else:
             if not alter_key:
-                assert resp == response
+                if isinstance(response, list):
+                    assert resp in response
+                else:
+                    assert resp == response
             assert acc.account_id == ACCOUNT
             assert ev.account == ACCOUNT
             assert ev.code == code if msg_type == "SIA-DCS" else "RP"

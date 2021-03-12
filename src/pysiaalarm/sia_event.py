@@ -48,6 +48,8 @@ ENCR_CONTENT_MATCHER = re.compile(encr_content_regex + content_regex, re.X)
 class SIAEvent:
     """Class for SIAEvents."""
 
+    # TODO: Add support for ADM-CID: https://li0r.files.wordpress.com/2012/07/sia-dc-05-1999-09_contact_id.pdf
+
     def __init__(self, incoming: str):
         """Create a SIA Event from a line.
 
