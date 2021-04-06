@@ -25,4 +25,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.pypi_password }}
         run: |
           tox -e build
-          tox -e publish --repository pypi
+          tox -e publish -- --repository pypi
