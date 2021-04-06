@@ -25,5 +25,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.pypi_password }}
         run: |
           tox -e build
-          # python setup.py bdist_wheel
-          # twine upload dist/* --non-interactive
+          tox -e publish --repository pypi
