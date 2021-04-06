@@ -34,14 +34,12 @@ class SIAXData:
 
 def _load_data(file: str) -> dict:
     """Load the one of the data json files."""
-
     stream = pkg_resources.resource_stream(__name__, file)
     return json.load(stream)
 
 
 def _load_sia_codes() -> Dict[str, SIACode]:
     """Alias for loading sia codes file."""
-    # codes = []
     data = _load_data(FILE_SIA_CODES)
     return {key: SIACode(**value) for (key, value) in data.items()}
 

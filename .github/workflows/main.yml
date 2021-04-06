@@ -19,11 +19,10 @@ jobs:
           python-version: 3.9
       - name: Run installs.
         run: pip install -e .[test]
-      - run: tox
-      - name: Mypy Check
-        uses: jpetrucciani/mypy-check@master
-        with:
-          path: "src/"
+      - name: Run Tox
+        run: tox
+      - name: Run Mypy
+        run: mypy
 
       # - name: Run setup of PySIAAlarm
       #   run: python setup.py develop
