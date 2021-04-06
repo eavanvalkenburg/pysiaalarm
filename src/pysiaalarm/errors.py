@@ -29,3 +29,9 @@ class EventFormatError(Exception):
     """Error for when a event is incorrectly formatted."""
 
     pass
+
+
+class EventCRCError(Exception):
+    """Error for when a event hass a mismatched CRC."""
+
+    pass

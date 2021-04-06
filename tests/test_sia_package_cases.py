@@ -1,12 +1,22 @@
+"""Test cases."""
+from pytest_cases import case
+
 from pysiaalarm import (
     InvalidAccountFormatError,
     InvalidAccountLengthError,
     InvalidKeyFormatError,
     InvalidKeyLengthError,
-    Protocol,
+    CommunicationsProtocol,
 )
-from pysiaalarm.sia_errors import EventFormatError
-from pysiaalarm.sia_account import SIAResponseType
+from pysiaalarm.errors import EventFormatError
+from pysiaalarm.utils import ResponseType
+from pysiaalarm.const import (
+    COUNTER_ACCOUNT,
+    COUNTER_CRC,
+    COUNTER_CODE,
+    COUNTER_FORMAT,
+    COUNTER_TIMESTAMP,
+)
 from tests.test_utils import ACCOUNT, KEY
 
 
@@ -22,12 +32,12 @@ def encrypted_unencrypted():
 
 def proto_tcp():
     """Return TCP protocol."""
-    return Protocol.TCP
+    return CommunicationsProtocol.TCP
 
 
 def proto_udp():
     """Return UDP protocol."""
-    return Protocol.UDP
+    return CommunicationsProtocol.UDP
 
 
 def sync_sync():
@@ -51,50 +61,99 @@ def handler_bad():
 
 
 def msg_siadcs():
-    """Test class for Message type SIA-DCS"""
+    """Test class for Message type SIA-DCS."""
     return "SIA-DCS"
 
 
+def msg_admcid():
+    """Test class for Message type ADM-CID."""
+    return "ADM-CID"
+
+
 def msg_null():
-    """Test class for Message type SIA-DCS"""
+    """Test class for Message type SIA-DCS."""
     return "NULL"
+
+
+def fault_none():
+    """Test class for no fault in the message."""
+    return None
+
+
+def fault_code():
+    """Test class for a code fault in the message."""
+    return COUNTER_CODE
+
+
+def fault_crc():
+    """Test class for a crc fault in the message."""
+    return COUNTER_CRC
+
+
+def fault_format():
+    """Test class for a format fault in the message."""
+    return COUNTER_FORMAT
+
+
+def fault_account():
+    """Test class for a account fault in the message."""
+    return COUNTER_ACCOUNT
+
+
+def fault_timestamp():
+    """Test class for a timestamp fault in the message."""
+    return COUNTER_TIMESTAMP
 
 
 class EventParsing:
     """Test cases for event parsing.
 
-    Emits these fields: "line, account_id, type, code, error"
+    Emits these fields: "line, account_id, type, code, error, extended_data_flag"
 
     """
 
     def case_dc04(self):
         """Test case DC04 format - NOT SUPPORTED so throws an error."""
         return (
-            r'<x0A>CE110032"SIA-DCS"9876R579BDFL789ABC#12345A[#12345A|NFA129]<x0D>',
+            r'<x0A>CE110032"SIA-DCS"9876R579BDFL789ABC#12345A[#12345A|NFA129]_14:12:04,09-25-201',
             "12345A",
             None,
             None,
             EventFormatError,
+            False,
         )
 
-    def case_dc05(self):
-        """Test case DC05 format with ADM-CID - NOT SUPPORTED so throws an error."""
+    def case_adm_cid(self):
+        """Test case ADM-CID format."""
         return (
-            r'<x0A>87CD0037"ADM-CID"9876R579BDFL789ABC#12345A[#12345A|1110 00 129]<x0D>',
+            r'87CD0037"ADM-CID"9876R579BDFL789ABC#12345A[#12345A|1110 00 129]_14:12:04,09-25-201',
             "12345A",
+            "Fire Alarm",
+            "FA",
             None,
-            None,
-            EventFormatError,
+            False,
         )
 
-    def case_xdata(self):
-        """Input a closing report event in SIA DC-09 with xdata"""
+    def case_xdata_M(self):
+        """Input a closing report event in SIA DC-09 with M xdata."""
         return (
             r'E5D50078"SIA-DCS"6002L0#AAA[|Nri1/CL501][M0026B9E4268B]_14:12:04,09-25-2019',
             "AAA",
             "Closing Report",
             "CL",
             None,
+            True,
+        )
+
+    def case_xdata_K(self):
+        """Input a closing report event in SIA DC-09 with K xdata."""
+        return (
+            rf'02310052"SIA-DCS"6002L0#{ACCOUNT}[|Nri1/RP000][KAAAAAAAAAAAAAAAA]_14:12:04,09-25-2019',
+            ACCOUNT,
+            "Automatic Test",
+            "RP",
+            None,
+            True,
         )
 
     # TODO: add tests for different SIA versions (DC-04, DC09, DC09X)
@@ -106,6 +165,18 @@ class EventParsing:
             None,
             None,
             None,
+            False,
+        )
+
+    def case_oh(self):
+        """Input a OH event."""
+        return (
+            r"SR0001L0001    006969XX    [ID00000000]",
+            "006969XX",
+            "Automatic Test",
+            "RP",
+            None,
+            False,
         )
 
     def case_cl(self):
@@ -116,6 +187,7 @@ class EventParsing:
             "Closing Report",
             "CL",
             None,
+            False,
         )
 
     def case_op(self):
@@ -126,6 +198,7 @@ class EventParsing:
             "Opening Report",
             "OP",
             None,
+            False,
         )
 
     def case_null(self):
@@ -136,6 +209,7 @@ class EventParsing:
             None,
             None,
             None,
+            False,
         )
 
     def case_wa(self):
@@ -146,11 +220,19 @@ class EventParsing:
             "Water Alarm",
             "WA",
             None,
+            False,
         )
 
     def case_eventformaterror(self):
         """Input a event format error event."""
-        return (r"this is not a parsable event", None, None, None, EventFormatError)
+        return (
+            r"this is not a parsable event",
+            None,
+            None,
+            None,
+            EventFormatError,
+            False,
+        )
 
 
 class AccountSetup:
@@ -204,21 +286,29 @@ class AccountSetup:
         """Test invalid account format."""
         return (KEY, "ZZZ", InvalidAccountFormatError)
 
+    def case_InvalidAccountLength_NoKey(self):
+        """Test invalid account length at 2."""
+        return (None, "22", InvalidAccountLengthError)
+
+    def case_InvalidAccountFormat_NoKey(self):
+        """Test invalid account format."""
+        return (None, "ZZZ", InvalidAccountFormatError)
+
 
 class ParseAndCheckEvent:
     """Test cases for parse and check event function.
 
-    Emits these fields: "account_id, code, msg_type, alter_key, wrong_event, response"
+    Emits these fields: "code, alter_key, wrong_event, response"
 
     """
 
     def case_rp(self):
         """Test unencrypted parsing of RP event."""
-        return ("RP", False, False, SIAResponseType.ACK)
+        return ("RP", False, False, ResponseType.ACK)
 
     def case_wa(self):
         """Test unencrypted parsing of WA event."""
-        return ("WA", False, False, SIAResponseType.ACK)
+        return ("WA", False, False, ResponseType.ACK)
 
     def case_altered_key(self):
         """Test encrypted parsing of RP event.
@@ -226,8 +316,13 @@ class ParseAndCheckEvent:
         Altered key means the event can be parsed as a SIA Event but the content cannot be decrypted.
 
         """
-        return ("RP", True, False, [SIAResponseType.NAK, SIAResponseType.DUH])
+        return ("RP", True, False, ResponseType.NAK)
 
     def case_wrong_event(self):
         """Test encrypted parsing of RP event."""
-        return ("RP", False, True, SIAResponseType.NAK)
+        return ("RP", False, True, ResponseType.NAK)
+
+    @case(tags="SIA-DCS")
+    def case_non_existent_code(self):
+        """Test parsing for non existing code."""
+        return ("ZX", False, False, ResponseType.DUH)

@@ -10,7 +10,7 @@ import time
 from Crypto import Random
 from Crypto.Cipher import AES
 
-from pysiaalarm.base_sia_client import Protocol
+from pysiaalarm import CommunicationsProtocol
 from .test_utils import create_line_from_test_case, create_random_line
 
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +23,9 @@ def send_messages(config, test_case=None, time_between=5):
     host = config["host"]
     port = config["port"]
     protocol = (
-        socket.SOCK_STREAM if config["protocol"] == Protocol.TCP else socket.SOCK_DGRAM
+        socket.SOCK_STREAM
+        if config["protocol"] == CommunicationsProtocol.TCP
+        else socket.SOCK_DGRAM
     )
 
     with socket.socket(socket.AF_INET, protocol) as sock:
@@ -33,14 +35,11 @@ def send_messages(config, test_case=None, time_between=5):
             _LOGGER.error("Connection refused in test_alarm.py.")
             return
 
-        _LOGGER.info("Number of cases: %s", len(test_case))
         if test_case:
-            for tc in test_case:
-                message = create_line_from_test_case(config, tc)
-                _LOGGER.debug(f"Sending to server: {message}")
-                sock.sendall(message.encode())  # send message
-                data = sock.recv(1024).decode()  # receive response
-                time.sleep(time_between)
+            message = create_line_from_test_case(config, test_case)
+            _LOGGER.debug(f"Sending to server: {message}")
+            sock.sendall(message.encode())  # send message
+            data = sock.recv(1024).decode()  # receive response
             return
         while True:
             message = create_random_line(config)

@@ -1,10 +1,10 @@
 """This is a the main class for the SIA Client."""
 from abc import ABC, abstractmethod
-from typing import Callable, Coroutine, List, Union
+from typing import Any, Callable, Coroutine, List, Union
 
-from .sia_account import SIAAccount
-from .sia_event import SIAEvent
-from .sia_const import Protocol
+from .account import SIAAccount
+from .event import SIAEvent
+from .utils import CommunicationsProtocol, Counter
 
 
 class BaseSIAClient(ABC):
@@ -16,7 +16,7 @@ class BaseSIAClient(ABC):
         port: int,
         accounts: List[SIAAccount],
         function: Callable[[SIAEvent], None],
-        protocol: Protocol = Protocol.TCP,
+        protocol: CommunicationsProtocol = CommunicationsProtocol.TCP,
     ):
         """Create the SIA Client object.
 
@@ -25,27 +25,17 @@ class BaseSIAClient(ABC):
             port {int} -- The port the server listens to.
             accounts {List[SIAAccount]} -- List of SIA Accounts to add.
             function {Callable[[SIAEvent], None]} -- The function that gets called for each event.
-            protocol {Protocol Enum} -- Protocol to use, TCP or UDP.
+            protocol {CommunicationsProtocol Enum} -- CommunicationsProtocol to use, TCP or UDP.
 
         """
-        self.sia_server = None
+        self.sia_server: Any = None
         self._host = host
         self._port = port
         self.protocol = protocol
         self.accounts = accounts
         self._func = function
-        self._counts = {
-            "events": 0,
-            "valid_events": 0,
-            "errors": {
-                "crc": 0,
-                "timestamp": 0,
-                "account": 0,
-                "code": 0,
-                "format": 0,
-                "user_code": 0,
-            },
-        }
+
+        self._counts = Counter()
 
     @property
     def accounts(self) -> List[SIAAccount]:
@@ -58,7 +48,7 @@ class BaseSIAClient(ABC):
         return list(self._accounts.values())
 
     @accounts.setter
-    def accounts(self, new_accounts: List[SIAAccount]):
+    def accounts(self, new_accounts: List[SIAAccount]) -> None:
         """Set the accounts to monitor.
 
         Args:
@@ -70,14 +60,16 @@ class BaseSIAClient(ABC):
             self.sia_server.accounts = self._accounts
 
     @property
-    def counts(self):
-        """Return the counts dict."""
+    def counts(self) -> Counter:
+        """Return the counts object."""
         return self._counts
 
     @abstractmethod
-    def start(self):
+    def start(self, **kwargs: Any) -> Union[None, Coroutine[Any, Any, None]]:
         """Abstract method for start."""
+        pass  # pragma: no cover
 
     @abstractmethod
-    def stop(self):
+    def stop(self) -> Union[None, Coroutine[Any, Any, None]]:
         """Abstract method for stop."""
+        pass  # pragma: no cover

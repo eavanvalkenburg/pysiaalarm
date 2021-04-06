@@ -8,9 +8,14 @@ import random
 from Crypto import Random
 from Crypto.Cipher import AES
 
-from pysiaalarm.sia_event import SIAEvent
-from pysiaalarm.sia_account import _create_padded_message
-from pysiaalarm.sia_const import ALL_CODES
+from Crypto.Cipher import AES
+from Crypto.Cipher._mode_cbc import CbcMode
+
+from pysiaalarm.event import SIAEvent
+from pysiaalarm.utils import (
+    _load_sia_codes,
+)
+from pysiaalarm.const import IV
 
 logging.basicConfig(level=logging.INFO)
 _LOGGER = logging.getLogger(__name__)
@@ -23,6 +28,34 @@ KEY = "AAAAAAAAAAAAAAAA"
 ACCOUNT = "1111"
 HOST = "127.0.0.1"
 PORT = 7777
+
+ADM_REVERSE_MAP = {"RP": 1602, "WA": 1113}
+
+
+
+
+def _get_crypter(key: bytes):
+    """Give back a encrypter/decrypter."""
+    return AES.new(key, AES.MODE_CBC, IV)
+        
+def crc_calc(msg: str) -> str:
+    """Calculate the CRC of the msg."""
+    crc = 0
+    for letter in str.encode(msg):
+        temp = letter
+        for _ in range(0, 8):
+            temp ^= crc & 1
+            crc >>= 1
+            if (temp & 1) != 0:
+                crc ^= 0xA001
+            temp >>= 1
+    return ("%x" % crc).upper().zfill(4)
+
+
+def _create_padded_message(message):
+    """Pad the message."""
+    fill_size = len(message) + 16 - len(message) % 16
+    return message.zfill(fill_size)
 
 
 def create_random_line(config):
@@ -40,12 +73,13 @@ def create_random_line(config):
 def create_line_from_test_case(config, tc):
     """Create a full test line."""
     return create_test_line(
-        account="FFFFFFFFF" if tc.get("account") else config["account_id"],
+        account="FFFFFFFFF" if tc.get("account", False) else config["account_id"],
         key=config["key"],
-        code=UNKNOWN_CODE if tc.get("code") else _get_random_code(),
+        code=UNKNOWN_CODE if tc.get("code", False) else _get_random_code(),
         seq=str(random.randint(1000, 9999)),
-        time_offset=timedelta(seconds=100 if tc.get("time") else 0),
-        alter_crc=True if tc.get("crc") else False,
+        time_offset=timedelta(seconds=100 if tc.get("timestamp", False) else 0),
+        alter_crc=tc.get("crc", False),
+        wrong_event=tc.get("format", False),
     )
 
 
@@ -76,7 +110,7 @@ def create_test_line(
     if alter_crc:
         crc = ("%04x" % random.randrange(16 ** 4)).upper()
     else:
-        crc = SIAEvent.crc_calc(line)
+        crc = crc_calc(line)
     leng = str(int(str(len(line)), 16)).zfill(4)
     return rf"{crc}{leng}{line}"
 
@@ -91,6 +125,9 @@ def _construct_content(msg_type, zone, code, timestamp, key=None):
     cont = f"]{timestamp}"
     if msg_type == "SIA-DCS":
         cont = f"|Nri{zone}/{code}000" + cont
+    if msg_type == "ADM-CID":
+        # z = f"{int(zone):03d}"
+        cont = f"|{ADM_REVERSE_MAP.get(code)} 00 {int(zone):03d}" + cont
     if key:
         return _encrypt_content(key, cont)
     return cont
@@ -100,10 +137,7 @@ def _encrypt_content(key, content):
     """Create encrypted content."""
     if not isinstance(key, bytes):
         key = key.encode("utf-8")
-    encrypter = AES.new(
-        key, AES.MODE_CBC, unhexlify("00000000000000000000000000000000")
-    )
-
+    encrypter = _get_crypter(key)
     extra = len(content) % 16
     unencrypted = (16 - extra) * "0" + content
     return (
@@ -120,5 +154,5 @@ def _get_timestamp(timed: timedelta) -> str:
 
 def _get_random_code() -> str:
     """Get a random code from all codes."""
-    codes = [code for code in ALL_CODES]
+    codes = [code for code in _load_sia_codes()]
     return random.choice(codes)
