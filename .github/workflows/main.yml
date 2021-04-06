@@ -21,7 +21,9 @@ jobs:
         run: pip install -e .[test]
       - run: tox
       - name: Mypy Check
-        uses: jpetrucciani/mypy-check@0.761
+        uses: jpetrucciani/mypy-check@master
+        with:
+          path: "src/"
 
       # - name: Run setup of PySIAAlarm
       #   run: python setup.py develop
