@@ -17,7 +17,7 @@ with open("local_config.json", "r") as f:
     config = json.load(f)
 print("Config: ", config)
 account = [SIAAccount(config["account_id"], config["key"])]
-sleep_time = 120
+sleep_time = 1200
 with SIAClient(config["host"], config["port"], account, function=func) as client:
     time.sleep(sleep_time)
     counts = client.counts

@@ -1,17 +1,12 @@
 """Utils for testing pysiaalarm."""
-import time
 import logging
-from binascii import hexlify, unhexlify
+from binascii import hexlify
 from datetime import datetime, timedelta
 
 import random
 from Crypto import Random
 from Crypto.Cipher import AES
 
-from Crypto.Cipher import AES
-from Crypto.Cipher._mode_cbc import CbcMode
-
-from pysiaalarm.event import SIAEvent
 from pysiaalarm.utils import (
     _load_sia_codes,
 )
@@ -32,12 +27,11 @@ PORT = 7777
 ADM_REVERSE_MAP = {"RP": 1602, "WA": 1113}
 
 
-
-
 def _get_crypter(key: bytes):
     """Give back a encrypter/decrypter."""
     return AES.new(key, AES.MODE_CBC, IV)
-        
+
+
 def crc_calc(msg: str) -> str:
     """Calculate the CRC of the msg."""
     crc = 0

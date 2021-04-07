@@ -2,18 +2,14 @@
 """Run a test client."""
 import json
 import logging
-import random
 import socket
 import sys
 import time
 
-from Crypto import Random
-from Crypto.Cipher import AES
-
 from pysiaalarm import CommunicationsProtocol
 from .test_utils import create_line_from_test_case, create_random_line
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -53,10 +49,10 @@ def send_messages(config, test_case=None, time_between=5):
 if __name__ == "__main__":
     """Run main with a config."""
     _LOGGER.info(sys.argv)
-    if sys.argv[1]:
+    try:  # sys.argv.index(1)
         file = sys.argv[1]
-    else:
-        file = "unencrypted_config.json"
+    except:
+        file = "tests//local_config.json"
     with open(file, "r") as f:
         config = json.load(f)
     send_messages(config)

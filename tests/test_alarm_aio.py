@@ -8,7 +8,7 @@ import sys
 from .test_utils import create_line_from_test_case, create_random_line
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -16,6 +16,7 @@ async def async_send_messages(config, test_case, time_between):
     """Send message async."""
     host = config["host"]
     port = config["port"]
+    _LOGGER.debug("Opening connection")
     reader, writer = await asyncio.open_connection(host, port)
     if test_case:
         _LOGGER.debug("Number of cases: %s", len(test_case))
@@ -43,10 +44,10 @@ async def async_send_messages(config, test_case, time_between):
 if __name__ == "__main__":
     """Run main with a config."""
     _LOGGER.info(sys.argv)
-    if sys.argv and sys.argv[1]:
+    try:  # sys.argv.index(1)
         file = sys.argv[1]
-    else:
-        file = "tests/encrypted_config.json"
+    except:
+        file = "tests//local_config.json"
     with open(file, "r") as f:
         config = json.load(f)
     asyncio.get_event_loop().run_until_complete(async_send_messages(config, None, 3))

@@ -347,7 +347,6 @@ class SIAEvent(BaseEvent):
 
     def parse_content(self) -> None:
         """Set the internal content field and also parse the content and store the right things."""
-        _LOGGER.warning("Message Type: %s", self.message_type)
         matcher = _get_matcher(self.message_type, self.encrypted)
         matches = matcher.match(self.content)
         if not matches:
