@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Union
 
@@ -29,6 +30,7 @@ from .utils import (
 _LOGGER = logging.getLogger(__name__)
 
 
+@dataclass_json
 @dataclass  # type: ignore
 class BaseEvent(ABC):
     """Base class for Events."""

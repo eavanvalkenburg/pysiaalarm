@@ -4,6 +4,7 @@ import logging
 import threading
 import asyncio
 import pytest
+from dataclasses import asdict
 
 from pytest_cases import fixture_plus, parametrize_with_cases, fixture
 from unittest.mock import patch
@@ -139,7 +140,9 @@ class testSIA(object):
         """Test event parsing methods."""
         try:
             event = SIAEvent.from_line(line)
-            _LOGGER.warning(event)
+            _LOGGER.warning(asdict(event))
+            _LOGGER.warning(event.to_dict())
+            # assert False
             assert event.code == code
             if code:
                 assert event.sia_code.type == type
