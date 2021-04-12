@@ -1,6 +1,7 @@
 """Class for SIA Accounts."""
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from dataclasses_json import dataclass_json, config, Exclude
 from typing import Optional, Tuple
 
 from .errors import (
@@ -13,6 +14,7 @@ from .errors import (
 _LOGGER = logging.getLogger(__name__)
 
 
+@dataclass_json
 @dataclass
 class SIAAccount:
     """Class for SIA Accounts."""
@@ -20,7 +22,9 @@ class SIAAccount:
     account_id: str
     key: Optional[str] = None
     allowed_timeband: Tuple[int, int] = (40, 20)
-    key_b: Optional[bytes] = None
+    key_b: Optional[bytes] = field(
+        repr=False, default=None, metadata=config(exclude=Exclude.ALWAYS)  # type: ignore
+    )
 
     def __post_init__(self) -> None:
         """Rewrite the key as bytes."""

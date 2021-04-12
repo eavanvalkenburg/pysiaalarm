@@ -1,10 +1,10 @@
 """This is a class for SIA Events."""
 from __future__ import annotations
-
+import copy
 import logging
 from abc import ABC, abstractmethod, abstractproperty
-from dataclasses import dataclass
-from dataclasses_json import dataclass_json
+from dataclasses import dataclass, field
+from dataclasses_json import dataclass_json, config, Exclude
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Union
 
@@ -30,7 +30,7 @@ from .utils import (
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass_json
+@dataclass_json()
 @dataclass  # type: ignore
 class BaseEvent(ABC):
     """Base class for Events."""
@@ -67,7 +67,9 @@ class BaseEvent(ABC):
     # Parsed fields
     calc_crc: Optional[str] = None
     extended_data: Optional[SIAXData] = None
-    sia_account: Optional[SIAAccount] = None
+    sia_account: Optional[SIAAccount] = field(
+        metadata=config(exclude=Exclude.ALWAYS), default=None  # type: ignore
+    )
     sia_code: Optional[SIACode] = None
 
     @property
@@ -188,6 +190,7 @@ class BaseEvent(ABC):
         return ("%x" % crc).upper().zfill(4)
 
 
+@dataclass_json
 @dataclass
 class SIAEvent(BaseEvent):
     """Class for SIAEvents."""
@@ -418,7 +421,15 @@ Calc CRC: {self.calc_crc}, \
 Encrypted Content: {self.encrypted_content}, \
 Full Message: {self.full_message}."
 
+    # def to_dict(self, clear_account=False, **kwargs) -> dict:
+    #     """Return the event as a dict."""
+    #     ev: BaseEvent = copy.deepcopy(self)
+    #     if clear_account and ev.sia_account:
+    #         ev.sia_account = None
+    #     return super().to_dict(ev, **kwargs)  # type: ignore # pylint: disable=no-member
 
+
+@dataclass_json
 @dataclass
 class OHEvent(SIAEvent):
     """Class for OH events."""
@@ -444,6 +455,7 @@ class OHEvent(SIAEvent):
         return '"ACK"'.encode("ascii")  # pragma: no cover
 
 
+@dataclass_json
 @dataclass
 class NAKEvent(BaseEvent):
     """Class for NAK Events."""

@@ -130,6 +130,29 @@ class testSIA(object):
 
     pytestmark = pytest.mark.asyncio
 
+    @parametrize_with_cases("cl, dic, clear_account", cases=ToFromDict)
+    def test_to_from_dict(self, cl, dic, clear_account):
+        """Test the to and from dict methods."""
+        _LOGGER.warning("Dict before: %s", dic)
+        instance = cl.from_dict(dic)
+        _LOGGER.warning("Class instance %s", instance)
+        if cl == SIAAccount:
+            assert instance.account_id == dic["account_id"]
+            assert instance.key == dic["key"]
+            dic2 = instance.to_dict()
+        else:
+            assert instance.account == dic["account"]
+            assert instance.code == dic["code"]
+            dic2 = instance.to_dict(encode_json=True)
+
+        _LOGGER.warning("Dict after: %s", dic2)
+        for key, value in dic.items():
+            if key != "sia_account":
+                assert dic2[key] == value
+            else:
+                if dic[key]:
+                    assert instance.sia_account is not None
+
     @parametrize_with_cases(
         "line, account_id, type, code, error_type, extended_data_flag",
         cases=EventParsing,
@@ -140,8 +163,8 @@ class testSIA(object):
         """Test event parsing methods."""
         try:
             event = SIAEvent.from_line(line)
-            _LOGGER.warning(asdict(event))
-            _LOGGER.warning(event.to_dict())
+            # _LOGGER.warning(asdict(event))
+            # _LOGGER.warning(event.to_dict())
             # assert False
             assert event.code == code
             if code:

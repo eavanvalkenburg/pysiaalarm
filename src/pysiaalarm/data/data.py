@@ -1,6 +1,7 @@
 """Data related utils for pysiaalarm."""
 import json
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 from typing import Dict, Optional
 
 import pkg_resources
@@ -10,6 +11,7 @@ FILE_XDATA = "xdata.json"
 FILE_ADM_MAPPING = "adm_mapping.json"
 
 
+@dataclass_json
 @dataclass
 class SIACode:
     """Class for SIACodes."""
@@ -20,6 +22,7 @@ class SIACode:
     concerns: str
 
 
+@dataclass_json
 @dataclass
 class SIAXData:
     """Class for Xdata."""

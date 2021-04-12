@@ -7,6 +7,8 @@ from pysiaalarm import (
     InvalidKeyFormatError,
     InvalidKeyLengthError,
     CommunicationsProtocol,
+    SIAAccount,
+    SIAEvent,
 )
 from pysiaalarm.errors import EventFormatError
 from pysiaalarm.utils import ResponseType
@@ -111,6 +113,17 @@ class EventParsing:
     Emits these fields: "line, account_id, type, code, error, extended_data_flag"
 
     """
+
+    def case_bug(self):
+        """Test case from #11."""
+        return (
+            r'9618004D"SIA-DCS"7960L0#123456[#123456|Nri1CL0^VX FRONTE ^]_22:40:48,04-11-2021',
+            "123456",
+            "Closing Report",
+            "CL",
+            None,
+            False
+        )
 
     def case_dc04(self):
         """Test case DC04 format - NOT SUPPORTED so throws an error."""
@@ -326,3 +339,123 @@ class ParseAndCheckEvent:
     def case_non_existent_code(self):
         """Test parsing for non existing code."""
         return ("ZX", False, False, ResponseType.DUH)
+
+
+class ToFromDict:
+    """Test the event serialization to and from dict.
+
+    Emits the class and a dict of that class.
+
+    """
+
+    def case_sia_event(self):
+        """Test event from dict."""
+        d_ev = {
+            "full_message": '"SIA-DCS"5268L0#AAA[Nri1/WA000]_08:40:47,07-08-2020',
+            "msg_crc": "C416",
+            "length": "0279",
+            "encrypted": False,
+            "message_type": "SIA-DCS",
+            "receiver": None,
+            "line": "L0",
+            "account": "AAA",
+            "sequence": "5268",
+            "content": "Nri1/WA000]_08:40:47,07-08-2020",
+            "encrypted_content": None,
+            "ti": None,
+            "id": None,
+            "ri": "1",
+            "code": "WA",
+            "message": "000",
+            "x_data": None,
+            "timestamp": 1594197647.0,
+            "event_qualifier": None,
+            "event_type": None,
+            "partition": None,
+            "calc_crc": "E9A4",
+            "extended_data": None,
+            "sia_account": None,
+            "sia_code": {
+                "code": "WA",
+                "type": "Water Alarm",
+                "description": "Water detected at protected premises",
+                "concerns": "Zone or point",
+            },
+        }
+        return SIAEvent, d_ev, False
+
+    def case_sia_event_with_account(self):
+        """Test event from dict."""
+        d_ev = {
+            "full_message": '"SIA-DCS"5268L0#AAA[Nri1/WA000]_08:40:47,07-08-2020',
+            "msg_crc": "C416",
+            "length": "0279",
+            "encrypted": False,
+            "message_type": "SIA-DCS",
+            "receiver": None,
+            "line": "L0",
+            "account": "AAA",
+            "sequence": "5268",
+            "content": "Nri1/WA000]_08:40:47,07-08-2020",
+            "encrypted_content": None,
+            "ti": None,
+            "id": None,
+            "ri": "1",
+            "code": "WA",
+            "message": "000",
+            "x_data": None,
+            "timestamp": 1594197647.0,
+            "event_qualifier": None,
+            "event_type": None,
+            "partition": None,
+            "calc_crc": "E9A4",
+            "extended_data": None,
+            "sia_account": {"account_id": ACCOUNT, "key": KEY},
+            "sia_code": {
+                "code": "WA",
+                "type": "Water Alarm",
+                "description": "Water detected at protected premises",
+                "concerns": "Zone or point",
+            },
+        }
+        return SIAEvent, d_ev, False
+
+    def case_sia_event_with_account_clear(self):
+        """Test event from dict."""
+        d_ev = {
+            "full_message": '"SIA-DCS"5268L0#AAA[Nri1/WA000]_08:40:47,07-08-2020',
+            "msg_crc": "C416",
+            "length": "0279",
+            "encrypted": False,
+            "message_type": "SIA-DCS",
+            "receiver": None,
+            "line": "L0",
+            "account": "AAA",
+            "sequence": "5268",
+            "content": "Nri1/WA000]_08:40:47,07-08-2020",
+            "encrypted_content": None,
+            "ti": None,
+            "id": None,
+            "ri": "1",
+            "code": "WA",
+            "message": "000",
+            "x_data": None,
+            "timestamp": 1594197647.0,
+            "event_qualifier": None,
+            "event_type": None,
+            "partition": None,
+            "calc_crc": "E9A4",
+            "extended_data": None,
+            "sia_account": {"account_id": ACCOUNT, "key": KEY},
+            "sia_code": {
+                "code": "WA",
+                "type": "Water Alarm",
+                "description": "Water detected at protected premises",
+                "concerns": "Zone or point",
+            },
+        }
+        return SIAEvent, d_ev, True
+
+    def case_sia_account(self):
+        """Test account to and from dict."""
+        return SIAAccount, {"account_id": ACCOUNT, "key": KEY}, False
