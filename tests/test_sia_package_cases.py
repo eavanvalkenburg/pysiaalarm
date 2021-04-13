@@ -122,7 +122,18 @@ class EventParsing:
             "Closing Report",
             "CL",
             None,
-            False
+            False,
+        )
+
+    def case_bug2(self):
+        """Test case from SIA #42."""
+        return (
+            r'5670004D"SIA-DCS"8070L0#123456[#123456|Nri0KR1^TAST. 001 ^]_13:49:12,04-13-2021',
+            "123456",
+            "Heat Restoral",
+            "KR",
+            None,
+            False,
         )
 
     def case_dc04(self):
