@@ -72,6 +72,13 @@ class BaseEvent(ABC):
     )
     sia_code: Optional[SIACode] = None
 
+    # Parse flags
+    _content_parsed: bool = False
+    _encrypted_content_decrypted: bool = False
+    _adm_parsed: bool = False
+    _sia_added: bool = False
+    _xdata_parsed: bool = False
+
     @property
     def valid_message(self) -> bool:
         """Return True for OH and NAK Events."""
@@ -101,6 +108,7 @@ class BaseEvent(ABC):
         """Return the SIA Code object, based on the code field."""
         if self.code:  # pragma: no cover
             self.sia_code = _load_sia_codes().get(self.code)  # pylint: disable=E1101
+            self._sia_added = True
 
     def _get_crypter(self) -> Optional[CbcMode]:
         """Give back a encrypter/decrypter."""
@@ -212,25 +220,32 @@ class SIAEvent(BaseEvent):
             self.message_type = MessageTypes(self.message_type)
 
         # Calculate the CRC of the message.
-        self.calc_crc = self._crc_calc(self.full_message)
+        if not self.calc_crc:
+            self.calc_crc = self._crc_calc(self.full_message)
         # If there is encrypted content and a key, decrypt
-        if self.sia_account and self.sia_account.encrypted and self.encrypted_content:
+        if (
+            self.sia_account
+            and self.sia_account.encrypted
+            and self.encrypted_content
+            and not self._encrypted_content_decrypted
+        ):
             self.decrypt_content()
         # If there is content (either after decrypting or directly) parse
-        if self.content:
+        if self.content and not self._content_parsed:
             self.parse_content()
         # If it is a ADM-CID message, map the qualifier and type to a code.
         if (
             self.message_type == MessageTypes.ADMCID
             and self.event_qualifier is not None
             and self.event_type is not None
+            and not self._adm_parsed
         ):
             self.parse_adm()
         # If there is a code, map it to the full SIA Code spec.
-        if self.code:
+        if self.code and not self._sia_added:
             self.set_sia_code()
         # If there is x_data, parse it.
-        if self.x_data:
+        if self.x_data and not self._xdata_parsed:
             self.parse_extended_data()  # pragma: no cover
 
     @property
@@ -326,6 +341,7 @@ class SIAEvent(BaseEvent):
         self.content = decr.decrypt(bytes.fromhex(self.encrypted_content)).decode(
             "ascii", "ignore"
         )
+        self._encrypted_content_decrypted = True
 
     def encrypt_content(self, message: str) -> Optional[str]:
         """Encrypt a string.
@@ -349,6 +365,7 @@ class SIAEvent(BaseEvent):
             sub_map = _load_adm_mapping().get(self.event_type, None)
             if sub_map:
                 self.code = sub_map.get(self.event_qualifier, None)
+        self._adm_parsed = True
 
     def parse_content(self) -> None:
         """Set the internal content field and also parse the content and store the right things."""
@@ -390,6 +407,7 @@ class SIAEvent(BaseEvent):
         if self.message_type == MessageTypes.NULL and self.code_not_found:
             self.code = "RP"
             self.ri = "0"
+        self._content_parsed = True
 
     def parse_extended_data(self) -> None:
         """Set extended data."""
@@ -398,6 +416,7 @@ class SIAEvent(BaseEvent):
             if xdata:
                 xdata.value = self.x_data[1:]
                 self.extended_data = xdata
+            self._xdata_parsed = True
 
     def sia_account_from_message(self) -> SIAAccount:
         """Return the SIA Account, if there is not account added, create one based on the account in the message."""
@@ -421,13 +440,6 @@ Calc CRC: {self.calc_crc}, \
 Encrypted Content: {self.encrypted_content}, \
 Full Message: {self.full_message}."
 
-    # def to_dict(self, clear_account=False, **kwargs) -> dict:
-    #     """Return the event as a dict."""
-    #     ev: BaseEvent = copy.deepcopy(self)
-    #     if clear_account and ev.sia_account:
-    #         ev.sia_account = None
-    #     return super().to_dict(ev, **kwargs)  # type: ignore # pylint: disable=no-member
-
 
 @dataclass_json
 @dataclass
@@ -438,7 +450,8 @@ class OHEvent(SIAEvent):
 
     def __post_init__(self) -> None:
         """If there is a code, map it to the full SIA Code spec."""
-        self.set_sia_code()
+        if not self._sia_added:  # pragma: no cover
+            self.set_sia_code()
 
     @property
     def response(self) -> ResponseType:
