@@ -10,3 +10,5 @@ COUNTER_USER_CODE = "user_code"
 
 IV = bytes.fromhex("00000000000000000000000000000000")
 EMPTY_BYTES = b""
+
+RSP_XDATA = ["K"]

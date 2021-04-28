@@ -12,7 +12,7 @@ from Crypto.Cipher import AES
 from Crypto.Cipher._mode_cbc import CbcMode
 
 from .account import SIAAccount
-from .const import IV
+from .const import IV, RSP_XDATA
 from .errors import EventFormatError
 from .utils import (
     MAIN_MATCHER,
@@ -57,6 +57,7 @@ class BaseEvent(ABC):
     code: Optional[str] = None
     message: Optional[str] = None
     x_data: Optional[str] = None
+    x_data_list: Optional[list[str]] = None
     timestamp: Optional[datetime] = None
 
     # From ADM-CID
@@ -66,7 +67,7 @@ class BaseEvent(ABC):
 
     # Parsed fields
     calc_crc: Optional[str] = None
-    extended_data: Optional[SIAXData] = None
+    extended_data: Optional[list[SIAXData]] = None
     sia_account: Optional[SIAAccount] = field(
         metadata=config(exclude=Exclude.ALWAYS), default=None  # type: ignore
     )
@@ -260,7 +261,7 @@ class SIAEvent(BaseEvent):
         if not self.valid_timestamp:
             return ResponseType.NAK
         if self.extended_data is not None:  # pragma: no cover
-            if self.extended_data.identifier in ["K"]:
+            if [x for x in self.extended_data if x.identifier in RSP_XDATA] is not None:
                 return ResponseType.RSP
         return ResponseType.ACK
 
@@ -317,7 +318,7 @@ class SIAEvent(BaseEvent):
             return f'"{response_type.value}"'.encode("ascii")
         if (
             self.extended_data
-            and self.extended_data.identifier == "K"
+            and [x for x in self.extended_data if x.identifier == "K"] is not None
             and self.sia_account.key is not None
         ):
             x_data = f"[K{self.sia_account.key}]"
@@ -412,10 +413,13 @@ class SIAEvent(BaseEvent):
     def parse_extended_data(self) -> None:
         """Set extended data."""
         if self.x_data is not None:  # pragma: no cover
-            xdata = _load_xdata().get(self.x_data[0], None)
-            if xdata:
-                xdata.value = self.x_data[1:]
-                self.extended_data = xdata
+            self.x_data_list = self.x_data.split("][")
+            self.extended_data = []
+            for xd in self.x_data_list:
+                xdata = _load_xdata().get(xd[0], None)
+                if xdata:
+                    xdata.value = xd[1:]
+                    self.extended_data.append(xdata)
             self._xdata_parsed = True
 
     def sia_account_from_message(self) -> SIAAccount:

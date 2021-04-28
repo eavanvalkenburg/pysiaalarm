@@ -172,7 +172,7 @@ class testSIA(object):
             assert event.account == account_id
             if extended_data_flag:
                 assert event.extended_data is not None
-                if event.extended_data.identifier == "K":
+                if event.extended_data[0].identifier == "K":
                     event.sia_account = SIAAccount(
                         account_id, KEY, allowed_timeband=None
                     )

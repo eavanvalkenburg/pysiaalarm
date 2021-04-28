@@ -180,6 +180,17 @@ class EventParsing:
             True,
         )
 
+    def case_xdata_X_and_Y(self):
+        """Input a closing report event in SIA DC-09 with K xdata."""
+        return (
+            rf'BF940059"SIA-DCS"0004L0#{ACCOUNT}[#{ACCOUNT}|Nri1/PA501][X006E07.7777777][Y49N06.6666666]_20:45:46,04-22-2021',
+            ACCOUNT,
+            "Panic Alarm",
+            "PA",
+            None,
+            True,
+        )
+
     # TODO: add tests for different SIA versions (DC-04, DC09, DC09X)
     def case_encrypted(self):
         """Input a encrypted line."""
