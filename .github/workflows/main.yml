@@ -4,19 +4,23 @@ name: Test
 # events but only for the master branch
 on:
   push:
+    tags-ignore:
+      - v*
   pull_request:
 
 jobs:
   TOX:
-    name: "Run setup and tox."
+    name: "Run setup and mypy."
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.10]
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: ${{ matrix.python-version }}
       - name: Run installs.
         run: pip install -e .[test]
       - name: Run Tox
