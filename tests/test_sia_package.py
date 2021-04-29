@@ -15,7 +15,7 @@ from pysiaalarm import (
     SIAEvent,
 )
 from pysiaalarm.aio import SIAClient as SIAClientA
-from pysiaalarm.event import NAKEvent
+from pysiaalarm.event import NAKEvent, BaseEvent
 from pysiaalarm.const import COUNTER_USER_CODE, COUNTER_VALID, COUNTER_EVENTS
 
 from tests.test_alarm import send_messages
@@ -163,9 +163,6 @@ class testSIA(object):
         """Test event parsing methods."""
         try:
             event = SIAEvent.from_line(line)
-            # _LOGGER.warning(asdict(event))
-            # _LOGGER.warning(event.to_dict())
-            # assert False
             assert event.code == code
             if code:
                 assert event.sia_code.type == type
@@ -184,6 +181,23 @@ class testSIA(object):
                 assert False
             if isinstance(e, error_type):
                 assert True
+
+    @parametrize_with_cases(
+        "line, account_id, type, code, error_type, extended_data_flag",
+        cases=EventParsing,
+    )
+    def test_event_serialization(
+        self, line, account_id, type, code, error_type, extended_data_flag
+    ):
+        """Test event parsing methods."""
+        if error_type is not None:
+            pytest.skip("Wrong messages will not serialize.")
+            return
+        event = BaseEvent.from_line(line)
+        event_type = event.__class__
+        event_dict = event.to_dict(encode_json=True)
+        event2 = event_type.from_dict(event_dict)
+        assert event == event2
 
     @parametrize_with_cases("key, account_id, error_type", cases=AccountSetup)
     def test_sia_account_setup(

@@ -1,11 +1,11 @@
 """This is a class for SIA Events."""
 from __future__ import annotations
-import copy
+
 import logging
 from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json, config, Exclude
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional, Union
 
 from Crypto.Cipher import AES
@@ -185,8 +185,10 @@ class BaseEvent(ABC):
         return datetime.utcnow().strftime("_%H:%M:%S,%m-%d-%Y")
 
     @staticmethod
-    def _crc_calc(msg: str) -> str:
+    def _crc_calc(msg: Optional[str]) -> Optional[str]:
         """Calculate the CRC of the msg."""
+        if msg is None:  # pragma: no cover
+            return None
         crc = 0
         for letter in str.encode(msg):
             temp = letter
@@ -203,16 +205,6 @@ class BaseEvent(ABC):
 @dataclass
 class SIAEvent(BaseEvent):
     """Class for SIAEvents."""
-
-    # From Main Matcher
-    full_message: str
-    msg_crc: str
-    length: str
-    encrypted: bool
-    message_type: Union[MessageTypes, str]
-    receiver: str
-    line: str
-    account: str
 
     def __post_init__(self) -> None:
         """Run post init logic."""
@@ -276,6 +268,8 @@ class SIAEvent(BaseEvent):
     @property
     def valid_length(self) -> bool:
         """Check if the length of the message is the same in the message and supplied. Will not throw an error if not correct."""
+        if self.length is None or self.full_message is None:  # pragma: no cover
+            return True
         return int(self.length) == int(
             str(len(self.full_message)), 16
         )  # pragma: no cover
@@ -288,12 +282,12 @@ class SIAEvent(BaseEvent):
     @property
     def valid_timestamp(self) -> bool:
         """Check if the timestamp is within bounds."""
-        if not self.sia_account:
-            return True  # pragma: no cover
-        if self.sia_account.allowed_timeband is None:
-            return True  # pragma: no cover
+        if not self.sia_account:  # pragma: no cover
+            return True
+        if self.sia_account.allowed_timeband is None:  # pragma: no cover
+            return True
         if self.timestamp:
-            current_time = datetime.utcnow()
+            current_time = datetime.now(timezone.utc)
             current_min = current_time - timedelta(
                 seconds=self.sia_account.allowed_timeband[0]
             )
@@ -370,6 +364,8 @@ class SIAEvent(BaseEvent):
 
     def parse_content(self) -> None:
         """Set the internal content field and also parse the content and store the right things."""
+        if self.message_type is None or self.encrypted is None:  # pragma: no cover
+            return
         matcher = _get_matcher(self.message_type, self.encrypted)
         matches = matcher.match(self.content)
         if not matches:
@@ -399,7 +395,7 @@ class SIAEvent(BaseEvent):
         if content["timestamp"]:
             try:
                 ts = datetime.strptime(content["timestamp"], "%H:%M:%S,%m-%d-%Y")
-                self.timestamp = ts
+                self.timestamp = ts.replace(tzinfo=timezone.utc)
             except ValueError:
                 _LOGGER.warning(
                     "Timestamp could not be parsed as a timestamp: %s",
@@ -422,9 +418,11 @@ class SIAEvent(BaseEvent):
                     self.extended_data.append(xdata)
             self._xdata_parsed = True
 
-    def sia_account_from_message(self) -> SIAAccount:
+    def sia_account_from_message(self) -> Optional[SIAAccount]:  # pragma: no cover
         """Return the SIA Account, if there is not account added, create one based on the account in the message."""
-        return SIAAccount(self.account)  # pragma: no cover
+        if self.account is not None:
+            return SIAAccount(self.account)
+        return None
 
     def __str__(self) -> str:
         """Return the event as a string."""
@@ -454,6 +452,9 @@ class OHEvent(SIAEvent):
 
     def __post_init__(self) -> None:
         """If there is a code, map it to the full SIA Code spec."""
+        if isinstance(self.message_type, str):  # pragma: no cover
+            self.message_type = MessageTypes(self.message_type)
+
         if not self._sia_added:  # pragma: no cover
             self.set_sia_code()
 
@@ -476,6 +477,11 @@ class OHEvent(SIAEvent):
 @dataclass
 class NAKEvent(BaseEvent):
     """Class for NAK Events."""
+
+    def __post_init__(self) -> None:
+        """Run post init work."""
+        if isinstance(self.message_type, str):  # pragma: no cover
+            self.message_type = MessageTypes(self.message_type)
 
     @property
     def response(self) -> ResponseType:
