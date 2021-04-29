@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json, config, Exclude
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 
 from Crypto.Cipher import AES
 from Crypto.Cipher._mode_cbc import CbcMode
@@ -57,7 +57,6 @@ class BaseEvent(ABC):
     code: Optional[str] = None
     message: Optional[str] = None
     x_data: Optional[str] = None
-    x_data_list: Optional[list[str]] = None
     timestamp: Optional[datetime] = None
 
     # From ADM-CID
@@ -67,7 +66,7 @@ class BaseEvent(ABC):
 
     # Parsed fields
     calc_crc: Optional[str] = None
-    extended_data: Optional[list[SIAXData]] = None
+    extended_data: Optional[List[SIAXData]] = None
     sia_account: Optional[SIAAccount] = field(
         metadata=config(exclude=Exclude.ALWAYS), default=None  # type: ignore
     )
@@ -408,15 +407,16 @@ class SIAEvent(BaseEvent):
 
     def parse_extended_data(self) -> None:
         """Set extended data."""
-        if self.x_data is not None:  # pragma: no cover
-            self.x_data_list = self.x_data.split("][")
-            self.extended_data = []
-            for xd in self.x_data_list:
-                xdata = _load_xdata().get(xd[0], None)
-                if xdata:
-                    xdata.value = xd[1:]
-                    self.extended_data.append(xdata)
-            self._xdata_parsed = True
+        if self.x_data is None:  # pragma: no cover
+            return
+        x_data_list = self.x_data.split("][")
+        self.extended_data = []
+        for xd in x_data_list:  # pragma: no cover
+            xdata = _load_xdata().get(xd[0], None)
+            if xdata:
+                xdata.value = xd[1:]
+                self.extended_data.append(xdata)
+        self._xdata_parsed = True
 
     def sia_account_from_message(self) -> Optional[SIAAccount]:  # pragma: no cover
         """Return the SIA Account, if there is not account added, create one based on the account in the message."""
