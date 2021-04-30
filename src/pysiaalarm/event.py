@@ -252,7 +252,7 @@ class SIAEvent(BaseEvent):
         if not self.valid_timestamp:
             return ResponseType.NAK
         if self.extended_data is not None:  # pragma: no cover
-            if [x for x in self.extended_data if x.identifier in RSP_XDATA] is not None:
+            if [x for x in self.extended_data if x.identifier in RSP_XDATA]:
                 return ResponseType.RSP
         return ResponseType.ACK
 

@@ -161,21 +161,29 @@ class testSIA(object):
         self, line, account_id, type, code, error_type, extended_data_flag
     ):
         """Test event parsing methods."""
+        catch = error_type if error_type is not None else Exception
         try:
-            event = SIAEvent.from_line(line)
+            if extended_data_flag:
+                event = SIAEvent.from_line(line, {account_id: SIAAccount(
+                            account_id, KEY, allowed_timeband=None
+                        )})
+            else:
+                event = SIAEvent.from_line(line)
             assert event.code == code
             if code:
                 assert event.sia_code.type == type
             assert event.account == account_id
             if extended_data_flag:
+                _LOGGER.warning("CRC: %s", event.calc_crc)
                 assert event.extended_data is not None
                 if event.extended_data[0].identifier == "K":
-                    event.sia_account = SIAAccount(
-                        account_id, KEY, allowed_timeband=None
-                    )
                     _LOGGER.debug("RSP Response: %s", event.create_response())
                     assert event.response == ResponseType.RSP
-        except Exception as e:
+                else:
+                    assert event.response == ResponseType.ACK
+        except AssertionError as e:
+            raise e
+        except catch as e:
             if error_type is None:
                 _LOGGER.debug("Error thrown: %s", e)
                 assert False

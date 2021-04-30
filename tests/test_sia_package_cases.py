@@ -161,7 +161,7 @@ class EventParsing:
     def case_xdata_M(self):
         """Input a closing report event in SIA DC-09 with M xdata."""
         return (
-            r'E5D50078"SIA-DCS"6002L0#AAA[|Nri1/CL501][M0026B9E4268B]_14:12:04,09-25-2019',
+            r'87570078"SIA-DCS"6002L0#AAA[|Nri1/CL501][M0026B9E4268B]_14:12:04,09-25-2019',
             "AAA",
             "Closing Report",
             "CL",
@@ -183,7 +183,7 @@ class EventParsing:
     def case_xdata_X_and_Y(self):
         """Input a closing report event in SIA DC-09 with K xdata."""
         return (
-            rf'BF940059"SIA-DCS"0004L0#{ACCOUNT}[#{ACCOUNT}|Nri1/PA501][X006E07.7777777][Y49N06.6666666]_20:45:46,04-22-2021',
+            rf'5B090059"SIA-DCS"0004L0#{ACCOUNT}[#{ACCOUNT}|Nri1/PA501][X006E07.7777777][Y49N06.6666666]_20:45:46,04-22-2021',
             ACCOUNT,
             "Panic Alarm",
             "PA",
