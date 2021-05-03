@@ -112,7 +112,7 @@
         "characters": "ASCII"
     },
     "Y": {
-        "identifier": "A",
+        "identifier": "Y",
         "name": "Latitude",
         "description": "Location of event, latitude.",
         "length": 12,
