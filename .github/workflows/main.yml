@@ -29,4 +29,4 @@ jobs:
       - name: Run Tox
         run: tox
       - name: Run Mypy
-        run: mypy --install-types
+        run: mypy
