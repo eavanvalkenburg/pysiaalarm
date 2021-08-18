@@ -158,6 +158,17 @@ class EventParsing:
             False,
         )
 
+    def case_adm_cid2(self):
+        """Test case ADM-CID format."""
+        return (
+            r'57150047"ADM-CID"0247R4F39L4F39#4F39[#4F39|3401 01 057]',
+            "4F39",
+            "Closing Report",
+            "CL",
+            None,
+            False,
+        )
+
     def case_xdata_M(self):
         """Input a closing report event in SIA DC-09 with M xdata."""
         return (

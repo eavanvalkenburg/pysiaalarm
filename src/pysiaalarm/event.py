@@ -315,7 +315,9 @@ class SIAEvent(BaseEvent):
             and self.sia_account.key is not None
         ):
             x_data = f"[K{self.sia_account.key}]"
-        if not self.encrypted or response_type == ResponseType.DUH:
+        if response_type == ResponseType.NAK:
+            res = f'"{response_type.value}"0000R0L0A0[]{self._get_timestamp()}'
+        elif not self.encrypted or response_type == ResponseType.DUH:
             res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'
         else:
             encrypted_content = self.encrypt_content(
