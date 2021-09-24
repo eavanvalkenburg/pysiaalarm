@@ -158,6 +158,28 @@ class EventParsing:
             False,
         )
 
+    def case_adm_cid2(self):
+        """Test case ADM-CID format."""
+        return (
+            r'57150047"ADM-CID"0247R4F39L4F39#4F39[#4F39|3401 01 057]',
+            "4F39",
+            "Closing Report",
+            "CL",
+            None,
+            False,
+        )
+
+    def case_code_jc(self):
+        """Input a closing report event in SIA DC-09 with JC code."""
+        return (
+            r'97F90078"SIA-DCS"6002L0#AAA[|Nri2/JC12]_12:58:23,09-15-2021',
+            "AAA",
+            "User code tamper canceled",
+            "JC",
+            None,
+            False,
+        )
+
     def case_xdata_M(self):
         """Input a closing report event in SIA DC-09 with M xdata."""
         return (

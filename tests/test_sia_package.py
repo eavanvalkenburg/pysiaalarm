@@ -164,12 +164,18 @@ class testSIA(object):
         catch = error_type if error_type is not None else Exception
         try:
             if extended_data_flag:
-                event = SIAEvent.from_line(line, {account_id: SIAAccount(
-                            account_id, KEY, allowed_timeband=None
-                        )})
+                event = SIAEvent.from_line(
+                    line,
+                    {account_id: SIAAccount(account_id, KEY, allowed_timeband=None)},
+                )
             else:
                 event = SIAEvent.from_line(line)
             assert event.code == code
+            if not event.valid_message:
+                _LOGGER.warning("Event full message: %s", event.full_message)
+                _LOGGER.warning("Event sent crc: %s", event.msg_crc)
+                _LOGGER.warning("Event calc crc: %s", event.calc_crc)
+            # assert event.valid_message
             if code:
                 assert event.sia_code.type == type
             assert event.account == account_id
