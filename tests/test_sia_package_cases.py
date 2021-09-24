@@ -169,6 +169,17 @@ class EventParsing:
             False,
         )
 
+    def case_code_jc(self):
+        """Input a closing report event in SIA DC-09 with JC code."""
+        return (
+            r'97F90078"SIA-DCS"6002L0#AAA[|Nri2/JC12]_12:58:23,09-15-2021',
+            "AAA",
+            "User code tamper canceled",
+            "JC",
+            None,
+            False,
+        )
+
     def case_xdata_M(self):
         """Input a closing report event in SIA DC-09 with M xdata."""
         return (
