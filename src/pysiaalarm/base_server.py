@@ -14,7 +14,7 @@ from .const import (
     COUNTER_TIMESTAMP,
     COUNTER_USER_CODE,
 )
-from .errors import EventFormatError
+from .errors import EventFormatError, NoAccountError
 from .event import NAKEvent, OHEvent, SIAEvent
 from .utils import Counter
 
@@ -56,8 +56,11 @@ class BaseSIAServer(ABC):
         self.log_and_count(COUNTER_EVENTS, line=line)
         try:
             event = SIAEvent.from_line(line, self.accounts)
-        except EventFormatError:
-            self.log_and_count(COUNTER_FORMAT, line)
+        except NoAccountError as exc:
+            self.log_and_count(COUNTER_ACCOUNT, line, exception=exc)
+            return NAKEvent()
+        except EventFormatError as exc:
+            self.log_and_count(COUNTER_FORMAT, line, exception=exc)
             return NAKEvent()
 
         if isinstance(event, OHEvent):
@@ -96,9 +99,21 @@ class BaseSIAServer(ABC):
         exception: Exception = None,
     ) -> None:
         """Log the appropriate line and increment the right counter."""
-        if counter == COUNTER_FORMAT:
+        if counter == COUNTER_ACCOUNT and exception is not None:
             _LOGGER.warning(
-                "Last line could not be parsed as a SIAEvent or OHEvent, line was: %s",
+                "There is no account for a encrypted line, line was: %s",
+                line,
+            )
+        if counter == COUNTER_ACCOUNT and event:
+            _LOGGER.warning(
+                "Unknown or non-existing account (%s) was used by the event: %s",
+                event.account,
+                event,
+            )
+        if counter == COUNTER_FORMAT and exception:
+            _LOGGER.warning(
+                "Last line could not be parsed succesfully. Error message: %s. Line: %s",
+                exception.args[0],
                 line,
             )
         if counter == COUNTER_USER_CODE and event and exception:
@@ -111,12 +126,6 @@ class BaseSIAServer(ABC):
                 event.msg_crc,
                 event.calc_crc,
                 event.full_message,
-            )
-        if counter == COUNTER_ACCOUNT and event:
-            _LOGGER.warning(
-                "Unknown or non-existing account (%s) was used by the event: %s",
-                event.account,
-                event,
             )
         if counter == COUNTER_CODE and event:
             _LOGGER.warning(
