@@ -225,6 +225,17 @@ class EventParsing:
             False,
         )
 
+    def case_encrypted_adm(self):
+        """Input a encrypted ADM line."""
+        return (
+            r'D0850078"*ADM-CID"6879R0L0#123F[64F7ADD9BA9377DBF2C014BC709329BEEE345B5F20C60B7EB9D2C6B8C222666B13D0B4A114B448B0AC555FCC658DB6EE',
+            "123F",
+            None,
+            None,
+            None,
+            False,
+        )
+
     def case_oh(self):
         """Input a OH event."""
         return (
