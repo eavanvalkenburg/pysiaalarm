@@ -17,6 +17,7 @@ from pysiaalarm import (
 from pysiaalarm.aio import SIAClient as SIAClientA
 from pysiaalarm.event import NAKEvent, BaseEvent
 from pysiaalarm.const import COUNTER_USER_CODE, COUNTER_VALID, COUNTER_EVENTS
+from pysiaalarm.errors import NoAccountError
 
 from tests.test_alarm import send_messages
 from tests.test_utils import ACCOUNT, KEY, HOST, create_test_line
@@ -154,11 +155,18 @@ class testSIA(object):
                     assert instance.sia_account is not None
 
     @parametrize_with_cases(
-        "line, account_id, type, code, error_type, extended_data_flag",
+        "line, account_id, code_type, code, error_type, extended_data_flag, encrypted_flag",
         cases=EventParsing,
     )
     def test_event_parsing(
-        self, line, account_id, type, code, error_type, extended_data_flag
+        self,
+        line,
+        account_id,
+        code_type,
+        code,
+        error_type,
+        extended_data_flag,
+        encrypted_flag,
     ):
         """Test event parsing methods."""
         catch = error_type if error_type is not None else Exception
@@ -177,7 +185,7 @@ class testSIA(object):
                 _LOGGER.warning("Event calc crc: %s", event.calc_crc)
             # assert event.valid_message
             if code:
-                assert event.sia_code.type == type
+                assert event.sia_code.type == code_type
             assert event.account == account_id
             if extended_data_flag:
                 _LOGGER.warning("CRC: %s", event.calc_crc)
@@ -187,6 +195,8 @@ class testSIA(object):
                     assert event.response == ResponseType.RSP
                 else:
                     assert event.response == ResponseType.ACK
+        except NoAccountError:
+            assert encrypted_flag
         except AssertionError as e:
             raise e
         except catch as e:
@@ -197,15 +207,25 @@ class testSIA(object):
                 assert True
 
     @parametrize_with_cases(
-        "line, account_id, type, code, error_type, extended_data_flag",
+        "line, account_id, code_type, code, error_type, extended_data_flag, encrypted_flag",
         cases=EventParsing,
     )
     def test_event_serialization(
-        self, line, account_id, type, code, error_type, extended_data_flag
+        self,
+        line,
+        account_id,
+        code_type,
+        code,
+        error_type,
+        extended_data_flag,
+        encrypted_flag,
     ):
         """Test event parsing methods."""
         if error_type is not None:
             pytest.skip("Wrong messages will not serialize.")
+            return
+        if encrypted_flag is True:
+            pytest.skip("Encrypted messages without account will not serialize.")
             return
         event = BaseEvent.from_line(line)
         event_type = event.__class__

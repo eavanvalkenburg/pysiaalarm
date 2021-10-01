@@ -13,7 +13,7 @@ from Crypto.Cipher._mode_cbc import CbcMode
 
 from .account import SIAAccount
 from .const import IV, RSP_XDATA
-from .errors import EventFormatError
+from .errors import EventFormatError, NoAccountError
 from .utils import (
     MAIN_MATCHER,
     OH_MATCHER,
@@ -215,13 +215,11 @@ class SIAEvent(BaseEvent):
         if not self.calc_crc:
             self.calc_crc = self._crc_calc(self.full_message)
         # If there is encrypted content and a key, decrypt
-        if (
-            self.sia_account
-            and self.sia_account.encrypted
-            and self.encrypted_content
-            and not self._encrypted_content_decrypted
-        ):
-            self.decrypt_content()
+        if self.encrypted_content:
+            if not self.sia_account or not self.sia_account.encrypted:
+                raise NoAccountError("No account present with encrypted message.")
+            if not self._encrypted_content_decrypted:
+                self.decrypt_content()
         # If there is content (either after decrypting or directly) parse
         if self.content and not self._content_parsed:
             self.parse_content()

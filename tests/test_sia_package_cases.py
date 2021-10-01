@@ -110,7 +110,7 @@ def fault_timestamp():
 class EventParsing:
     """Test cases for event parsing.
 
-    Emits these fields: "line, account_id, type, code, error, extended_data_flag"
+    Emits these fields: "line, account_id, code_type, code, error, extended_data_flag, encrypted_flag"
 
     """
 
@@ -123,6 +123,7 @@ class EventParsing:
             "CL",
             None,
             False,
+            False,
         )
 
     def case_bug2(self):
@@ -133,6 +134,7 @@ class EventParsing:
             "Heat Restoral",
             "KR",
             None,
+            False,
             False,
         )
 
@@ -145,6 +147,7 @@ class EventParsing:
             None,
             EventFormatError,
             False,
+            False,
         )
 
     def case_adm_cid(self):
@@ -155,6 +158,7 @@ class EventParsing:
             "Fire Alarm",
             "FA",
             None,
+            False,
             False,
         )
 
@@ -167,6 +171,7 @@ class EventParsing:
             "CL",
             None,
             False,
+            False,
         )
 
     def case_code_jc(self):
@@ -177,6 +182,7 @@ class EventParsing:
             "User code tamper canceled",
             "JC",
             None,
+            False,
             False,
         )
 
@@ -189,6 +195,7 @@ class EventParsing:
             "CL",
             None,
             True,
+            False,
         )
 
     def case_xdata_K(self):
@@ -200,6 +207,7 @@ class EventParsing:
             "RP",
             None,
             True,
+            False,
         )
 
     def case_xdata_X_and_Y(self):
@@ -211,6 +219,7 @@ class EventParsing:
             "PA",
             None,
             True,
+            False,
         )
 
     # TODO: add tests for different SIA versions (DC-04, DC09, DC09X)
@@ -223,6 +232,7 @@ class EventParsing:
             None,
             None,
             False,
+            True,
         )
 
     def case_encrypted_adm(self):
@@ -234,6 +244,7 @@ class EventParsing:
             None,
             None,
             False,
+            True,
         )
 
     def case_oh(self):
@@ -244,6 +255,7 @@ class EventParsing:
             "Automatic Test",
             "RP",
             None,
+            False,
             False,
         )
 
@@ -256,6 +268,7 @@ class EventParsing:
             "CL",
             None,
             False,
+            False,
         )
 
     def case_op(self):
@@ -266,6 +279,7 @@ class EventParsing:
             "Opening Report",
             "OP",
             None,
+            False,
             False,
         )
 
@@ -278,6 +292,7 @@ class EventParsing:
             None,
             None,
             False,
+            True,
         )
 
     def case_wa(self):
@@ -289,6 +304,7 @@ class EventParsing:
             "WA",
             None,
             False,
+            False,
         )
 
     def case_eventformaterror(self):
@@ -299,6 +315,7 @@ class EventParsing:
             None,
             None,
             EventFormatError,
+            False,
             False,
         )
 

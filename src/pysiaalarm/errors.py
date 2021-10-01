@@ -35,3 +35,8 @@ class EventCRCError(Exception):
     """Error for when a event hass a mismatched CRC."""
 
     pass
+
+class NoAccountError(Exception):
+    """Error for when a account is not present."""
+
+    pass
