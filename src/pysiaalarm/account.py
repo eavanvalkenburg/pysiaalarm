@@ -22,6 +22,7 @@ class SIAAccount:
     account_id: str
     key: Optional[str] = None
     allowed_timeband: Tuple[int, int] = (40, 20)
+    device_time_offset: int = 0
     key_b: Optional[bytes] = field(
         repr=False, default=None, metadata=config(exclude=Exclude.ALWAYS)  # type: ignore
     )

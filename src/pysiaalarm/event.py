@@ -178,10 +178,12 @@ class BaseEvent(ABC):
             sia_account=sia_account,
         )
 
-    @staticmethod
-    def _get_timestamp() -> str:
+    def _get_timestamp(self) -> str:
         """Create a timestamp in the right format."""
-        return datetime.utcnow().strftime("_%H:%M:%S,%m-%d-%Y")
+        timestamp = datetime.utcnow()
+        if self.sia_account is not None:
+            timestamp += timedelta(seconds=self.sia_account.device_time_offset)
+        return timestamp.strftime("_%H:%M:%S,%m-%d-%Y")
 
     @staticmethod
     def _crc_calc(msg: Optional[str]) -> Optional[str]:
@@ -395,6 +397,10 @@ class SIAEvent(BaseEvent):
             try:
                 ts = datetime.strptime(content["timestamp"], "%H:%M:%S,%m-%d-%Y")
                 self.timestamp = ts.replace(tzinfo=timezone.utc)
+                if self.sia_account is not None:
+                    self.timestamp -= timedelta(
+                        seconds=self.sia_account.device_time_offset
+                    )
             except ValueError:
                 _LOGGER.warning(
                     "Timestamp could not be parsed as a timestamp: %s",
