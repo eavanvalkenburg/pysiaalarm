@@ -38,6 +38,7 @@ class BaseEvent(ABC):
     # From Main Matcher
     full_message: Optional[str] = None
     msg_crc: Optional[str] = None
+    is_binary_crc: bool = False
     length: Optional[str] = None
     encrypted: Optional[bool] = None
     message_type: Optional[Union[MessageTypes, str]] = None
@@ -122,19 +123,42 @@ class BaseEvent(ABC):
         return None  # pragma: no cover
 
     @classmethod
-    def from_line(
-        cls, incoming: str, accounts: Optional[Dict[str, SIAAccount]] = None
+    def from_message(
+        cls,
+        incoming: bytes,
+        accounts: Optional[Dict[str, SIAAccount]] = None,
+        binary_crc: bool = False,
     ) -> SIAEvent:
-        """Create a Event from a line.
+        """Create a Event from an incoming message.
 
         Arguments:
-            incoming {str} -- The line to be parsed.
+            incoming {bytes} -- The line to be parsed.
             accounts {List[SIAAccount]} -- accounts to check against, optional
 
         Raises:
             EventFormatError: If the event is not formatted according to SIA DC09 or ADM-CID.
 
         """
+        # sanity check
+        looks_like_binary_crc = len(incoming.split(b'"')[0]) == 7
+        if binary_crc != looks_like_binary_crc:
+            _LOGGER.error(
+                "CRC problem: binary_crc=%s, looks_like_binary_crc=%s, msg=%r",
+                binary_crc,
+                looks_like_binary_crc,
+                incoming,
+            )
+            binary_crc = looks_like_binary_crc
+
+        # convert binary crc to hex
+        if binary_crc:
+            incoming = (
+                incoming[:1] + (b"%02X%02X" % (incoming[1], incoming[2])) + incoming[3:]
+            )
+
+        # strip leading newline and trailing carriage return
+        incoming = str.strip(incoming.decode("ascii", errors="ignore"))
+
         line_match = MAIN_MATCHER.match(incoming)
         if not line_match:
             oh_event = OH_MATCHER.match(incoming)
@@ -176,6 +200,7 @@ class BaseEvent(ABC):
             content=main_content["rest"] if not encrypted else None,
             encrypted_content=main_content["rest"] if encrypted else None,
             sia_account=sia_account,
+            is_binary_crc=binary_crc,
         )
 
     def _get_timestamp(self) -> str:
@@ -199,7 +224,27 @@ class BaseEvent(ABC):
                 if (temp & 1) != 0:
                     crc ^= 0xA001
                 temp >>= 1
-        return ("%x" % crc).upper().zfill(4)
+        return "%04X" % crc
+
+    @staticmethod
+    def _frame_response(
+        msg: Optional[str], binary_crc: bool = False
+    ) -> Optional[bytes]:
+        """Add length and CRC to a message, and convert to binary."""
+        crc = BaseEvent._crc_calc(msg)
+        if crc is None:
+            return None
+
+        if binary_crc:
+            crc = int(crc, 16)
+            crc = bytes([crc >> 16, crc & 0xFF])
+        else:
+            crc = bytes(crc, "ascii")
+
+        header = "%04X" % len(msg)
+        tmp = b"\n" + crc + f"{header}{msg}\r".encode("ascii")
+        _LOGGER.warn("Raw response: %s", repr(tmp))
+        return tmp
 
 
 @dataclass_json
@@ -315,17 +360,19 @@ class SIAEvent(BaseEvent):
             and self.sia_account.key is not None
         ):
             x_data = f"[K{self.sia_account.key}]"
+        receiver = self.receiver if self.receiver is not None else "R0"
+        line = self.line if self.line is not None else "L0"
+        assert receiver.startswith("R") and line.startswith("L")
         if response_type == ResponseType.NAK:
             res = f'"{response_type.value}"0000R0L0A0[]{self._get_timestamp()}'
         elif not self.encrypted or response_type == ResponseType.DUH:
-            res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'
+            res = f'"{response_type.value}"{self.sequence}{receiver}{line}#{self.account}[]{x_data if x_data else ""}'
         else:
             encrypted_content = self.encrypt_content(
                 f']{x_data if x_data else ""}{self._get_timestamp()}'
             )
-            res = f'"*{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[{encrypted_content}'
-        header = ("%04x" % len(res)).upper()
-        return f"\n{self._crc_calc(res)}{header}{res}\r".encode("ascii")
+            res = f'"*{response_type.value}"{self.sequence}{receiver}{line}#{self.account}[{encrypted_content}'
+        return self._frame_response(res, self.is_binary_crc)
 
     def decrypt_content(self) -> None:
         """Decrypt the content, if the account is encrypted, otherwise pass back the event."""
@@ -502,5 +549,4 @@ class NAKEvent(BaseEvent):
 
         """
         res = f'"NAK"0000L0R0A0[]{self._get_timestamp()}'
-        header = ("%04x" % len(res)).upper()
-        return f"\n{self._crc_calc(res)}{header}{res}\r".encode("ascii")
+        return self._frame_response(res, self.is_binary_crc)

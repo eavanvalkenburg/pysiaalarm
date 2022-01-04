@@ -25,6 +25,7 @@ class SIATCPServer(ThreadingTCPServer, BaseSIAServer):
         accounts: Dict[str, SIAAccount],
         func: Callable[[SIAEvent], None],
         counts: Counter,
+        binary_crc: bool = False,
     ):
         """Create a SIA TCP Server.
 
@@ -33,10 +34,11 @@ class SIATCPServer(ThreadingTCPServer, BaseSIAServer):
             accounts Dict[str, SIAAccount] -- accounts as dict with account_id as key, SIAAccount object as value.
             func Callable[[SIAEvent], None] -- Function called for each valid SIA event, that can be matched to a account.
             counts Counter -- counter kept by client to give insights in how many errorous events were discarded of each type.
+            binary_crc bool -- set to True if your system sends CRC in binary instead of hex
 
         """
         ThreadingTCPServer.__init__(self, server_address, SIATCPHandler)
-        BaseSIAServer.__init__(self, accounts, func, counts)
+        BaseSIAServer.__init__(self, accounts, func, counts, binary_crc)
 
 
 class SIAUDPServer(ThreadingUDPServer, BaseSIAServer):
@@ -51,6 +53,7 @@ class SIAUDPServer(ThreadingUDPServer, BaseSIAServer):
         accounts: Dict[str, SIAAccount],
         func: Callable[[SIAEvent], None],
         counts: Counter,
+        binary_crc: bool = False,
     ):
         """Create a SIA UDP Server.
 
@@ -59,6 +62,7 @@ class SIAUDPServer(ThreadingUDPServer, BaseSIAServer):
             accounts Dict[str, SIAAccount] -- accounts as dict with account_id as key, SIAAccount object as value.
             func Callable[[SIAEvent], None] -- Function called for each valid SIA event, that can be matched to a account.
             counts Counter -- counter kept by client to give insights in how many errorous events were discarded of each type.
+            binary_crc bool -- set to True if your system sends CRC in binary instead of hex
 
         """
         ThreadingUDPServer.__init__(self, server_address, SIAUDPHandler)

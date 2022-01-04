@@ -21,6 +21,7 @@ class SIAServer(BaseSIAServer, asyncio.DatagramProtocol):
         accounts: Dict[str, SIAAccount],
         func: Callable[[SIAEvent], None],
         counts: Counter,
+        binary_crc: bool = False,
     ):
         """Create a SIA Server.
 
@@ -29,9 +30,10 @@ class SIAServer(BaseSIAServer, asyncio.DatagramProtocol):
             accounts {Dict[str, SIAAccount]} -- accounts as dict with account_id as key, SIAAccount object as value.
             func {Callable[[SIAEvent], None]} -- Function called for each valid SIA event, that can be matched to a account.
             counts {Counter} -- counter kept by client to give insights in how many errorous events were discarded of each type.
+            binary_crc bool -- set to True if your system sends CRC in binary instead of hex
 
         """
-        BaseSIAServer.__init__(self, accounts, func, counts)
+        BaseSIAServer.__init__(self, accounts, func, counts, binary_crc)
 
     async def _respond(
         self,
@@ -66,10 +68,9 @@ class SIAServer(BaseSIAServer, asyncio.DatagramProtocol):
         addr: Optional[Tuple[str, int]] = None,
     ) -> None:
         """Handle data universally for both TCP and UDP."""
-        line = str.strip(data.decode("ascii", errors="ignore"))
-        if not line:  # pragma: no cover
+        if not data.strip():  # pragma: no cover
             return
-        event = self.parse_and_check_event(line)  # type: ignore
+        event = self.parse_and_check_event(data)  # type: ignore
         await self._respond(event, writer=writer, addr=addr)
         if event and isinstance(event, SIAEvent) and event.response == ResponseType.ACK:
             await self.async_func_wrap(event)  # type: ignore

@@ -26,6 +26,7 @@ class SIAClient(BaseSIAClient):
         accounts: List[SIAAccount],
         function: Callable[[SIAEvent], None],
         protocol: CommunicationsProtocol = CommunicationsProtocol.TCP,
+        binary_crc: bool = False,
     ):
         """Create the asynchronous SIA Client object.
 
@@ -45,7 +46,9 @@ class SIAClient(BaseSIAClient):
         self.dgprotocol: Any = None
         self.sia_server: Any = None
         if self.protocol == CommunicationsProtocol.TCP:
-            self.sia_server = SIAServer(self._accounts, self._func, self._counts)
+            self.sia_server = SIAServer(
+                self._accounts, self._func, self._counts, binary_crc
+            )
 
     async def __aenter__(self, **kwargs: Dict[str, Any]) -> SIAClient:
         """Start with as context manager."""

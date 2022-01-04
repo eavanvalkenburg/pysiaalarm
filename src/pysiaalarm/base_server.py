@@ -29,6 +29,7 @@ class BaseSIAServer(ABC):
         accounts: Dict[str, SIAAccount],
         func: Union[Callable[[SIAEvent], Awaitable[None]], Callable[[SIAEvent], None]],
         counts: Counter,
+        binary_crc: bool = False,
     ):
         """Create a SIA Server.
 
@@ -36,32 +37,34 @@ class BaseSIAServer(ABC):
             accounts Dict[str, SIAAccount] -- accounts as dict with account_id as key, SIAAccount object as value.
             func Callable[[SIAEvent], None] -- Function called for each valid SIA event, that can be matched to a account.
             counts Counter -- counter kept by client to give insights in how many errorous events were discarded of each type.
+            binary_crc bool -- set to True if your system sends CRC in binary instead of hex
         """
         self.accounts = accounts
         self.func = func
         self.counts = counts
         self.shutdown_flag = False
+        self.binary_crc = binary_crc
 
-    def parse_and_check_event(self, line: str) -> Union[SIAEvent, OHEvent, NAKEvent]:
-        """Parse and check the line and create the event, check the account and define the response.
+    def parse_and_check_event(self, data: bytes) -> Union[SIAEvent, OHEvent, NAKEvent]:
+        """Parse and check the data and create the event, check the account and define the response.
 
         Args:
-            line (str): Line to parse
+            data (bytes): Data to parse
 
         Returns:
             SIAEvent: The SIAEvent type of the parsed line.
             ResponseType: The response to send to the alarm.
 
         """
-        self.log_and_count(COUNTER_EVENTS, line=line)
+        self.log_and_count(COUNTER_EVENTS, data=data)
         try:
-            event = SIAEvent.from_line(line, self.accounts)
+            event = SIAEvent.from_message(data, self.accounts, self.binary_crc)
         except NoAccountError as exc:
-            self.log_and_count(COUNTER_ACCOUNT, line, exception=exc)
-            return NAKEvent()
+            self.log_and_count(COUNTER_ACCOUNT, data, exception=exc)
+            return NAKEvent(is_binary_crc=self.binary_crc)
         except EventFormatError as exc:
-            self.log_and_count(COUNTER_FORMAT, line, exception=exc)
-            return NAKEvent()
+            self.log_and_count(COUNTER_FORMAT, data, exception=exc)
+            return NAKEvent(is_binary_crc=self.binary_crc)
 
         if isinstance(event, OHEvent):
             return event  # pragma: no cover
@@ -94,15 +97,15 @@ class BaseSIAServer(ABC):
     def log_and_count(
         self,
         counter: str,
-        line: str = None,
+        data: bytes = None,
         event: SIAEvent = None,
         exception: Exception = None,
     ) -> None:
         """Log the appropriate line and increment the right counter."""
         if counter == COUNTER_ACCOUNT and exception is not None:
             _LOGGER.warning(
-                "There is no account for a encrypted line, line was: %s",
-                line,
+                "There is no account for a encrypted line, line was: %r",
+                data,
             )
         if counter == COUNTER_ACCOUNT and event:
             _LOGGER.warning(
@@ -112,9 +115,9 @@ class BaseSIAServer(ABC):
             )
         if counter == COUNTER_FORMAT and exception:
             _LOGGER.warning(
-                "Last line could not be parsed succesfully. Error message: %s. Line: %s",
+                "Last line could not be parsed succesfully. Error message: %s. Line: %r",
                 exception.args[0],
-                line,
+                data,
             )
         if counter == COUNTER_USER_CODE and event and exception:
             _LOGGER.warning(
@@ -133,6 +136,6 @@ class BaseSIAServer(ABC):
             )
         if counter == COUNTER_TIMESTAMP and event:
             _LOGGER.warning("Event timestamp is no longer valid: %s", event.timestamp)
-        if counter == COUNTER_EVENTS and line:
-            _LOGGER.debug("Incoming line: %s", line)
+        if counter == COUNTER_EVENTS and data:
+            _LOGGER.debug("Incoming line: %r", data)
         self.counts.increment(counter)
