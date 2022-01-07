@@ -29,6 +29,7 @@ class SIAAccount:
     def __post_init__(self) -> None:
         """Rewrite the key as bytes."""
         self.key_b = self.key.encode("utf-8") if self.key else None
+        self.account_id = self.account_id.upper()
 
     @property
     def encrypted(self) -> bool:
