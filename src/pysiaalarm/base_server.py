@@ -45,7 +45,7 @@ class BaseSIAServer(ABC):
         self.counts = counts
         self.shutdown_flag = False
 
-    def parse_and_check_event(self, line: bytes) -> EventsType | None:
+    def parse_and_check_event(self, data: bytes) -> EventsType | None:
         """Parse and check the line and create the event, check the account and define the response.
 
         Args:
@@ -56,7 +56,8 @@ class BaseSIAServer(ABC):
             ResponseType: The response to send to the alarm.
 
         """
-        if not line.strip():
+        line = str.strip(data.decode("ascii", errors="ignore"))
+        if not line:
             return None
         self.log_and_count(COUNTER_EVENTS, line=line)
         try:

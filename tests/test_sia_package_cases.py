@@ -153,7 +153,7 @@ class EventParsing:
     def case_adm_cid(self):
         """Test case ADM-CID format."""
         return (
-            rb'87CD0037"ADM-CID"9876R579BDFL789ABC#12345A[#12345A|1110 00 129]_14:12:04,09-25-2011',
+            r'87CD0037"ADM-CID"9876R579BDFL789ABC#12345A[#12345A|1110 00 129]_14:12:04,09-25-2011',
             "12345A",
             "Fire Alarm",
             "FA",

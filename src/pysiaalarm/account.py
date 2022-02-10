@@ -4,8 +4,6 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field, asdict
 from typing import Any
-from datetime import tzinfo
-import pytz
 
 from .errors import (
     InvalidAccountFormatError,
@@ -24,7 +22,6 @@ class SIAAccount:
     account_id: str
     key: str | None = None
     allowed_timeband: tuple[int, int] = (40, 20)
-    device_timezone: tzinfo = pytz.utc
     key_b: bytes | None = field(
         repr=False,
         default=None,  # metadata=config(exclude=Exclude.ALWAYS)  # type: ignore
@@ -41,9 +38,7 @@ class SIAAccount:
         return bool(self.key_b)
 
     @classmethod
-    def validate_account(
-        cls, account_id: str | None = None, key: str | None = None
-    ) -> None:
+    def validate_account(cls, account_id: str = None, key: str = None) -> None:
         """Validate a accounts information, either with one of the fields or both.
 
         Keyword Arguments:
