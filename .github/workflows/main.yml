@@ -4,6 +4,8 @@ name: Test
 # events but only for the master branch
 on:
   push:
+    branches:
+      - *
     tags-ignore:
       - v*
   pull_request:
