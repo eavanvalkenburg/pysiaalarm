@@ -1,8 +1,11 @@
 """Helper script with all Regexes."""
+from __future__ import annotations
+
 import re
-from typing import Union
 
 from .enums import MessageTypes
+
+# pylint: disable=invalid-name
 
 # sample OH: SR0001L0001    006969XX    [ID00000000]
 oh_regex = r"""
@@ -68,7 +71,7 @@ ENCR_ADM_CONTENT_MATCHER = re.compile(encr_adm_content_regex + adm_content_regex
 
 
 def _get_matcher(
-    message_type: Union[MessageTypes, str], encrypted: bool = False
+    message_type: MessageTypes | str, encrypted: bool = False
 ) -> re.Pattern:
     """Extract the content using the different regexes."""
     if message_type == MessageTypes.ADMCID:

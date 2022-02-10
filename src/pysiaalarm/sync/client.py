@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 import logging
 from threading import Thread
 from types import TracebackType
-from typing import Any, Callable, List, Optional, Type
+from typing import Any, Type
 
 from ..account import SIAAccount
 from ..base_client import BaseSIAClient
@@ -24,7 +25,7 @@ class SIAClient(Thread, BaseSIAClient):
         self,
         host: str,
         port: int,
-        accounts: List[SIAAccount],
+        accounts: list[SIAAccount],
         function: Callable[[SIAEvent], None],
         protocol: CommunicationsProtocol = CommunicationsProtocol.TCP,
     ):
@@ -40,22 +41,22 @@ class SIAClient(Thread, BaseSIAClient):
         """
         if asyncio.iscoroutinefunction(function):
             raise TypeError(
-                "Asyncio coroutines as the function are not supported, please use the aio version of the SIAClient for that."
+                "Asyncio coroutines as the function are not supported, please use the aio version of the SIAClient for that."  # pylint: disable=line-too-long
             )
         Thread.__init__(self)
-        BaseSIAClient.__init__(self, host, port, accounts, function, protocol)
-        self.set_tcp_server() if self.protocol == CommunicationsProtocol.TCP else self.set_udp_server()
+        BaseSIAClient.__init__(self, host, port, accounts, protocol)
+        self._func: Callable[[SIAEvent], None] = function
+        self.sia_server: SIATCPServer | SIAUDPServer = self.get_server()
+        self.server_thread: Thread | None = None
 
-    def set_tcp_server(self) -> None:
+    def get_server(self) -> SIATCPServer | SIAUDPServer:
         """Set the sia server to a TCP server."""
-        self.sia_server = SIATCPServer(  # type: ignore
-            (self._host, self._port), self._accounts, self._func, self._counts  # type: ignore
-        )
-
-    def set_udp_server(self) -> None:
-        """Set the sia server to a UDP server."""
-        self.sia_server = SIAUDPServer(  # type: ignore
-            (self._host, self._port), self._accounts, self._func, self._counts  # type: ignore
+        if self.protocol == CommunicationsProtocol.TCP:
+            return SIATCPServer(  # type: ignore
+                (self._host, self._port), self._accounts, self._func, self._counts
+            )
+        return SIAUDPServer(  # type: ignore
+            (self._host, self._port), self._accounts, self._func, self._counts
         )
 
     def __enter__(self) -> SIAClient:
@@ -65,10 +66,10 @@ class SIAClient(Thread, BaseSIAClient):
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
-    ) -> Optional[bool]:
+        exc_type: Type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> bool | None:
         """End as context manager."""
         self.stop()
         return True
