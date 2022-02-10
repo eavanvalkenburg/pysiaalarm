@@ -56,7 +56,7 @@ class BaseEvent(ABC):
     code: str | None = None
     message: str | None = None
     x_data: str | None = None
-    timestamp: datetime | None = None
+    timestamp: datetime | str | None = None
 
     # From ADM-CID
     event_qualifier: str | None = None
@@ -268,13 +268,13 @@ class BaseEvent(ABC):
 
     def to_dict(self, **kwargs: Any) -> dict[str, Any]:
         """Create a dict from the dataclass.
-        
-        Kwargs are only there for legacy (after no longer using dataclasses_json), 
+
+        Kwargs are only there for legacy (after no longer using dataclasses_json),
         so remove any other arguments from this function.
         """
         event = deepcopy(self)
         event.sia_account = None
-        if event.timestamp is not None:
+        if event.timestamp is not None and isinstance(event.timestamp, datetime):
             event.timestamp = event.timestamp.isoformat()
         return asdict(event)
 
@@ -386,7 +386,7 @@ class SIAEvent(BaseEvent):
         if self.sia_account.allowed_timeband is None:  # pragma: no cover
             return True
         if self.timestamp and isinstance(self.timestamp, datetime):
-            current_time = datetime.now(self.sia_account.device_timezone)
+            current_time = datetime.now(timezone.utc)
             current_min = current_time - timedelta(
                 seconds=self.sia_account.allowed_timeband[0]
             )
