@@ -1,10 +1,11 @@
 """This is the class for the actual TCP handler override of the handle method."""
+from __future__ import annotations
 
 import logging
+from abc import abstractmethod
 from socketserver import BaseRequestHandler
 
 from ..event import SIAEvent
-from ..utils import ResponseType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,20 +20,19 @@ class BaseSIAHandler(BaseRequestHandler):
         while len(raw) > 0:
             splitter = raw.find(b"\r")
             if splitter == -1:
-                line = raw
+                data = raw
                 raw = b""
             else:  # pragma: no cover
-                line = raw[1:splitter]
+                data = raw[1:splitter]
                 raw = raw[splitter + 1 :]
-            decoded_line = line.decode("ascii", errors="ignore")
-            event = self.server.parse_and_check_event(decoded_line)  # type: ignore
+            # decoded_line = line.decode("ascii", errors="ignore")
+            event = self.server.parse_and_check_event(data)  # type: ignore
             self.respond(event)
-            if event and event.response == ResponseType.ACK:
-                self.server.func_wrap(event)  # type: ignore
+            self.server.func_wrap(event)  # type: ignore
 
+    @abstractmethod
     def respond(self, event: SIAEvent) -> None:
         """Abstract method for responding."""
-        pass  # pragma: no cover
 
 
 class SIATCPHandler(BaseSIAHandler):
@@ -51,7 +51,7 @@ class SIATCPHandler(BaseSIAHandler):
         """Respond to the event."""
         try:
             self.request.sendall(event.create_response())
-        except Exception as exp:  # pragma: no cover
+        except Exception as exp:  # pragma: no cover # pylint: disable=broad-except
             _LOGGER.error(
                 "Exception caught while responding to event: %s, exception: %s",
                 event.create_response(),
@@ -78,7 +78,7 @@ class SIAUDPHandler(BaseSIAHandler):
                 event.create_response(),
                 self.client_address,
             )
-        except Exception as exp:  # pragma: no cover
+        except Exception as exp:  # pragma: no cover # pylint: disable=broad-except
             _LOGGER.error(
                 "Exception caught while responding to event: %s, exception: %s",
                 event.create_response(),

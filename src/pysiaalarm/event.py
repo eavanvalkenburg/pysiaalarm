@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import logging
-from abc import ABC, abstractmethod, abstractproperty
-from dataclasses import dataclass, field
-from dataclasses_json import dataclass_json, config, Exclude
+from abc import ABC, abstractmethod
+from copy import deepcopy
+from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Optional, Union, List
+from typing import Union, Any
 
 from Crypto.Cipher import AES
 from Crypto.Cipher._mode_cbc import CbcMode
@@ -30,54 +30,51 @@ from .utils import (
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass_json()
 @dataclass  # type: ignore
 class BaseEvent(ABC):
     """Base class for Events."""
 
     # From Main Matcher
-    full_message: Optional[str] = None
-    msg_crc: Optional[str] = None
-    length: Optional[str] = None
-    encrypted: Optional[bool] = None
-    message_type: Optional[Union[MessageTypes, str]] = None
-    receiver: Optional[str] = None
-    line: Optional[str] = None
-    account: Optional[str] = None
-    sequence: Optional[str] = None
+    full_message: str | None = None
+    msg_crc: str | None = None
+    length: str | None = None
+    encrypted: bool | None = None
+    message_type: str | MessageTypes | None = None
+    receiver: str | None = None
+    line: str | None = None
+    account: str | None = None
+    sequence: str | None = None
 
     # Content to be parsed
-    content: Optional[str] = None
-    encrypted_content: Optional[str] = None
+    content: str | None = None
+    encrypted_content: str | None = None
 
     # From (Encrypted) Content
-    ti: Optional[str] = None
-    id: Optional[str] = None
-    ri: Optional[str] = None
-    code: Optional[str] = None
-    message: Optional[str] = None
-    x_data: Optional[str] = None
-    timestamp: Optional[datetime] = None
+    ti: str | None = None  # pylint: disable=invalid-name
+    id: str | None = None  # pylint: disable=invalid-name
+    ri: str | None = None  # pylint: disable=invalid-name
+    code: str | None = None
+    message: str | None = None
+    x_data: str | None = None
+    timestamp: datetime | None = None
 
     # From ADM-CID
-    event_qualifier: Optional[str] = None
-    event_type: Optional[str] = None
-    partition: Optional[str] = None
+    event_qualifier: str | None = None
+    event_type: str | None = None
+    partition: str | None = None
 
     # Parsed fields
-    calc_crc: Optional[str] = None
-    extended_data: Optional[List[SIAXData]] = None
-    sia_account: Optional[SIAAccount] = field(
-        metadata=config(exclude=Exclude.ALWAYS), default=None  # type: ignore
-    )
-    sia_code: Optional[SIACode] = None
+    calc_crc: str | None = None
+    extended_data: list[SIAXData] | None = None
+    sia_account: SIAAccount | None = field(repr=False, default=None)
+    sia_code: SIACode | None = field(default=None, repr=False)
 
     # Parse flags
-    _content_parsed: bool = False
-    _encrypted_content_decrypted: bool = False
-    _adm_parsed: bool = False
-    _sia_added: bool = False
-    _xdata_parsed: bool = False
+    _content_parsed: bool = field(init=False, default=False, repr=False)
+    _encrypted_content_decrypted: bool = field(init=False, default=False, repr=False)
+    _adm_parsed: bool = field(init=False, default=False, repr=False)
+    _sia_added: bool = field(init=False, default=False, repr=False)
+    _xdata_parsed: bool = field(init=False, default=False, repr=False)
 
     @property
     def valid_message(self) -> bool:
@@ -87,12 +84,12 @@ class BaseEvent(ABC):
     @property
     def code_not_found(self) -> bool:
         """Return True if there is no Code."""
-        return True if self.sia_code is None else False
+        return bool(self.sia_code is None)
 
-    @abstractproperty
-    def response(self) -> Optional[ResponseType]:
+    @property
+    @abstractmethod
+    def response(self) -> ResponseType | None:
         """Abstract method."""
-        pass  # pragma: no cover
 
     @property
     def valid_timestamp(self) -> bool:
@@ -102,7 +99,6 @@ class BaseEvent(ABC):
     @abstractmethod
     def create_response(self) -> bytes:
         """Abstract method."""
-        pass  # pragma: no cover
 
     def set_sia_code(self) -> None:
         """Return the SIA Code object, based on the code field."""
@@ -110,7 +106,7 @@ class BaseEvent(ABC):
             self.sia_code = _load_sia_codes().get(self.code)  # pylint: disable=E1101
             self._sia_added = True
 
-    def _get_crypter(self) -> Optional[CbcMode]:
+    def _get_crypter(self) -> CbcMode | None:
         """Give back a encrypter/decrypter."""
         if not self.sia_account:
             return None  # pragma: no cover
@@ -123,7 +119,7 @@ class BaseEvent(ABC):
 
     @classmethod
     def from_line(
-        cls, incoming: str, accounts: Optional[Dict[str, SIAAccount]] = None
+        cls, incoming: str, accounts: dict[str, SIAAccount] | None = None
     ) -> SIAEvent:
         """Create a Event from a line.
 
@@ -152,12 +148,11 @@ class BaseEvent(ABC):
                     id=fields["id"],
                 )
             raise EventFormatError(
-                "No matches found, event was not a SIA or ADM Spec event, line was: %s",
-                incoming,
+                f"No matches found, event was not a SIA or ADM Spec event, line was: {incoming}"
             )
         main_content = line_match.groupdict()
 
-        encrypted = True if main_content["encrypted_flag"] else False
+        encrypted = bool(main_content["encrypted_flag"])
         acc = main_content["account"]
         sia_account = None
         if accounts and acc:
@@ -184,7 +179,7 @@ class BaseEvent(ABC):
         return datetime.utcnow().strftime("_%H:%M:%S,%m-%d-%Y")
 
     @staticmethod
-    def _crc_calc(msg: Optional[str]) -> Optional[str]:
+    def _crc_calc(msg: str | None) -> str | None:
         """Calculate the CRC of the msg."""
         if msg is None:  # pragma: no cover
             return None
@@ -199,8 +194,36 @@ class BaseEvent(ABC):
                 temp >>= 1
         return ("%x" % crc).upper().zfill(4)
 
+    def to_dict(self, **kwargs: Any) -> dict[str, Any]:
+        """Create a dict from the dataclass.
+        
+        Kwargs are only there for legacy (after no longer using dataclasses_json), 
+        so remove any other arguments from this function.
+        """
+        event = deepcopy(self)
+        event.sia_account = None
+        if event.timestamp is not None:
+            event.timestamp = event.timestamp.isoformat()
+        return asdict(event)
 
-@dataclass_json
+    @classmethod
+    def from_dict(cls, event: dict[str, Any]) -> BaseEvent:
+        """Create a SIA Event from a dict."""
+        if "_content_parsed" in event:
+            event.pop("_content_parsed")
+        if "_encrypted_content_decrypted" in event:
+            event.pop("_encrypted_content_decrypted")
+        if "_adm_parsed" in event:
+            event.pop("_adm_parsed")
+        if "_sia_added" in event:
+            event.pop("_sia_added")
+        if "_xdata_parsed" in event:
+            event.pop("_xdata_parsed")
+        if "timestamp" in event and event["timestamp"] is not None:
+            event["timestamp"] = datetime.fromisoformat(event["timestamp"])
+        return cls(**event)
+
+
 @dataclass
 class SIAEvent(BaseEvent):
     """Class for SIAEvents."""
@@ -239,7 +262,7 @@ class SIAEvent(BaseEvent):
             self.parse_extended_data()  # pragma: no cover
 
     @property
-    def response(self) -> Optional[ResponseType]:
+    def response(self) -> ResponseType | None:
         """Get the responsetype."""
         if not self.valid_message:
             return None
@@ -264,7 +287,10 @@ class SIAEvent(BaseEvent):
 
     @property
     def valid_length(self) -> bool:
-        """Check if the length of the message is the same in the message and supplied. Will not throw an error if not correct."""
+        """Check if the length of the message is the same in the message and supplied.
+
+        Will not throw an error if not correct.
+        """
         if self.length is None or self.full_message is None:  # pragma: no cover
             return True
         return int(self.length) == int(
@@ -316,12 +342,12 @@ class SIAEvent(BaseEvent):
         if response_type == ResponseType.NAK:
             res = f'"{response_type.value}"0000R0L0A0[]{self._get_timestamp()}'
         elif not self.encrypted or response_type == ResponseType.DUH:
-            res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'
+            res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'  # pylint: disable=line-too-long
         else:
             encrypted_content = self.encrypt_content(
                 f']{x_data if x_data else ""}{self._get_timestamp()}'
             )
-            res = f'"*{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[{encrypted_content}'
+            res = f'"*{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[{encrypted_content}'  # pylint: disable=line-too-long
         header = ("%04x" % len(res)).upper()
         return f"\n{self._crc_calc(res)}{header}{res}\r".encode("ascii")
 
@@ -337,7 +363,7 @@ class SIAEvent(BaseEvent):
         )
         self._encrypted_content_decrypted = True
 
-    def encrypt_content(self, message: str) -> Optional[str]:
+    def encrypt_content(self, message: str) -> str | None:
         """Encrypt a string.
 
         Arguments:
@@ -369,9 +395,7 @@ class SIAEvent(BaseEvent):
         matches = matcher.match(self.content)
         if not matches:
             raise EventFormatError(
-                "Parse content: no matches found in %s, using matcher: %s",
-                self.content,
-                matcher,
+                f"Parse content: no matches found in {self.content}, using matcher: {matcher}"
             )
         content = matches.groupdict()
         _LOGGER.debug("Content matches: %s", content)
@@ -393,8 +417,8 @@ class SIAEvent(BaseEvent):
         self.x_data = content["xdata"]
         if content["timestamp"]:
             try:
-                ts = datetime.strptime(content["timestamp"], "%H:%M:%S,%m-%d-%Y")
-                self.timestamp = ts.replace(tzinfo=timezone.utc)
+                timestamp = datetime.strptime(content["timestamp"], "%H:%M:%S,%m-%d-%Y")
+                self.timestamp = timestamp.replace(tzinfo=timezone.utc)
             except ValueError:
                 _LOGGER.warning(
                     "Timestamp could not be parsed as a timestamp: %s",
@@ -411,15 +435,15 @@ class SIAEvent(BaseEvent):
             return
         x_data_list = self.x_data.split("][")
         self.extended_data = []
-        for xd in x_data_list:  # pragma: no cover
-            xdata = _load_xdata().get(xd[0], None)
+        for x_data in x_data_list:  # pragma: no cover
+            xdata = _load_xdata().get(x_data[0], None)
             if xdata:
-                xdata.value = xd[1:]
+                xdata.value = x_data[1:]
                 self.extended_data.append(xdata)
         self._xdata_parsed = True
 
-    def sia_account_from_message(self) -> Optional[SIAAccount]:  # pragma: no cover
-        """Return the SIA Account, if there is not account added, create one based on the account in the message."""
+    def sia_account_from_message(self) -> SIAAccount | None:  # pragma: no cover
+        """Return the SIA Account, if there is not account added, create one based on the account in the message."""  # pylint: disable=line-too-long
         if self.account is not None:
             return SIAAccount(self.account)
         return None
@@ -443,7 +467,6 @@ Encrypted Content: {self.encrypted_content}, \
 Full Message: {self.full_message}."
 
 
-@dataclass_json
 @dataclass
 class OHEvent(SIAEvent):
     """Class for OH events."""
@@ -473,7 +496,6 @@ class OHEvent(SIAEvent):
         return '"ACK"'.encode("ascii")  # pragma: no cover
 
 
-@dataclass_json
 @dataclass
 class NAKEvent(BaseEvent):
     """Class for NAK Events."""
@@ -498,3 +520,6 @@ class NAKEvent(BaseEvent):
         res = f'"NAK"0000L0R0A0[]{self._get_timestamp()}'
         header = ("%04x" % len(res)).upper()
         return f"\n{self._crc_calc(res)}{header}{res}\r".encode("ascii")
+
+
+EventsType = Union[SIAEvent, OHEvent, NAKEvent]

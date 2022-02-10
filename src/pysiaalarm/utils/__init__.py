@@ -1,4 +1,5 @@
 """Init of pysiaalarm utils."""
+from __future__ import annotations
 
 from ..data.data import (
     SIACode,
