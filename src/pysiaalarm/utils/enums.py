@@ -10,10 +10,7 @@ class AutoName(Enum):
 
     @staticmethod
     def _generate_next_value_(
-        name: str,
-        start: Any,
-        count: Any,
-        last_values: Any,  # pylint: disable=unused-argument
+        name: str, start: Any, count: Any, last_values: Any  # pylint: disable=unused-argument
     ) -> str:
         """Return name as value for Enum."""
         return name

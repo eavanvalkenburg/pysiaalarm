@@ -5,7 +5,7 @@ import logging
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta, timezone, tzinfo
+from datetime import datetime, timedelta, timezone
 from typing import Union, Any
 
 from Crypto.Cipher import AES
@@ -56,7 +56,7 @@ class BaseEvent(ABC):
     code: str | None = None
     message: str | None = None
     x_data: str | None = None
-    timestamp: datetime | str | None = None
+    timestamp: datetime | None = None
 
     # From ADM-CID
     event_qualifier: str | None = None
@@ -229,6 +229,35 @@ class BaseEvent(ABC):
             event["timestamp"] = datetime.fromisoformat(event["timestamp"])
         return cls(**event)
 
+    def to_dict(self, **kwargs: Any) -> dict[str, Any]:
+        """Create a dict from the dataclass.
+        
+        Kwargs are only there for legacy (after no longer using dataclasses_json), 
+        so remove any other arguments from this function.
+        """
+        event = deepcopy(self)
+        event.sia_account = None
+        if event.timestamp is not None:
+            event.timestamp = event.timestamp.isoformat()
+        return asdict(event)
+
+    @classmethod
+    def from_dict(cls, event: dict[str, Any]) -> BaseEvent:
+        """Create a SIA Event from a dict."""
+        if "_content_parsed" in event:
+            event.pop("_content_parsed")
+        if "_encrypted_content_decrypted" in event:
+            event.pop("_encrypted_content_decrypted")
+        if "_adm_parsed" in event:
+            event.pop("_adm_parsed")
+        if "_sia_added" in event:
+            event.pop("_sia_added")
+        if "_xdata_parsed" in event:
+            event.pop("_xdata_parsed")
+        if "timestamp" in event and event["timestamp"] is not None:
+            event["timestamp"] = datetime.fromisoformat(event["timestamp"])
+        return cls(**event)
+
 
 @dataclass
 class SIAEvent(BaseEvent):
@@ -348,12 +377,12 @@ class SIAEvent(BaseEvent):
         if response_type == ResponseType.NAK:
             res = f'"{response_type.value}"0000R0L0A0[]{self._get_timestamp(self.sia_account.device_timezone)}'
         elif not self.encrypted or response_type == ResponseType.DUH:
-            res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'
+            res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'  # pylint: disable=line-too-long
         else:
             encrypted_content = self.encrypt_content(
                 f']{x_data if x_data else ""}{self._get_timestamp(self.sia_account.device_timezone)}'
             )
-            res = f'"*{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[{encrypted_content}'
+            res = f'"*{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[{encrypted_content}'  # pylint: disable=line-too-long
         header = ("%04x" % len(res)).upper()
         new_crc = self._crc_calc(res)
         if self.binary_crc and new_crc is not None:
@@ -455,10 +484,7 @@ class SIAEvent(BaseEvent):
         self._xdata_parsed = True
 
     def sia_account_from_message(self) -> SIAAccount | None:  # pragma: no cover
-        """Return the SIA Account.
-
-        If there is not account added, create one based on the account in the message.
-        """
+        """Return the SIA Account, if there is not account added, create one based on the account in the message."""  # pylint: disable=line-too-long
         if self.account is not None:
             return SIAAccount(self.account)
         return None
@@ -534,11 +560,7 @@ class NAKEvent(BaseEvent):
         """
         res = f'"NAK"0000L0R0A0[]{self._get_timestamp()}'
         header = ("%04x" % len(res)).upper()
-        new_crc = self._crc_calc(res)
-        if self.binary_crc and new_crc is not None:
-            new_crc_int = int(new_crc, 16)
-            new_crc = str(bytes([new_crc_int >> 16, new_crc_int & 0xFF]))
-        return f"\n{new_crc}{header}{res}\r".encode("ascii")
+        return f"\n{self._crc_calc(res)}{header}{res}\r".encode("ascii")
 
 
 EventsType = Union[SIAEvent, OHEvent, NAKEvent]
