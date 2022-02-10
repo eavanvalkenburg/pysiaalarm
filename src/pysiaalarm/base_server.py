@@ -1,8 +1,9 @@
 """This is the base class with the handling logic for both sia_servers."""
-import asyncio
+from __future__ import annotations
+
 import logging
 from abc import ABC
-from typing import Awaitable, Callable, Dict, Union
+from collections.abc import Awaitable, Callable
 
 from .account import SIAAccount
 from .const import (
@@ -15,8 +16,8 @@ from .const import (
     COUNTER_USER_CODE,
 )
 from .errors import EventFormatError, NoAccountError
-from .event import NAKEvent, OHEvent, SIAEvent
-from .utils import Counter
+from .event import NAKEvent, OHEvent, SIAEvent, EventsType
+from .utils import Counter, ResponseType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,23 +27,25 @@ class BaseSIAServer(ABC):
 
     def __init__(
         self,
-        accounts: Dict[str, SIAAccount],
-        func: Union[Callable[[SIAEvent], Awaitable[None]], Callable[[SIAEvent], None]],
+        accounts: dict[str, SIAAccount],
         counts: Counter,
+        func: Callable[[SIAEvent], None] | None = None,
+        async_func: Callable[[SIAEvent], Awaitable[None]] | None = None,
     ):
         """Create a SIA Server.
 
         Arguments:
-            accounts Dict[str, SIAAccount] -- accounts as dict with account_id as key, SIAAccount object as value.
-            func Callable[[SIAEvent], None] -- Function called for each valid SIA event, that can be matched to a account.
-            counts Counter -- counter kept by client to give insights in how many errorous events were discarded of each type.
+            accounts Dict[str, SIAAccount] -- accounts as dict with account_id as key, SIAAccount object as value.  # pylint: disable=line-too-long
+            func Callable[[SIAEvent], None] -- Function called for each valid SIA event, that can be matched to a account.  # pylint: disable=line-too-long
+            counts Counter -- counter kept by client to give insights in how many errorous EventsType were discarded of each type.  # pylint: disable=line-too-long
         """
         self.accounts = accounts
         self.func = func
+        self.async_func = async_func
         self.counts = counts
         self.shutdown_flag = False
 
-    def parse_and_check_event(self, line: str) -> Union[SIAEvent, OHEvent, NAKEvent]:
+    def parse_and_check_event(self, data: bytes) -> EventsType | None:
         """Parse and check the line and create the event, check the account and define the response.
 
         Args:
@@ -53,6 +56,9 @@ class BaseSIAServer(ABC):
             ResponseType: The response to send to the alarm.
 
         """
+        line = str.strip(data.decode("ascii", errors="ignore"))
+        if not line:
+            return None
         self.log_and_count(COUNTER_EVENTS, line=line)
         try:
             event = SIAEvent.from_line(line, self.accounts)
@@ -75,20 +81,34 @@ class BaseSIAServer(ABC):
             self.log_and_count(COUNTER_TIMESTAMP, event=event)
         return event
 
-    async def async_func_wrap(self, event: SIAEvent) -> None:
+    async def async_func_wrap(self, event: EventsType | None) -> None:
         """Wrap the user function in a try."""
+        if (
+            event is None
+            or not (isinstance(event, SIAEvent))
+            or event.response != ResponseType.ACK
+        ):
+            return
         self.counts.increment_valid_events()
         try:
-            await self.func(event)  # type: ignore
-        except Exception as exp:
+            assert self.async_func is not None
+            await self.async_func(event)  # type: ignore
+        except Exception as exp:  # pylint: disable=broad-except
             self.log_and_count(COUNTER_USER_CODE, event=event, exception=exp)
 
-    def func_wrap(self, event: SIAEvent) -> None:
+    def func_wrap(self, event: EventsType | None) -> None:
         """Wrap the user function in a try."""
+        if (
+            event is None
+            or not (isinstance(event, SIAEvent))
+            or event.response != ResponseType.ACK
+        ):
+            return
         self.counts.increment_valid_events()
         try:
+            assert self.func is not None
             self.func(event)
-        except Exception as exp:
+        except Exception as exp:  # pylint: disable=broad-except
             self.log_and_count(COUNTER_USER_CODE, event=event, exception=exp)
 
     def log_and_count(

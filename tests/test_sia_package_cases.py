@@ -153,7 +153,7 @@ class EventParsing:
     def case_adm_cid(self):
         """Test case ADM-CID format."""
         return (
-            r'87CD0037"ADM-CID"9876R579BDFL789ABC#12345A[#12345A|1110 00 129]_14:12:04,09-25-201',
+            r'87CD0037"ADM-CID"9876R579BDFL789ABC#12345A[#12345A|1110 00 129]_14:12:04,09-25-2011',
             "12345A",
             "Fire Alarm",
             "FA",
@@ -222,7 +222,6 @@ class EventParsing:
             False,
         )
 
-    # TODO: add tests for different SIA versions (DC-04, DC09, DC09X)
     def case_encrypted(self):
         """Input a encrypted line."""
         return (
@@ -440,7 +439,7 @@ class ToFromDict:
             "code": "WA",
             "message": "000",
             "x_data": None,
-            "timestamp": 1594197647.0,
+            "timestamp": "2020-07-08T08:40:47+00:00",
             "event_qualifier": None,
             "event_type": None,
             "partition": None,
@@ -476,7 +475,7 @@ class ToFromDict:
             "code": "WA",
             "message": "000",
             "x_data": None,
-            "timestamp": 1594197647.0,
+            "timestamp": "2020-07-08T08:40:47+00:00",
             "event_qualifier": None,
             "event_type": None,
             "partition": None,
@@ -512,7 +511,7 @@ class ToFromDict:
             "code": "WA",
             "message": "000",
             "x_data": None,
-            "timestamp": 1594197647.0,
+            "timestamp": "2020-07-08T08:40:47+00:00",
             "event_qualifier": None,
             "event_type": None,
             "partition": None,
