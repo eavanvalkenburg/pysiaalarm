@@ -5,8 +5,7 @@ name: Test
 on:
   push:
     branches:
-      - master
-      - dev
+      - '*'
     tags-ignore:
       - v*
   pull_request:

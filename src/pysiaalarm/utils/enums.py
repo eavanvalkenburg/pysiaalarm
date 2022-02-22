@@ -1,4 +1,6 @@
 """Enum classes for Pysiaalarm."""
+from __future__ import annotations
+
 from enum import Enum, auto
 from typing import Any
 
@@ -8,7 +10,7 @@ class AutoName(Enum):
 
     @staticmethod
     def _generate_next_value_(
-        name: str, start: Any, count: Any, last_values: Any
+        name: str, start: Any, count: Any, last_values: Any  # pylint: disable=unused-argument
     ) -> str:
         """Return name as value for Enum."""
         return name

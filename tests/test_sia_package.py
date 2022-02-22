@@ -6,7 +6,7 @@ import asyncio
 import pytest
 from dataclasses import asdict
 
-from pytest_cases import fixture_plus, parametrize_with_cases, fixture
+from pytest_cases import parametrize_with_cases, fixture
 from unittest.mock import patch
 
 from pysiaalarm import (
@@ -15,6 +15,7 @@ from pysiaalarm import (
     SIAEvent,
 )
 from pysiaalarm.aio import SIAClient as SIAClientA
+from pysiaalarm.aio.client import SIAClientTCP
 from pysiaalarm.event import NAKEvent, BaseEvent
 from pysiaalarm.const import COUNTER_USER_CODE, COUNTER_VALID, COUNTER_EVENTS
 from pysiaalarm.errors import NoAccountError
@@ -104,7 +105,7 @@ def get_func(type="sync"):
         return func
 
 
-@fixture_plus(
+@fixture(
     unpack_into="events, event_handler, async_event_handler, bad_handler, async_bad_handler"
 )
 def get_event_func():
@@ -144,15 +145,19 @@ class testSIA(object):
         else:
             assert instance.account == dic["account"]
             assert instance.code == dic["code"]
-            dic2 = instance.to_dict(encode_json=True)
+            dic2 = instance.to_dict()
 
         _LOGGER.warning("Dict after: %s", dic2)
         for key, value in dic.items():
-            if key != "sia_account":
-                assert dic2[key] == value
-            else:
+            if key == "sia_account":
                 if dic[key]:
                     assert instance.sia_account is not None
+            elif key == "message_type":
+                assert dic2[key].value == value
+            elif key == "timestamp":
+                assert dic2[key] == value.isoformat()
+            else:
+                assert dic2[key] == value
 
     @parametrize_with_cases(
         "line, account_id, code_type, code, error_type, extended_data_flag, encrypted_flag",
@@ -229,7 +234,7 @@ class testSIA(object):
             return
         event = BaseEvent.from_line(line)
         event_type = event.__class__
-        event_dict = event.to_dict(encode_json=True)
+        event_dict = event.to_dict()
         event2 = event_type.from_dict(event_dict)
         assert event == event2
 
@@ -275,7 +280,7 @@ class testSIA(object):
         if sync:
             client.start()
         else:
-            await client.start()
+            await client.async_start()
         await asyncio.sleep(0.01)
 
         t = threading.Thread(
@@ -290,7 +295,7 @@ class testSIA(object):
         if sync:
             client.stop()
         else:
-            await client.stop()
+            await client.async_stop()
 
         _LOGGER.warning("Registered events: %s", client.counts)
 
@@ -345,7 +350,7 @@ class testSIA(object):
         )
 
         _LOGGER.warning("Line to parse: %s", line)
-        event = siac.sia_server.parse_and_check_event(line)
+        event = siac.sia_server.parse_and_check_event(line.encode())
         _LOGGER.warning("Event received: %s", event)
 
         assert event.response == response
@@ -419,13 +424,13 @@ class testSIA(object):
                 client.assert_called_once()
 
         else:
-            with patch.object(SIAClientA, "stop") as client:
+            with patch.object(SIAClientTCP, "async_stop") as client:
                 with patch("asyncio.start_server"):
                     # test Async
                     async with SIAClientA(
                         HOST,
-                        unused_tcp_port_factory(),
-                        account_list,
+                        port=unused_tcp_port_factory(),
+                        accounts=account_list,
                         function=get_func("aio"),
                     ) as cl:
                         assert cl.accounts == account_list

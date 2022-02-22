@@ -1,8 +1,9 @@
 """Class for SIA Accounts."""
+from __future__ import annotations
+
 import logging
-from dataclasses import dataclass, field
-from dataclasses_json import dataclass_json, config, Exclude
-from typing import Optional, Tuple
+from dataclasses import dataclass, field, asdict
+from typing import Any
 
 from .errors import (
     InvalidAccountFormatError,
@@ -14,34 +15,37 @@ from .errors import (
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass_json
 @dataclass
 class SIAAccount:
     """Class for SIA Accounts."""
 
     account_id: str
-    key: Optional[str] = None
-    allowed_timeband: Tuple[int, int] = (40, 20)
-    key_b: Optional[bytes] = field(
-        repr=False, default=None, metadata=config(exclude=Exclude.ALWAYS)  # type: ignore
+    key: str | None = None
+    allowed_timeband: tuple[int, int] = (40, 20)
+    key_b: bytes | None = field(
+        repr=False,
+        default=None,  # metadata=config(exclude=Exclude.ALWAYS)  # type: ignore
     )
 
     def __post_init__(self) -> None:
         """Rewrite the key as bytes."""
         self.key_b = self.key.encode("utf-8") if self.key else None
+        self.account_id = self.account_id.upper()
 
     @property
     def encrypted(self) -> bool:
         """Return true when encrypted."""
-        return True if self.key_b else False
+        return bool(self.key_b)
 
     @classmethod
     def validate_account(cls, account_id: str = None, key: str = None) -> None:
-        """Validate a accounts information, can be used before creating as well. Can be used to check the individual arguments as well.
+        """Validate a accounts information, either with one of the fields or both.
 
         Keyword Arguments:
-            account_id {str} -- The account id specified by the alarm system, should be 3-16 characters hexadecimal. (default: {None})
-            key {str} -- The encryption key specified by the alarm system, should be 16,24 or 32 characters hexadecimal. (default: {None})
+            account_id {str} -- The account id specified by the alarm system,
+                should be 3-16 characters hexadecimal. (default: {None})
+            key {str} -- The encryption key specified by the alarm system,
+                should be 16,24 or 32 characters hexadecimal. (default: {None})
 
         Raises:
             InvalidKeyFormatError: If the key is not a valid hexadecimal string.
@@ -53,18 +57,27 @@ class SIAAccount:
         if account_id is not None:  # pragma: no cover
             try:
                 int(account_id, 16)
-            except ValueError:
-                raise InvalidAccountFormatError
+            except ValueError as exc:
+                raise InvalidAccountFormatError from exc
             try:
                 assert 3 <= len(account_id) <= 16
-            except AssertionError:
-                raise InvalidAccountLengthError
+            except AssertionError as exc:
+                raise InvalidAccountLengthError from exc
         if key is not None:  # pragma: no cover
             try:
                 int(key, 16)
-            except ValueError:
-                raise InvalidKeyFormatError
+            except ValueError as exc:
+                raise InvalidKeyFormatError from exc
             try:
                 assert len(key) in (16, 24, 32)
-            except AssertionError:
-                raise InvalidKeyLengthError
+            except AssertionError as exc:
+                raise InvalidKeyLengthError from exc
+
+    def to_dict(self) -> dict[str, Any]:
+        """Create a dict from the dataclass."""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, acc: dict[str, Any]) -> SIAAccount:
+        """Create a SIA Account from a dict."""
+        return cls(**acc)
