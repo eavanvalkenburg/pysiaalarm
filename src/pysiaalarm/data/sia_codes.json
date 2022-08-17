@@ -1151,18 +1151,6 @@
         "description": "Panic zone has been bypassed",
         "concerns": "Zone or point"
     },
-    "PC": {
-        "code": "PC",
-        "type": "Photo on demand enabled",
-        "description": "Photo on demand enabled",
-        "concerns": "User"
-    },
-    "PD": {
-        "code": "PD",
-        "type": "Photo on demand disabled",
-        "description": "Photo on demand disabled",
-        "concerns": "User"
-    },
     "PE": {
         "code": "PE",
         "type": "Photo by scenario enable",
