@@ -1151,11 +1151,23 @@
         "description": "Panic zone has been bypassed",
         "concerns": "Zone or point"
     },
+    "PE": {
+        "code": "PE",
+        "type": "Photo by scenario enable",
+        "description": "Photo by alarm scenarios feature enabled for this hub",
+        "concerns": "Unused"
+    },
     "PF": {
         "code": "PF",
         "type": "Malfunction",
         "description": "MotionCam lost connection with hub over photos communication channel",
         "concerns": "Zone or point"
+    },
+    "PG": {
+        "code": "PG",
+        "type": "Photo by scenario disable",
+        "description": "Photo by alarm scenarios feature disabled for this hub",
+        "concerns": "Unused"
     },
     "PH": {
         "code": "PH",
