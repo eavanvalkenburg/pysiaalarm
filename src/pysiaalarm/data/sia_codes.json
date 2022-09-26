@@ -389,6 +389,12 @@
         "description": "Dealer ID number",
         "concerns": "Dealer ID"
     },
+    "DUH": {
+        "code": "DUH",
+        "type": "Photo on demand",
+        "description": "Photo on demand",
+        "concerns": "Unused"
+    },
     "DV": {
         "code": "DV",
         "type": "Access Denied - Unauthorized Entry Level",
