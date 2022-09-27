@@ -389,6 +389,12 @@
         "description": "Dealer ID number",
         "concerns": "Dealer ID"
     },
+    "DUH": {
+        "code": "DUH",
+        "type": "Photo on demand",
+        "description": "Photo on demand",
+        "concerns": "Unused"
+    },
     "DV": {
         "code": "DV",
         "type": "Access Denied - Unauthorized Entry Level",
@@ -1150,6 +1156,18 @@
         "type": "Panic Bypass",
         "description": "Panic zone has been bypassed",
         "concerns": "Zone or point"
+    },
+    "PC": {
+        "code": "PC",
+        "type": "Photo on demande enabled",
+        "description": "Photo on demande enabled",
+        "concerns": "User"
+    },
+    "PD": {
+        "code": "PD",
+        "type": "Photo on demande disabled",
+        "description": "Photo on demande disabled",
+        "concerns": "User"
     },
     "PE": {
         "code": "PE",
