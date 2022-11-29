@@ -470,7 +470,7 @@ class SIAEvent(BaseEvent):
     def parse_content(self) -> None:
         """Set internal content field, parse the content and store the right things."""
         if (
-            not self.message_type or not self.encrypted or not self.content
+            not self.message_type or self.encrypted is None or not self.content
         ):  # pragma: no cover
             return
         matcher = _get_matcher(self.message_type, self.encrypted)
