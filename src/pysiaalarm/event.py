@@ -5,7 +5,7 @@ import logging
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Union, Any
 
 from Crypto.Cipher import AES
@@ -374,7 +374,7 @@ class SIAEvent(BaseEvent):
         if self.sia_account.allowed_timeband is None:  # pragma: no cover
             return True
         if self.timestamp and isinstance(self.timestamp, datetime):
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(self.sia_account.device_timezone)
             current_min = current_time - timedelta(
                 seconds=self.sia_account.allowed_timeband[0]
             )
