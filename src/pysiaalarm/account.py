@@ -41,7 +41,9 @@ class SIAAccount:
         return bool(self.key_b)
 
     @classmethod
-    def validate_account(cls, account_id: str = None, key: str = None) -> None:
+    def validate_account(
+        cls, account_id: str | None = None, key: str | None = None
+    ) -> None:
         """Validate a accounts information, either with one of the fields or both.
 
         Keyword Arguments:
