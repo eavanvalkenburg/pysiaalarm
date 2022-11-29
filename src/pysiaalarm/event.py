@@ -5,7 +5,7 @@ import logging
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Union, Any
 
 from Crypto.Cipher import AES
@@ -174,8 +174,14 @@ class BaseEvent(ABC):
         )
 
     @staticmethod
-    def _get_timestamp() -> str:
+    def _get_timestamp(device_timezone: tzinfo | None = None) -> str:
         """Create a timestamp in the right format."""
+        if device_timezone:
+            return (
+                datetime.now()
+                .astimezone(device_timezone)
+                .strftime("_%H:%M:%S,%m-%d-%Y")
+            )
         return datetime.utcnow().strftime("_%H:%M:%S,%m-%d-%Y")
 
     @staticmethod
@@ -310,7 +316,7 @@ class SIAEvent(BaseEvent):
         if self.sia_account.allowed_timeband is None:  # pragma: no cover
             return True
         if self.timestamp and isinstance(self.timestamp, datetime):
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(self.sia_account.device_timezone)
             current_min = current_time - timedelta(
                 seconds=self.sia_account.allowed_timeband[0]
             )
@@ -340,12 +346,12 @@ class SIAEvent(BaseEvent):
         ):
             x_data = f"[K{self.sia_account.key}]"
         if response_type == ResponseType.NAK:
-            res = f'"{response_type.value}"0000R0L0A0[]{self._get_timestamp()}'
+            res = f'"{response_type.value}"0000R0L0A0[]{self._get_timestamp(self.sia_account.device_timezone)}'
         elif not self.encrypted or response_type == ResponseType.DUH:
             res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'  # pylint: disable=line-too-long
         else:
             encrypted_content = self.encrypt_content(
-                f']{x_data if x_data else ""}{self._get_timestamp()}'
+                f']{x_data if x_data else ""}{self._get_timestamp(self.sia_account.device_timezone)}'
             )
             res = f'"*{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[{encrypted_content}'  # pylint: disable=line-too-long
         header = ("%04x" % len(res)).upper()
