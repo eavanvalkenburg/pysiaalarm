@@ -94,7 +94,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "pysiaalarm"
-copyright = "2021, E.A. van Valkenburg"
+copyright = "2022, E.A. van Valkenburg"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
