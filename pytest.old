@@ -1,0 +1,22 @@
+[pytest]
+# Specify command line options as you would do when invoking pytest directly.
+# e.g. --cov-report html (or xml) for html/xml output or --junitxml junit.xml
+# in order to write a coverage file that can be read by Jenkins.
+# CAUTION: --cov flags may prohibit setting breakpoints while debugging.
+#          Comment those flags to avoid this py.test issue.
+addopts =
+    --cov pysiaalarm --cov-report term-missing
+    -vvv
+norecursedirs =
+    dist
+    build
+    .tox
+testpaths = tests
+python_classes = testSIA
+# Use pytest markers to select/deselect specific tests
+markers =
+    sync
+    aio
+    both
+#     slow: mark tests as slow (deselect with '-m "not slow"')
+#     system: mark end-to-end system tests
