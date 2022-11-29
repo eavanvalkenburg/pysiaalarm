@@ -179,7 +179,11 @@ class testSIA(object):
             if extended_data_flag:
                 event = SIAEvent.from_line(
                     line,
-                    {account_id: SIAAccount(account_id, KEY, allowed_timeband=None)},
+                    {
+                        account_id: SIAAccount(
+                            account_id, KEY, allowed_timeband=None  # type: ignore
+                        )
+                    },
                 )
             else:
                 event = SIAEvent.from_line(line)
@@ -190,6 +194,7 @@ class testSIA(object):
                 _LOGGER.warning("Event calc crc: %s", event.calc_crc)
             # assert event.valid_message
             if code:
+                assert event.sia_code
                 assert event.sia_code.type == code_type
             assert event.account == account_id
             if extended_data_flag:
