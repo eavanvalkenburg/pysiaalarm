@@ -5,7 +5,7 @@ import logging
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Union, Any
 
 from Crypto.Cipher import AES
@@ -386,7 +386,7 @@ class SIAEvent(BaseEvent):
         if self.sia_account.allowed_timeband is None:  # pragma: no cover
             return True
         if self.timestamp and isinstance(self.timestamp, datetime):
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(self.sia_account.device_timezone)
             current_min = current_time - timedelta(
                 seconds=self.sia_account.allowed_timeband[0]
             )
@@ -416,7 +416,7 @@ class SIAEvent(BaseEvent):
         ):
             x_data = f"[K{self.sia_account.key}]"
         if response_type == ResponseType.NAK:
-            res = f'"{response_type.value}"0000{self.receiver}{self.line}A0[]{self._get_timestamp(self.sia_account.device_timezone)}'
+            res = f'"{response_type.value}"0000R0L0A0[]{self._get_timestamp(self.sia_account.device_timezone)}'
         elif not self.encrypted or response_type == ResponseType.DUH:
             res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'  # pylint: disable=line-too-long
         else:
