@@ -116,7 +116,7 @@ class BaseSIAServer(ABC):
     def log_and_count(
         self,
         counter: str,
-        line: str | bytes | None = None,
+        line: str | None = None,
         event: SIAEvent | None = None,
         exception: Exception | None = None,
     ) -> None:
