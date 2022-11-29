@@ -14,3 +14,18 @@ except PackageNotFoundError:  # pragma: no cover
     __version__ = "unknown"
 finally:
     del version, PackageNotFoundError
+
+__author__ = "E.A. van Valkenburg"
+__copyright__ = "E.A. van Valkenburg"
+__license__ = "mit"
+
+from .account import SIAAccount
+from .sync.client import SIAClient
+from .errors import (
+    InvalidAccountFormatError,
+    InvalidAccountLengthError,
+    InvalidKeyFormatError,
+    InvalidKeyLengthError,
+)
+from .event import SIAEvent, OHEvent
+from .utils import CommunicationsProtocol

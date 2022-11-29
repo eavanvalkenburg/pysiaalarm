@@ -418,12 +418,12 @@ class SIAEvent(BaseEvent):
         if response_type == ResponseType.NAK:
             res = f'"{response_type.value}"0000R0L0A0[]{self._get_timestamp(self.sia_account.device_timezone)}'
         elif not self.encrypted or response_type == ResponseType.DUH:
-            res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'  # pylint: disable=line-too-long
+            res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'
         else:
             encrypted_content = self.encrypt_content(
                 f']{x_data if x_data else ""}{self._get_timestamp(self.sia_account.device_timezone)}'
             )
-            res = f'"*{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[{encrypted_content}'  # pylint: disable=line-too-long
+            res = f'"*{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[{encrypted_content}'
         header = ("%04x" % len(res)).upper()
         new_crc = self._crc_calc(res)
         if self.binary_crc and new_crc is not None:
@@ -470,7 +470,7 @@ class SIAEvent(BaseEvent):
     def parse_content(self) -> None:
         """Set internal content field, parse the content and store the right things."""
         if (
-            not self.message_type or self.encrypted is None or not self.content
+            not self.message_type or not self.encrypted or not self.content
         ):  # pragma: no cover
             return
         matcher = _get_matcher(self.message_type, self.encrypted)
@@ -525,7 +525,10 @@ class SIAEvent(BaseEvent):
         self._xdata_parsed = True
 
     def sia_account_from_message(self) -> SIAAccount | None:  # pragma: no cover
-        """Return the SIA Account, if there is not account added, create one based on the account in the message."""  # pylint: disable=line-too-long
+        """Return the SIA Account.
+
+        If there is not account added, create one based on the account in the message.
+        """
         if self.account is not None:
             return SIAAccount(self.account)
         return None
