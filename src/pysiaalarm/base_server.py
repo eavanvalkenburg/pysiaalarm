@@ -114,9 +114,9 @@ class BaseSIAServer(ABC):
     def log_and_count(
         self,
         counter: str,
-        line: str = None,
-        event: SIAEvent = None,
-        exception: Exception = None,
+        line: str | None = None,
+        event: SIAEvent | None = None,
+        exception: Exception | None = None,
     ) -> None:
         """Log the appropriate line and increment the right counter."""
         if counter == COUNTER_ACCOUNT and exception is not None:
