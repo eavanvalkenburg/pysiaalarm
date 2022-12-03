@@ -117,7 +117,7 @@ class EventParsing:
     def case_bug(self):
         """Test case from #11."""
         return (
-            r'9618004D"SIA-DCS"7960L0#123456[#123456|Nri1CL0^VX FRONTE ^]_22:40:48,04-11-2021',
+            rb'9618004D"SIA-DCS"7960L0#123456[#123456|Nri1CL0^VX FRONTE ^]_22:40:48,04-11-2021',
             "123456",
             "Closing Report",
             "CL",
@@ -129,7 +129,7 @@ class EventParsing:
     def case_bug2(self):
         """Test case from SIA #42."""
         return (
-            r'5670004D"SIA-DCS"8070L0#123456[#123456|Nri0KR1^TAST. 001 ^]_13:49:12,04-13-2021',
+            rb'5670004D"SIA-DCS"8070L0#123456[#123456|Nri0KR1^TAST. 001 ^]_13:49:12,04-13-2021',
             "123456",
             "Heat Restoral",
             "KR",
@@ -141,7 +141,7 @@ class EventParsing:
     def case_dc04(self):
         """Test case DC04 format - NOT SUPPORTED so throws an error."""
         return (
-            r'<x0A>CE110032"SIA-DCS"9876R579BDFL789ABC#12345A[#12345A|NFA129]_14:12:04,09-25-201',
+            rb'<x0A>CE110032"SIA-DCS"9876R579BDFL789ABC#12345A[#12345A|NFA129]_14:12:04,09-25-201',
             "12345A",
             None,
             None,
@@ -153,7 +153,7 @@ class EventParsing:
     def case_adm_cid(self):
         """Test case ADM-CID format."""
         return (
-            r'87CD0037"ADM-CID"9876R579BDFL789ABC#12345A[#12345A|1110 00 129]_14:12:04,09-25-2011',
+            rb'87CD0037"ADM-CID"9876R579BDFL789ABC#12345A[#12345A|1110 00 129]_14:12:04,09-25-2011',
             "12345A",
             "Fire Alarm",
             "FA",
@@ -165,7 +165,7 @@ class EventParsing:
     def case_adm_cid2(self):
         """Test case ADM-CID format."""
         return (
-            r'57150047"ADM-CID"0247R4F39L4F39#4F39[#4F39|3401 01 057]',
+            rb'57150047"ADM-CID"0247R4F39L4F39#4F39[#4F39|3401 01 057]',
             "4F39",
             "Closing Report",
             "CL",
@@ -177,7 +177,7 @@ class EventParsing:
     def case_code_jc(self):
         """Input a closing report event in SIA DC-09 with JC code."""
         return (
-            r'97F90078"SIA-DCS"6002L0#AAA[|Nri2/JC12]_12:58:23,09-15-2021',
+            rb'97F90078"SIA-DCS"6002L0#AAA[|Nri2/JC12]_12:58:23,09-15-2021',
             "AAA",
             "User code tamper canceled",
             "JC",
@@ -189,7 +189,7 @@ class EventParsing:
     def case_xdata_M(self):
         """Input a closing report event in SIA DC-09 with M xdata."""
         return (
-            r'87570078"SIA-DCS"6002L0#AAA[|Nri1/CL501][M0026B9E4268B]_14:12:04,09-25-2019',
+            rb'87570078"SIA-DCS"6002L0#AAA[|Nri1/CL501][M0026B9E4268B]_14:12:04,09-25-2019',
             "AAA",
             "Closing Report",
             "CL",
@@ -201,7 +201,9 @@ class EventParsing:
     def case_xdata_K(self):
         """Input a closing report event in SIA DC-09 with K xdata."""
         return (
-            rf'02310052"SIA-DCS"6002L0#{ACCOUNT}[|Nri1/RP000][KAAAAAAAAAAAAAAAA]_14:12:04,09-25-2019',
+            (
+                rf'02310052"SIA-DCS"6002L0#{ACCOUNT}[|Nri1/RP000][KAAAAAAAAAAAAAAAA]_14:12:04,09-25-2019'
+            ).encode(),
             ACCOUNT,
             "Automatic Test",
             "RP",
@@ -213,7 +215,9 @@ class EventParsing:
     def case_xdata_X_and_Y(self):
         """Input a closing report event in SIA DC-09 with K xdata."""
         return (
-            rf'5B090059"SIA-DCS"0004L0#{ACCOUNT}[#{ACCOUNT}|Nri1/PA501][X006E07.7777777][Y49N06.6666666]_20:45:46,04-22-2021',
+            (
+                rf'5B090059"SIA-DCS"0004L0#{ACCOUNT}[#{ACCOUNT}|Nri1/PA501][X006E07.7777777][Y49N06.6666666]_20:45:46,04-22-2021'
+            ).encode(),
             ACCOUNT,
             "Panic Alarm",
             "PA",
@@ -225,7 +229,7 @@ class EventParsing:
     def case_encrypted(self):
         """Input a encrypted line."""
         return (
-            r'60AB0078"*SIA-DCS"5994L0#AAA[5AB718E008C616BF16F6468033A11326B0F7546CAB230910BCA10E4DEBA42283C436E4F8EFF50931070DDE36D5BB5F0C',
+            rb'60AB0078"*SIA-DCS"5994L0#AAA[5AB718E008C616BF16F6468033A11326B0F7546CAB230910BCA10E4DEBA42283C436E4F8EFF50931070DDE36D5BB5F0C',
             "AAA",
             None,
             None,
@@ -237,7 +241,7 @@ class EventParsing:
     def case_encrypted_adm(self):
         """Input a encrypted ADM line."""
         return (
-            r'D0850078"*ADM-CID"6879R0L0#123F[64F7ADD9BA9377DBF2C014BC709329BEEE345B5F20C60B7EB9D2C6B8C222666B13D0B4A114B448B0AC555FCC658DB6EE',
+            rb'D0850078"*ADM-CID"6879R0L0#123F[64F7ADD9BA9377DBF2C014BC709329BEEE345B5F20C60B7EB9D2C6B8C222666B13D0B4A114B448B0AC555FCC658DB6EE',
             "123F",
             None,
             None,
@@ -249,7 +253,7 @@ class EventParsing:
     def case_oh(self):
         """Input a OH event."""
         return (
-            r"SR0001L0001    006969XX    [ID00000000]",
+            rb"SR0001L0001    006969XX    [ID00000000]",
             "006969XX",
             "Automatic Test",
             "RP",
@@ -261,7 +265,7 @@ class EventParsing:
     def case_cl(self):
         """Input a closing report event in SIA DC-09."""
         return (
-            r'E5D50078"SIA-DCS"6002L0#AAA[|Nri1/CL501]_14:12:04,09-25-2019',
+            rb'E5D50078"SIA-DCS"6002L0#AAA[|Nri1/CL501]_14:12:04,09-25-2019',
             "AAA",
             "Closing Report",
             "CL",
@@ -273,7 +277,7 @@ class EventParsing:
     def case_op(self):
         """Input a opening report event."""
         return (
-            r'90820051"SIA-DCS"4738R0001L0001[#006969|Nri04/OP001NM]',
+            rb'90820051"SIA-DCS"4738R0001L0001[#006969|Nri04/OP001NM]',
             "006969",
             "Opening Report",
             "OP",
@@ -285,7 +289,7 @@ class EventParsing:
     def case_null(self):
         """Input a encrypted null event."""
         return (
-            r'76D80055"*NULL"0000R0L0#AAAB[B4BC8B40D0E6D959D6BEA78E88CC0B2155741A3C44FBB96D476A3E557CAD64D9',
+            rb'76D80055"*NULL"0000R0L0#AAAB[B4BC8B40D0E6D959D6BEA78E88CC0B2155741A3C44FBB96D476A3E557CAD64D9',
             "AAAB",
             None,
             None,
@@ -297,7 +301,7 @@ class EventParsing:
     def case_wa(self):
         """Input a water alarm event."""
         return (
-            r'C4160279"SIA-DCS"5268L0#AAA[Nri1/WA000]_08:40:47,07-08-2020',
+            rb'C4160279"SIA-DCS"5268L0#AAA[Nri1/WA000]_08:40:47,07-08-2020',
             "AAA",
             "Water Alarm",
             "WA",
@@ -309,7 +313,7 @@ class EventParsing:
     def case_eventformaterror(self):
         """Input a event format error event."""
         return (
-            r"this is not a parsable event",
+            rb"this is not a parsable event",
             None,
             None,
             None,

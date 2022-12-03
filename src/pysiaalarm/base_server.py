@@ -45,19 +45,18 @@ class BaseSIAServer(ABC):
         self.counts = counts
         self.shutdown_flag = False
 
-    def parse_and_check_event(self, data: bytes) -> EventsType | None:
+    def parse_and_check_event(self, line: bytes) -> EventsType | None:
         """Parse and check the line and create the event, check the account and define the response.
 
         Args:
-            line (str): Line to parse
+            line (bytes): Line to parse
 
         Returns:
             SIAEvent: The SIAEvent type of the parsed line.
             ResponseType: The response to send to the alarm.
 
         """
-        line = str.strip(data.decode("ascii", errors="ignore"))
-        if not line:
+        if not line.strip():
             return None
         self.log_and_count(COUNTER_EVENTS, line=line)
         try:
@@ -114,7 +113,7 @@ class BaseSIAServer(ABC):
     def log_and_count(
         self,
         counter: str,
-        line: str | None = None,
+        line: str | bytes | None = None,
         event: SIAEvent | None = None,
         exception: Exception | None = None,
     ) -> None:

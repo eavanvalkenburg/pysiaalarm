@@ -119,7 +119,9 @@ class BaseEvent(ABC):
 
     @classmethod
     def from_line(
-        cls, incoming: str, accounts: dict[str, SIAAccount] | None = None
+        cls,
+        data: bytes,
+        accounts: dict[str, SIAAccount] | None = None,
     ) -> SIAEvent:
         """Create a Event from a line.
 
@@ -131,6 +133,8 @@ class BaseEvent(ABC):
             EventFormatError: If the event is not formatted according to SIA DC09 or ADM-CID.
 
         """
+
+        incoming = str.strip(data.decode("ascii", errors="ignore"))
         line_match = MAIN_MATCHER.match(incoming)
         if not line_match:
             oh_event = OH_MATCHER.match(incoming)
@@ -198,7 +202,7 @@ class BaseEvent(ABC):
                 if (temp & 1) != 0:
                     crc ^= 0xA001
                 temp >>= 1
-        return ("%x" % crc).upper().zfill(4)
+        return "%04X" % crc  # ("%x" % crc).upper().zfill(4)  #
 
     def to_dict(self, **kwargs: Any) -> dict[str, Any]:
         """Create a dict from the dataclass.
@@ -306,6 +310,7 @@ class SIAEvent(BaseEvent):
     @property
     def valid_message(self) -> bool:
         """Check the validity of the message by comparing the sent CRC with the calculated CRC."""
+
         return self.msg_crc == self.calc_crc
 
     @property

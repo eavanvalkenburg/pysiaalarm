@@ -25,6 +25,7 @@ class SIAAccount:
     key: str | None = None
     allowed_timeband: tuple[int, int] = (40, 20)
     device_timezone: tzinfo = pytz.utc
+    binary_crc: bool = False
     key_b: bytes | None = field(
         repr=False,
         default=None,  # metadata=config(exclude=Exclude.ALWAYS)  # type: ignore
