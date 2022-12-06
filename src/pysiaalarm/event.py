@@ -373,8 +373,8 @@ class SIAEvent(BaseEvent):
         header = ("%04x" % len(res)).upper()
         new_crc = self._crc_calc(res)
         if self.binary_crc and new_crc is not None:
-            new_crc = int(new_crc, 16)
-            new_crc = str(bytes([new_crc >> 16, new_crc & 0xFF]))
+            new_crc_int = int(new_crc, 16)
+            new_crc = str(bytes([new_crc_int >> 16, new_crc_int & 0xFF]))
         return f"\n{new_crc}{header}{res}\r".encode("ascii")
 
     def decrypt_content(self) -> None:
@@ -553,8 +553,8 @@ class NAKEvent(BaseEvent):
         header = ("%04x" % len(res)).upper()
         new_crc = self._crc_calc(res)
         if self.binary_crc and new_crc is not None:
-            new_crc = int(new_crc, 16)
-            new_crc = str(bytes([new_crc >> 16, new_crc & 0xFF]))
+            new_crc_int = int(new_crc, 16)
+            new_crc = str(bytes([new_crc_int >> 16, new_crc_int & 0xFF]))
         return f"\n{new_crc}{header}{res}\r".encode("ascii")
 
 
