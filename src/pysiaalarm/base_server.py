@@ -63,10 +63,12 @@ class BaseSIAServer(ABC):
             event = SIAEvent.from_line(line, self.accounts)
         except NoAccountError as exc:
             self.log_and_count(COUNTER_ACCOUNT, line, exception=exc)
-            return NAKEvent()
+            binary_crc = NAKEvent.check_crc_type(line)
+            return NAKEvent(binary_crc=binary_crc)
         except EventFormatError as exc:
             self.log_and_count(COUNTER_FORMAT, line, exception=exc)
-            return NAKEvent()
+            binary_crc = NAKEvent.check_crc_type(line)
+            return NAKEvent(binary_crc=binary_crc)
 
         if isinstance(event, OHEvent):
             return event  # pragma: no cover
