@@ -355,7 +355,11 @@ class SIAEvent(BaseEvent):
             )
             res = f'"*{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[{encrypted_content}'
         header = ("%04x" % len(res)).upper()
-        return f"\n{self._crc_calc(res)}{header}{res}\r".encode("ascii")
+        new_crc = self._crc_calc(res)
+        if self.binary_crc and new_crc is not None:
+            new_crc_int = int(new_crc, 16)
+            new_crc = str(bytes([new_crc_int >> 16, new_crc_int & 0xFF]))
+        return f"\n{new_crc}{header}{res}\r".encode("ascii")
 
     def decrypt_content(self) -> None:
         """Decrypt the content, if encrypted account, otherwise pass back the event."""
@@ -530,7 +534,11 @@ class NAKEvent(BaseEvent):
         """
         res = f'"NAK"0000L0R0A0[]{self._get_timestamp()}'
         header = ("%04x" % len(res)).upper()
-        return f"\n{self._crc_calc(res)}{header}{res}\r".encode("ascii")
+        new_crc = self._crc_calc(res)
+        if self.binary_crc and new_crc is not None:
+            new_crc_int = int(new_crc, 16)
+            new_crc = str(bytes([new_crc_int >> 16, new_crc_int & 0xFF]))
+        return f"\n{new_crc}{header}{res}\r".encode("ascii")
 
 
 EventsType = Union[SIAEvent, OHEvent, NAKEvent]
