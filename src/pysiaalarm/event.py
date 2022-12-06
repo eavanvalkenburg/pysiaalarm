@@ -41,8 +41,8 @@ class BaseEvent(ABC):
     length: str | None = None
     encrypted: bool | None = None
     message_type: str | MessageTypes | None = None
-    receiver: str | None = None
-    line: str | None = None
+    receiver: str = "R0"
+    line: str = "L0"
     account: str | None = None
     sequence: str | None = None
 
@@ -360,16 +360,15 @@ class SIAEvent(BaseEvent):
             and self.sia_account.key is not None
         ):
             x_data = f"[K{self.sia_account.key}]"
-        receiver_line = f"{self.receiver if self.receiver else 'R0'}{self.line if self.line else 'L0'}"
         if response_type == ResponseType.NAK:
-            res = f'"{response_type.value}"0000R0L0A0[]{self._get_timestamp(self.sia_account.device_timezone)}'
+            res = f'"{response_type.value}"0000{self.receiver}{self.line}A0[]{self._get_timestamp(self.sia_account.device_timezone)}'
         elif not self.encrypted or response_type == ResponseType.DUH:
-            res = f'"{response_type.value}"{self.sequence}{receiver_line}#{self.account}[]{x_data if x_data else ""}'
+            res = f'"{response_type.value}"{self.sequence}{self.receiver}{self.line}#{self.account}[]{x_data if x_data else ""}'
         else:
             encrypted_content = self.encrypt_content(
                 f']{x_data if x_data else ""}{self._get_timestamp(self.sia_account.device_timezone)}'
             )
-            res = f'"*{response_type.value}"{self.sequence}{receiver_line}#{self.account}[{encrypted_content}'
+            res = f'"*{response_type.value}"{self.sequence}{self.receiver}{self.line}#{self.account}[{encrypted_content}'
         header = ("%04x" % len(res)).upper()
         new_crc = self._crc_calc(res)
         if self.binary_crc and new_crc is not None:
