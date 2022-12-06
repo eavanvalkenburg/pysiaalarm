@@ -31,7 +31,15 @@ main_regex = r"""
 """
 MAIN_MATCHER = re.compile(main_regex, re.X)
 
-sia_content_regex = r"""
+# Content matcher, with shared pre and post expressions.
+xdata_ts_regex = r"""
+[\]]
+(?:\[(?:(?<=\[)(?P<xdata>.*)(?=\]))\])?
+(?:_(?<=_)(?P<timestamp>[0-9:,-]*)?)?$
+"""
+
+sia_content_regex = (
+    r"""
 [#]?(?P<account>[A-Fa-f0-9]{3,16})?
 [|]?
 [N]?
@@ -40,17 +48,12 @@ sia_content_regex = r"""
 (?:ri)?(?:(?<=ri)(?P<ri>\d*))?\/?
 (?P<code>[a-zA-Z]{2})?
 (?P<message>.[^\[\]]*)?
-[\]]
-(?:\[(?:(?<=\[)(?P<xdata>.*)(?=\]))\])?
-[_]?
-(?P<timestamp>[0-9:,-]*)?$
 """
-SIA_CONTENT_MATCHER = re.compile(sia_content_regex, re.X)
+    + xdata_ts_regex
+)
 
-encr_sia_content_regex = r"""(?:[^\|\[\]]*)[|]?"""
-ENCR_SIA_CONTENT_MATCHER = re.compile(encr_sia_content_regex + sia_content_regex, re.X)
-
-adm_content_regex = r"""
+adm_content_regex = (
+    r"""
 [#]?(?P<account>[A-F0-9]{3,16})?
 [|]?
 (?P<event_qualifier>\d{1})
@@ -59,15 +62,18 @@ adm_content_regex = r"""
 (?P<partition>\d{2})
 \s
 (?P<ri>\d{3})
-[\]]
-(?:\[(?:(?<=\[)(?P<xdata>.[^\[\]]*)(?=\]))\])?
-[_]?
-(?P<timestamp>[0-9:,-]*)?$
 """
-ADM_CONTENT_MATCHER = re.compile(adm_content_regex, re.X)
+    + xdata_ts_regex
+)
 
-encr_adm_content_regex = r"""(?:[^\|\[\]]*)[|]?"""
-ENCR_ADM_CONTENT_MATCHER = re.compile(encr_adm_content_regex + adm_content_regex, re.X)
+encr_content_regex = r"""
+(?:[^\|\[\]]*)[|]?
+"""
+
+SIA_CONTENT_MATCHER = re.compile(sia_content_regex, re.X)
+ADM_CONTENT_MATCHER = re.compile(adm_content_regex, re.X)
+ENCR_SIA_CONTENT_MATCHER = re.compile(encr_content_regex + sia_content_regex, re.X)
+ENCR_ADM_CONTENT_MATCHER = re.compile(encr_content_regex + adm_content_regex, re.X)
 
 
 def _get_matcher(
