@@ -37,6 +37,7 @@ class BaseEvent(ABC):
     # From Main Matcher
     full_message: str | None = None
     msg_crc: str | None = None
+    binary_crc: bool = False
     length: str | None = None
     encrypted: bool | None = None
     message_type: str | MessageTypes | None = None
@@ -117,6 +118,11 @@ class BaseEvent(ABC):
             return cypher
         return None  # pragma: no cover
 
+    @staticmethod
+    def check_crc_type(incoming: bytes) -> bool:
+        """Check if the CRC is binary or not."""
+        return len(incoming.split(b'"')[0]) == 7
+
     @classmethod
     def from_line(
         cls,
@@ -133,7 +139,7 @@ class BaseEvent(ABC):
             EventFormatError: If the event is not formatted according to SIA DC09 or ADM-CID.
 
         """
-
+        binary_crc = BaseEvent.check_crc_type(data)
         incoming = str.strip(data.decode("ascii", errors="ignore"))
         line_match = MAIN_MATCHER.match(incoming)
         if not line_match:
@@ -143,6 +149,7 @@ class BaseEvent(ABC):
                 return OHEvent(
                     full_message=incoming,
                     msg_crc="",
+                    binary_crc=binary_crc,
                     message_type=MessageTypes.OH,
                     length=str(len(incoming)),
                     encrypted=False,
@@ -165,6 +172,7 @@ class BaseEvent(ABC):
         return SIAEvent(
             full_message=incoming[8:],
             msg_crc=main_content["crc"],
+            binary_crc=binary_crc,
             length=main_content["length"],
             encrypted=encrypted,
             message_type=main_content["message_type"],
@@ -195,14 +203,13 @@ class BaseEvent(ABC):
             return None
         crc = 0
         for letter in str.encode(msg):
-            temp = letter
             for _ in range(0, 8):
-                temp ^= crc & 1
+                letter ^= crc & 1
                 crc >>= 1
-                if (temp & 1) != 0:
+                if (letter & 1) != 0:
                     crc ^= 0xA001
-                temp >>= 1
-        return "%04X" % crc  # ("%x" % crc).upper().zfill(4)  #
+                letter >>= 1
+        return "%04X" % crc
 
     def to_dict(self, **kwargs: Any) -> dict[str, Any]:
         """Create a dict from the dataclass.
@@ -247,6 +254,10 @@ class SIAEvent(BaseEvent):
         # Calculate the CRC of the message.
         if not self.calc_crc:
             self.calc_crc = self._crc_calc(self.full_message)
+            if self.calc_crc is not None:
+                if self.binary_crc:
+                    calc_crc = int(self.calc_crc, 16)
+                    self.calc_crc = str(bytes([calc_crc >> 16, calc_crc & 0xFF]))
         # If there is encrypted content and a key, decrypt
         if self.encrypted_content:
             if not self.sia_account or not self.sia_account.encrypted:
@@ -310,7 +321,6 @@ class SIAEvent(BaseEvent):
     @property
     def valid_message(self) -> bool:
         """Check the validity of the message by comparing the sent CRC with the calculated CRC."""
-
         return self.msg_crc == self.calc_crc
 
     @property
@@ -350,17 +360,22 @@ class SIAEvent(BaseEvent):
             and self.sia_account.key is not None
         ):
             x_data = f"[K{self.sia_account.key}]"
+        receiver_line = f"R{self.receiver if self.receiver else '0'}L{self.line if self.line else '0'}"
         if response_type == ResponseType.NAK:
             res = f'"{response_type.value}"0000R0L0A0[]{self._get_timestamp(self.sia_account.device_timezone)}'
         elif not self.encrypted or response_type == ResponseType.DUH:
-            res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'
+            res = f'"{response_type.value}"{self.sequence}{receiver_line}#{self.account}[]{x_data if x_data else ""}'
         else:
             encrypted_content = self.encrypt_content(
                 f']{x_data if x_data else ""}{self._get_timestamp(self.sia_account.device_timezone)}'
             )
-            res = f'"*{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[{encrypted_content}'
+            res = f'"*{response_type.value}"{self.sequence}{receiver_line}#{self.account}[{encrypted_content}'
         header = ("%04x" % len(res)).upper()
-        return f"\n{self._crc_calc(res)}{header}{res}\r".encode("ascii")
+        new_crc = self._crc_calc(res)
+        if self.binary_crc and new_crc is not None:
+            new_crc = int(new_crc, 16)
+            new_crc = str(bytes([new_crc >> 16, new_crc & 0xFF]))
+        return f"\n{new_crc}{header}{res}\r".encode("ascii")
 
     def decrypt_content(self) -> None:
         """Decrypt the content, if encrypted account, otherwise pass back the event."""
@@ -479,6 +494,7 @@ Length: {self.length}, \
 Sequence: {self.sequence}, \
 CRC: {self.msg_crc}, \
 Calc CRC: {self.calc_crc}, \
+Binary CRC: {self.binary_crc}, \
 Encrypted Content: {self.encrypted_content}, \
 Full Message: {self.full_message}."
 
@@ -535,7 +551,11 @@ class NAKEvent(BaseEvent):
         """
         res = f'"NAK"0000L0R0A0[]{self._get_timestamp()}'
         header = ("%04x" % len(res)).upper()
-        return f"\n{self._crc_calc(res)}{header}{res}\r".encode("ascii")
+        new_crc = self._crc_calc(res)
+        if self.binary_crc and new_crc is not None:
+            new_crc = int(new_crc, 16)
+            new_crc = str(bytes([new_crc >> 16, new_crc & 0xFF]))
+        return f"\n{new_crc}{header}{res}\r".encode("ascii")
 
 
 EventsType = Union[SIAEvent, OHEvent, NAKEvent]

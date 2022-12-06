@@ -26,7 +26,6 @@ class SIATCPServer(ThreadingTCPServer, BaseSIAServer):
         accounts: dict[str, SIAAccount],
         func: Callable[[SIAEvent], None],
         counts: Counter,
-        binary_crc: bool = False,
     ):
         """Create a SIA TCP Server.
 
@@ -52,7 +51,6 @@ class SIAUDPServer(ThreadingUDPServer, BaseSIAServer):
         accounts: dict[str, SIAAccount],
         func: Callable[[SIAEvent], None],
         counts: Counter,
-        binary_crc: bool = False,
     ):
         """Create a SIA UDP Server.
 
