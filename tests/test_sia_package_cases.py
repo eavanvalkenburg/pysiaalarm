@@ -298,6 +298,18 @@ class EventParsing:
             True,
         )
 
+    def case_null2(self):
+        """Input a unencrypted null event, based on issue #42."""
+        return (
+            rb'CA2F0038"NULL"0000L0#7890[#0000|0000 00 000]_22:13:29,12-29-2022',
+            "0000",
+            "Automatic Test",
+            "RP",
+            None,
+            False,
+            False,
+        )
+
     def case_wa(self):
         """Input a water alarm event."""
         return (
