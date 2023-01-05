@@ -302,7 +302,7 @@ class EventParsing:
         """Input a unencrypted null event, based on issue #42."""
         return (
             rb'CA2F0038"NULL"0000L0#7890[#0000|0000 00 000]_22:13:29,12-29-2022',
-            "0000",
+            "7890",
             "Automatic Test",
             "RP",
             None,
