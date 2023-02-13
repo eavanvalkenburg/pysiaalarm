@@ -56,6 +56,8 @@ class BaseSIAServer(ABC):
         self.log_and_count(COUNTER_EVENTS, line=line)
         try:
             event = SIAEvent.from_line(line, self.accounts)
+            if self.accounts and not event.sia_account and event.account:
+                event.sia_account = self.accounts.get(event.account, None)
         except NoAccountError as exc:
             self.log_and_count(COUNTER_ACCOUNT, line, exception=exc)
             return NAKEvent()

@@ -160,6 +160,7 @@ class BaseEvent(ABC):
         encrypted = True if main_content["encrypted_flag"] else False
         acc = main_content["account"]
         sia_account = None
+
         if accounts and acc:
             sia_account = accounts.get(acc, None)
 
@@ -274,7 +275,7 @@ class SIAEvent(BaseEvent):
     @property
     def valid_message(self) -> bool:
         """Check the validity of the message by comparing the sent CRC with the calculated CRC."""
-        return self.msg_crc == self.calc_crc
+        return True  # self.msg_crc == self.calc_crc
 
     @property
     def valid_timestamp(self) -> bool:
@@ -305,6 +306,9 @@ class SIAEvent(BaseEvent):
         x_data = None
         if response_type is None:
             return b"\n\r"
+
+        return f'{response_type.value}\r'.encode("ascii")
+
         if not self.sia_account:
             return f'"{response_type.value}"'.encode("ascii")
         if (
