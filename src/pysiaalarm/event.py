@@ -123,7 +123,7 @@ class BaseEvent(ABC):
 
     @classmethod
     def from_line(
-        cls, incoming: str, accounts: Optional[Dict[str, SIAAccount]] = None
+        cls, incoming: str, accounts: Optional[Dict[str, SIAAccount]] = None,
     ) -> SIAEvent:
         """Create a Event from a line.
 

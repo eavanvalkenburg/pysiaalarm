@@ -7,7 +7,7 @@ from typing import Callable, Dict, Tuple
 from ..account import SIAAccount
 from ..base_server import BaseSIAServer
 from ..event import SIAEvent
-from ..utils import Counter
+from ..utils import Counter, CommunicationsProtocol
 from .handler import SIATCPHandler, SIAUDPHandler
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ class SIATCPServer(ThreadingTCPServer, BaseSIAServer):
         accounts: Dict[str, SIAAccount],
         func: Callable[[SIAEvent], None],
         counts: Counter,
+        protocol: CommunicationsProtocol,
     ):
         """Create a SIA TCP Server.
 
@@ -36,7 +37,7 @@ class SIATCPServer(ThreadingTCPServer, BaseSIAServer):
 
         """
         ThreadingTCPServer.__init__(self, server_address, SIATCPHandler)
-        BaseSIAServer.__init__(self, accounts, func, counts)
+        BaseSIAServer.__init__(self, accounts, func, counts, protocol)
 
 
 class SIAUDPServer(ThreadingUDPServer, BaseSIAServer):

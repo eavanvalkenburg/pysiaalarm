@@ -7,6 +7,7 @@ import random
 import time
 
 from pysiaalarm.aio import SIAAccount, SIAClient, SIAEvent
+from pysiaalarm.utils import CommunicationsProtocol
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -23,7 +24,8 @@ async def main():
         config = json.load(f)
     account = [SIAAccount(config["account_id"], config["key"])]
     async with SIAClient(
-        config["host"], config["port"], account, function=func
+        config["host"], config["port"], account, function=func, 
+        protocol = CommunicationsProtocol.TCP | CommunicationsProtocol.OH
     ) as client:
         # client.start()
         sleep_time = 12000

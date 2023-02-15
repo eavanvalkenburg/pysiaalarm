@@ -44,12 +44,12 @@ class SIAClient(Thread, BaseSIAClient):
             )
         Thread.__init__(self)
         BaseSIAClient.__init__(self, host, port, accounts, function, protocol)
-        self.set_tcp_server() if self.protocol == CommunicationsProtocol.TCP else self.set_udp_server()
+        self.set_udp_server() if CommunicationsProtocol.UDP in self.protocol else self.set_tcp_server()
 
     def set_tcp_server(self) -> None:
         """Set the sia server to a TCP server."""
         self.sia_server = SIATCPServer(  # type: ignore
-            (self._host, self._port), self._accounts, self._func, self._counts  # type: ignore
+            (self._host, self._port), self._accounts, self._func, self._counts, self.protocol  # type: ignore
         )
 
     def set_udp_server(self) -> None:

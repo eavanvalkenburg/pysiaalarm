@@ -44,8 +44,8 @@ class SIAClient(BaseSIAClient):
         self.transport: Any = None
         self.dgprotocol: Any = None
         self.sia_server: Any = None
-        if self.protocol == CommunicationsProtocol.TCP:
-            self.sia_server = SIAServer(self._accounts, self._func, self._counts)
+        if CommunicationsProtocol.UDP != self.protocol:
+            self.sia_server = SIAServer(self._accounts, self._func, self._counts, protocol)
 
     async def __aenter__(self, **kwargs: Dict[str, Any]) -> SIAClient:
         """Start with as context manager."""
@@ -69,7 +69,7 @@ class SIAClient(BaseSIAClient):
 
         """
         _LOGGER.debug("Starting SIA.")
-        if self.protocol == CommunicationsProtocol.TCP:
+        if self.protocol != CommunicationsProtocol.UDP:
             self.coro = asyncio.start_server(
                 self.sia_server.handle_line, self._host, self._port, **kwargs
             )

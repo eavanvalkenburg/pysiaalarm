@@ -3,6 +3,7 @@ import logging
 import time
 
 from pysiaalarm import SIAAccount, SIAClient, SIAEvent
+from pysiaalarm import CommunicationsProtocol
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -18,7 +19,8 @@ with open("local_config.json", "r") as f:
 print("Config: ", config)
 account = [SIAAccount(config["account_id"], config["key"])]
 sleep_time = 1200
-with SIAClient(config["host"], config["port"], account, function=func) as client:
+with SIAClient(config["host"], config["port"], account, function=func, 
+               protocol = CommunicationsProtocol.TCP | CommunicationsProtocol.OH) as client:
     time.sleep(sleep_time)
     counts = client.counts
 
