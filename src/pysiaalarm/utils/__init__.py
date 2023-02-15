@@ -10,3 +10,4 @@ from ..data.data import (
 from .counter import Counter
 from .enums import CommunicationsProtocol, MessageTypes, ResponseType
 from .regexes import MAIN_MATCHER, OH_MATCHER, _get_matcher
+from .osborne_hoffman import OsborneHoffman

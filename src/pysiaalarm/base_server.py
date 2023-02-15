@@ -16,7 +16,7 @@ from .const import (
 )
 from .errors import EventFormatError, NoAccountError
 from .event import NAKEvent, OHEvent, SIAEvent
-from .utils import Counter
+from .utils import Counter, CommunicationsProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ class BaseSIAServer(ABC):
         accounts: Dict[str, SIAAccount],
         func: Union[Callable[[SIAEvent], Awaitable[None]], Callable[[SIAEvent], None]],
         counts: Counter,
+        protocol: CommunicationsProtocol,
     ):
         """Create a SIA Server.
 
@@ -41,6 +42,7 @@ class BaseSIAServer(ABC):
         self.func = func
         self.counts = counts
         self.shutdown_flag = False
+        self.protocol = protocol
 
     def parse_and_check_event(self, line: str) -> Union[SIAEvent, OHEvent, NAKEvent]:
         """Parse and check the line and create the event, check the account and define the response.
@@ -56,6 +58,8 @@ class BaseSIAServer(ABC):
         self.log_and_count(COUNTER_EVENTS, line=line)
         try:
             event = SIAEvent.from_line(line, self.accounts)
+            if self.accounts and not event.sia_account and event.account:
+                event.sia_account = self.accounts.get(event.account, None)
         except NoAccountError as exc:
             self.log_and_count(COUNTER_ACCOUNT, line, exception=exc)
             return NAKEvent()

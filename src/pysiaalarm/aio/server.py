@@ -8,7 +8,7 @@ from ..account import SIAAccount
 from ..base_server import BaseSIAServer
 from ..const import EMPTY_BYTES
 from ..event import NAKEvent, OHEvent, SIAEvent
-from ..utils import Counter, ResponseType
+from ..utils import Counter, ResponseType, OsborneHoffman, CommunicationsProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,6 +21,7 @@ class SIAServer(BaseSIAServer, asyncio.DatagramProtocol):
         accounts: Dict[str, SIAAccount],
         func: Callable[[SIAEvent], None],
         counts: Counter,
+        protocol: CommunicationsProtocol,
     ):
         """Create a SIA Server.
 
@@ -31,18 +32,22 @@ class SIAServer(BaseSIAServer, asyncio.DatagramProtocol):
             counts {Counter} -- counter kept by client to give insights in how many errorous events were discarded of each type.
 
         """
-        BaseSIAServer.__init__(self, accounts, func, counts)
+        BaseSIAServer.__init__(self, accounts, func, counts, protocol)
 
     async def _respond(
         self,
         event: Union[SIAEvent, OHEvent, NAKEvent],
         writer: asyncio.StreamWriter = None,
         addr: Optional[Tuple[str, int]] = None,
+        oh: OsborneHoffman = None,
     ) -> None:
         """Respond to the message using the right approach."""
         try:
             if writer:
-                writer.write(event.create_response())
+                response = event.create_response()
+                if oh:
+                    response = oh.encrypt_data(response)
+                writer.write(response)
                 await writer.drain()
                 return
             if (
@@ -64,13 +69,14 @@ class SIAServer(BaseSIAServer, asyncio.DatagramProtocol):
         data: bytes,
         writer: asyncio.StreamWriter = None,
         addr: Optional[Tuple[str, int]] = None,
+        oh: OsborneHoffman = None,
     ) -> None:
         """Handle data universally for both TCP and UDP."""
         line = str.strip(data.decode("ascii", errors="ignore"))
         if not line:  # pragma: no cover
             return
         event = self.parse_and_check_event(line)  # type: ignore
-        await self._respond(event, writer=writer, addr=addr)
+        await self._respond(event, writer=writer, addr=addr, oh=oh)
         if event and isinstance(event, SIAEvent) and event.response == ResponseType.ACK:
             await self.async_func_wrap(event)  # type: ignore
 
@@ -84,6 +90,13 @@ class SIAServer(BaseSIAServer, asyncio.DatagramProtocol):
             writer {asyncio.StreamWriter} -- StreamWriter to respond.
 
         """
+        oh = None
+
+        if CommunicationsProtocol.OH == self.protocol:
+            oh = OsborneHoffman()
+            writer.write(oh.get_scrambled_key())
+            await writer.drain()
+
         while True and not self.shutdown_flag:  # pragma: no cover  # type: ignore
             try:
                 data = await reader.read(1000)
@@ -91,7 +104,11 @@ class SIAServer(BaseSIAServer, asyncio.DatagramProtocol):
                 break
             if data == EMPTY_BYTES or reader.at_eof():
                 break
-            await self._handle_data(data, writer=writer)
+
+            if oh:
+                data = oh.decrypt_data(data)
+
+            await self._handle_data(data, writer=writer, oh=oh)
 
         writer.close()
 

@@ -9,7 +9,7 @@ oh_regex = r"""
 ^S
 (?:R)(?P<receiver>(?<=R)(?:\d{4}))
 (?:L)(?P<line>(?<=L)(?:\d{4}))
-\s+(?P<account>\w{8})\s+
+\s+(?P<account>\w{8})\s|\x00+
 \[(?P<id>\w+)\]$
 """
 OH_MATCHER = re.compile(oh_regex, re.X)

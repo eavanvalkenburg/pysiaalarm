@@ -4,7 +4,7 @@ import logging
 from socketserver import BaseRequestHandler
 
 from ..event import SIAEvent
-from ..utils import ResponseType
+from ..utils import ResponseType, OsborneHoffman, CommunicationsProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -13,6 +13,7 @@ class BaseSIAHandler(BaseRequestHandler):
     """Base case for Request handling."""
 
     _received_data = "".encode()
+    _oh = None
 
     def handle_raw_line(self, raw: bytes) -> None:
         """Handle the line."""
@@ -40,17 +41,28 @@ class SIATCPHandler(BaseSIAHandler):
 
     def handle(self) -> None:
         """Overwritten method for the RequestHandler."""
+
+        if CommunicationsProtocol.OH == self.server.protocol:
+            self._oh = OsborneHoffman()
+            self.request.sendall(self._oh.get_scrambled_key())
+
         while True and not self.server.shutdown_flag:  # type: ignore # pragma: no cover
             raw = self.request.recv(1024)
             if not raw:
                 break
+
             raw = bytearray(raw)
+            if self._oh is not None:
+                raw = self._oh.decrypt_data(raw)
             self.handle_raw_line(raw)
 
     def respond(self, event: SIAEvent) -> None:
         """Respond to the event."""
         try:
-            self.request.sendall(event.create_response())
+            raw = event.create_response()
+            if self._oh is not None:
+                raw = self._oh.encrypt_data(raw)
+            self.request.sendall(raw)
         except Exception as exp:  # pragma: no cover
             _LOGGER.error(
                 "Exception caught while responding to event: %s, exception: %s",
