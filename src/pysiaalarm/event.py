@@ -240,6 +240,35 @@ class BaseEvent(ABC):
             event["timestamp"] = datetime.fromisoformat(event["timestamp"])
         return cls(**event)
 
+    def to_dict(self, **kwargs: Any) -> dict[str, Any]:
+        """Create a dict from the dataclass.
+
+        Kwargs are only there for legacy (after no longer using dataclasses_json),
+        so remove any other arguments from this function.
+        """
+        event = deepcopy(self)
+        event.sia_account = None
+        if event.timestamp is not None and isinstance(event.timestamp, datetime):
+            event.timestamp = event.timestamp.isoformat()
+        return asdict(event)
+
+    @classmethod
+    def from_dict(cls, event: dict[str, Any]) -> BaseEvent:
+        """Create a SIA Event from a dict."""
+        if "_content_parsed" in event:
+            event.pop("_content_parsed")
+        if "_encrypted_content_decrypted" in event:
+            event.pop("_encrypted_content_decrypted")
+        if "_adm_parsed" in event:
+            event.pop("_adm_parsed")
+        if "_sia_added" in event:
+            event.pop("_sia_added")
+        if "_xdata_parsed" in event:
+            event.pop("_xdata_parsed")
+        if "timestamp" in event and event["timestamp"] is not None:
+            event["timestamp"] = datetime.fromisoformat(event["timestamp"])
+        return cls(**event)
+
 
 @dataclass
 class SIAEvent(BaseEvent):
