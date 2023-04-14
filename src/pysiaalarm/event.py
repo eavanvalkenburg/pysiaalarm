@@ -40,8 +40,8 @@ class BaseEvent(ABC):
     length: str | None = None
     encrypted: bool | None = None
     message_type: str | MessageTypes | None = None
-    receiver: str | None = None
-    line: str | None = None
+    receiver: str = "R0"
+    line: str = "L0"
     account: str | None = None
     sequence: str | None = None
 
@@ -230,6 +230,7 @@ class BaseEvent(ABC):
         return cls(**event)
 
 
+
 @dataclass
 class SIAEvent(BaseEvent):
     """Class for SIAEvents."""
@@ -346,19 +347,16 @@ class SIAEvent(BaseEvent):
         ):
             x_data = f"[K{self.sia_account.key}]"
         if response_type == ResponseType.NAK:
-            res = f'"{response_type.value}"0000R0L0A0[]{self._get_timestamp(self.sia_account.device_timezone)}'
+            res = f'"{response_type.value}"0000{self.receiver}{self.line}A0[]{self._get_timestamp(self.sia_account.device_timezone)}'
         elif not self.encrypted or response_type == ResponseType.DUH:
-            res = f'"{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[]{x_data if x_data else ""}'
+            res = f'"{response_type.value}"{self.sequence}{self.receiver}{self.line}#{self.account}[]{x_data if x_data else ""}'
         else:
             encrypted_content = self.encrypt_content(
                 f']{x_data if x_data else ""}{self._get_timestamp(self.sia_account.device_timezone)}'
             )
-            res = f'"*{response_type.value}"{self.sequence}R{self.receiver}L{self.line}#{self.account}[{encrypted_content}'
+            res = f'"*{response_type.value}"{self.sequence}{self.receiver}{self.line}#{self.account}[{encrypted_content}'
         header = ("%04x" % len(res)).upper()
         new_crc = self._crc_calc(res)
-        if self.binary_crc and new_crc is not None:
-            new_crc_int = int(new_crc, 16)
-            new_crc = str(bytes([new_crc_int >> 16, new_crc_int & 0xFF]))
         return f"\n{new_crc}{header}{res}\r".encode("ascii")
 
     def decrypt_content(self) -> None:
@@ -534,11 +532,7 @@ class NAKEvent(BaseEvent):
         """
         res = f'"NAK"0000L0R0A0[]{self._get_timestamp()}'
         header = ("%04x" % len(res)).upper()
-        new_crc = self._crc_calc(res)
-        if self.binary_crc and new_crc is not None:
-            new_crc_int = int(new_crc, 16)
-            new_crc = str(bytes([new_crc_int >> 16, new_crc_int & 0xFF]))
-        return f"\n{new_crc}{header}{res}\r".encode("ascii")
+        return f"\n{self._crc_calc(res)}{header}{res}\r".encode("ascii")
 
 
 EventsType = Union[SIAEvent, OHEvent, NAKEvent]
