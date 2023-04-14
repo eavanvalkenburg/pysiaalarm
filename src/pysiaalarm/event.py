@@ -231,8 +231,8 @@ class BaseEvent(ABC):
 
     def to_dict(self, **kwargs: Any) -> dict[str, Any]:
         """Create a dict from the dataclass.
-        
-        Kwargs are only there for legacy (after no longer using dataclasses_json), 
+
+        Kwargs are only there for legacy (after no longer using dataclasses_json),
         so remove any other arguments from this function.
         """
         event = deepcopy(self)
@@ -414,9 +414,6 @@ class SIAEvent(BaseEvent):
             res = f'"*{response_type.value}"{self.sequence}{self.receiver}{self.line}#{self.account}[{encrypted_content}'
         header = ("%04x" % len(res)).upper()
         new_crc = self._crc_calc(res)
-        if self.binary_crc and new_crc is not None:
-            new_crc_int = int(new_crc, 16)
-            new_crc = str(bytes([new_crc_int >> 16, new_crc_int & 0xFF]))
         return f"\n{new_crc}{header}{res}\r".encode("ascii")
 
     def decrypt_content(self) -> None:
