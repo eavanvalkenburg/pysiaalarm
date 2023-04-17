@@ -8,7 +8,6 @@ from collections.abc import Awaitable, Callable
 from types import TracebackType
 from typing import Any, Type
 
-from .. import __author__, __copyright__, __license__, __version__
 from ..account import SIAAccount
 from ..base_client import BaseSIAClient
 from ..event import SIAEvent
@@ -43,6 +42,7 @@ class SIAClient(BaseSIAClient):
         port: int,
         accounts: list[SIAAccount],
         function: Callable[[SIAEvent], Awaitable[None]],
+        **kwargs: Any,
     ):
         """Create the asynchronous SIA Client object.
 
