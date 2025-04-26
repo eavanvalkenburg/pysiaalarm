@@ -20,7 +20,7 @@ from .event import NAKEvent, OHEvent, SIAEvent, EventsType
 from .utils import Counter, ResponseType
 
 _LOGGER = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+
 
 class BaseSIAServer(ABC):
     """Base class for SIA Server."""
@@ -76,7 +76,7 @@ class BaseSIAServer(ABC):
         elif not event.sia_account:
             self.log_and_count(COUNTER_ACCOUNT, event=event)
         elif event.code_not_found:
-            self.log_and_count(COUNTER_CODE, event=event)
+            self.log_and_count(COUNTER_CODE, event=event, unknown_code=event.code)  # Passer le code
         elif not event.valid_timestamp:
             self.log_and_count(COUNTER_TIMESTAMP, event=event)
         return event
@@ -117,6 +117,7 @@ class BaseSIAServer(ABC):
         line: str | None = None,
         event: SIAEvent | None = None,
         exception: Exception | None = None,
+        unknown_code: str | None = None,  # Ajouter un paramètre pour le code inconnu
     ) -> None:
         """Log the appropriate line and increment the right counter."""
         if counter == COUNTER_ACCOUNT and exception is not None:
@@ -149,8 +150,10 @@ class BaseSIAServer(ABC):
             )
         if counter == COUNTER_CODE and event:
             _LOGGER.warning(
-                "Code not found, replying with DUH to account: %s", event.account
+                "Code not found (%s), replying with DUH to account: %s", unknown_code, event.account
             )
+            # Vous pouvez maintenant accéder à unknown_code ici
+            _LOGGER.debug(f"Code inconnu détecté pour l'événement {event}: {unknown_code}")
         if counter == COUNTER_TIMESTAMP and event:
             _LOGGER.warning("Event timestamp is no longer valid: %s", event.timestamp)
         if counter == COUNTER_EVENTS and line:
