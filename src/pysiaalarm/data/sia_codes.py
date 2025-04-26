@@ -1,1952 +1,1986 @@
-{
+SIA_CODES = {
     "AA": {
         "code": "AA",
+        "concerns": "Condition number",
+        "description": "An attempt to substitute an alternate alarm panel "
+        "for a secure panel has been made",
         "type": "Alarm – Panel Substitution",
-        "description": "An attempt to substitute an alternate alarm panel for a secure panel has been made",
-        "concerns": "Condition number"
     },
     "AB": {
         "code": "AB",
-        "type": "Abort",
+        "concerns": "Zone or point",
         "description": "An event message was not sent due to User action",
-        "concerns": "Zone or point"
+        "type": "Abort",
     },
     "AF": {
         "code": "AF",
-        "type": "Arming Event",
+        "concerns": "Zone or point",
         "description": "Scenario",
-        "concerns": "Zone or point"
+        "type": "Arming Event",
     },
     "AN": {
         "code": "AN",
-        "type": "Analog Restoral",
+        "concerns": "Zone or point",
         "description": "An analog fire sensor has been restored to normal operation",
-        "concerns": "Zone or point"
+        "type": "Analog Restoral",
     },
     "AR": {
         "code": "AR",
-        "type": "AC Restoral",
+        "concerns": "Unused",
         "description": "AC power has been restored",
-        "concerns": "Unused"
+        "type": "AC Restoral",
     },
     "AS": {
         "code": "AS",
-        "type": "Analog Service",
+        "concerns": "Zone or point",
         "description": "An analog fire sensor needs to be cleaned or calibrated",
-        "concerns": "Zone or point"
+        "type": "Analog Service",
     },
     "AT": {
         "code": "AT",
-        "type": "AC Trouble",
+        "concerns": "Unused",
         "description": "AC power has been failed",
-        "concerns": "Unused"
+        "type": "AC Trouble",
     },
     "BA": {
         "code": "BA",
-        "type": "Burglary Alarm",
+        "concerns": "Zone or point",
         "description": "Burglary zone has been violated while armed",
-        "concerns": "Zone or point"
+        "type": "Burglary Alarm",
     },
     "BB": {
         "code": "BB",
-        "type": "Burglary Bypass",
+        "concerns": "Zone or point",
         "description": "Burglary zone has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Burglary Bypass",
     },
     "BC": {
         "code": "BC",
-        "type": "Burglary Cancel",
+        "concerns": "User number",
         "description": "Alarm has been cancelled by authorized user",
-        "concerns": "User number"
+        "type": "Burglary Cancel",
     },
     "BD": {
         "code": "BD",
+        "concerns": "Zone or point",
+        "description": "A non-fire zone has been violated after a Swinger "
+        "Shutdown on the zone",
         "type": "Swinger Trouble",
-        "description": "A non-fire zone has been violated after a Swinger Shutdown on the zone",
-        "concerns": "Zone or point"
     },
     "BE": {
         "code": "BE",
+        "concerns": "Zone or point",
+        "description": "A non-fire zone restores to normal from a Swinger "
+        "Trouble state",
         "type": "Swinger Trouble Restore",
-        "description": "A non-fire zone restores to normal from a Swinger Trouble state",
-        "concerns": "Zone or point"
     },
     "BG": {
         "code": "BG",
+        "concerns": "Zone or point",
+        "description": "A point assigned to a Cross Point group has gone "
+        "into alarm but the Cross Point remained normal",
         "type": "Unverified Event - Burglary",
-        "description": "A point assigned to a Cross Point group has gone into alarm but the Cross Point remained normal",
-        "concerns": "Zone or point"
     },
     "BH": {
         "code": "BH",
-        "type": "Burglary Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Alarm condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Burglary Alarm Restore",
     },
     "BJ": {
         "code": "BJ",
-        "type": "Burglary Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Trouble condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Burglary Trouble Restore",
     },
     "BM": {
         "code": "BM",
-        "type": "Burglary Alarm - Cross Point",
+        "concerns": "Zone or point",
         "description": "Burglary alarm w/cross point also in alarm - alarm verified",
-        "concerns": "Zone or point"
+        "type": "Burglary Alarm - Cross Point",
     },
     "BR": {
         "code": "BR",
-        "type": "Burglary Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm/trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Burglary Restoral",
     },
     "BS": {
         "code": "BS",
-        "type": "Burglary Supervisory",
+        "concerns": "Zone or point",
         "description": "Unsafe intrusion detection system condition",
-        "concerns": "Zone or point"
+        "type": "Burglary Supervisory",
     },
     "BT": {
         "code": "BT",
-        "type": "Burglary Trouble",
+        "concerns": "Zone or point",
         "description": "Burglary zone disabled by fault",
-        "concerns": "Zone or point"
+        "type": "Burglary Trouble",
     },
     "BU": {
         "code": "BU",
-        "type": "Burglary Unbypass",
+        "concerns": "Zone or point",
         "description": "Zone bypass has been removed",
-        "concerns": "Zone or point"
+        "type": "Burglary Unbypass",
     },
     "BV": {
         "code": "BV",
+        "concerns": "Area number",
+        "description": "A burglary alarm has occurred and been verified "
+        "within programmed conditions. (zone or point not "
+        "sent)",
         "type": "Burglary Verified",
-        "description": "A burglary alarm has occurred and been verified within programmed conditions. (zone or point not sent)",
-        "concerns": "Area number"
     },
     "BX": {
         "code": "BX",
-        "type": "Burglary Test",
+        "concerns": "Zone or point",
         "description": "Burglary zone activated during testing",
-        "concerns": "Zone or point"
+        "type": "Burglary Test",
     },
     "BZ": {
         "code": "BZ",
-        "type": "Missing Supervision",
+        "concerns": "Zone or point",
         "description": "A non-fire Supervisory point has gone missing",
-        "concerns": "Zone or point"
+        "type": "Missing Supervision",
     },
     "CA": {
         "code": "CA",
-        "type": "Automatic Closing",
+        "concerns": "Area number",
         "description": "System armed automatically",
-        "concerns": "Area number"
+        "type": "Automatic Closing",
     },
     "CB": {
         "code": "CB",
-        "type": "Arming Event",
+        "concerns": "Area number",
         "description": "Group has been disarmed automatically",
-        "concerns": "Area number"
+        "type": "Arming Event",
     },
     "CC": {
         "code": "CC",
-        "type": "Arming Event",
+        "concerns": "Area number",
         "description": "Unsuccessful arming attempt",
-        "concerns": "Area number"
+        "type": "Arming Event",
     },
     "CD": {
         "code": "CD",
-        "type": "Closing Delinquent",
+        "concerns": "Area number",
         "description": "The system has not been armed for a programmed amount of time",
-        "concerns": "Area number"
+        "type": "Closing Delinquent",
     },
     "CE": {
         "code": "CE",
-        "type": "Closing Extend",
+        "concerns": "User number",
         "description": "Extend closing time",
-        "concerns": "User number"
+        "type": "Closing Extend",
     },
     "CF": {
         "code": "CF",
-        "type": "Forced Closing",
+        "concerns": "User number",
         "description": "System armed, some zones not ready",
-        "concerns": "User number"
+        "type": "Forced Closing",
     },
     "CG": {
         "code": "CG",
-        "type": "Close Area",
+        "concerns": "Area number",
         "description": "System has been partially armed",
-        "concerns": "Area number"
+        "type": "Close Area",
     },
     "CI": {
         "code": "CI",
-        "type": "Fail to Close",
+        "concerns": "Area number",
         "description": "An area has not been armed at the end of the closing window",
-        "concerns": "Area number"
+        "type": "Fail to Close",
     },
     "CJ": {
         "code": "CJ",
-        "type": "Late Close",
+        "concerns": "User number",
         "description": "An area was armed after the closing window",
-        "concerns": "User number"
+        "type": "Late Close",
     },
     "CK": {
         "code": "CK",
-        "type": "Early Close",
+        "concerns": "User number",
         "description": "An area was armed before the closing window",
-        "concerns": "User number"
+        "type": "Early Close",
     },
     "CL": {
         "code": "CL",
-        "type": "Closing Report",
+        "concerns": "User number",
         "description": "System armed, normal",
-        "concerns": "User number"
+        "type": "Closing Report",
     },
     "CM": {
         "code": "CM",
-        "type": "Missing Alarm - Recent Closing",
+        "concerns": "Zone or point",
         "description": "A point has gone missing within 2 minutes of closing",
-        "concerns": "Zone or point"
+        "type": "Missing Alarm - Recent Closing",
     },
     "CO": {
         "code": "CO",
-        "type": "Command Sent",
+        "concerns": "Condition number",
         "description": "A command has been sent to an expansion/peripheral device",
-        "concerns": "Condition number"
+        "type": "Command Sent",
     },
     "CP": {
         "code": "CP",
-        "type": "Automatic Closing",
+        "concerns": "User number",
         "description": "System armed automatically",
-        "concerns": "User number"
+        "type": "Automatic Closing",
     },
     "CQ": {
         "code": "CQ",
-        "type": "Remote Closing",
+        "concerns": "User number",
         "description": "The system was armed from a remote location",
-        "concerns": "User number"
+        "type": "Remote Closing",
     },
     "CR": {
         "code": "CR",
+        "concerns": "User number",
+        "description": "An alarm occurred within five minutes after the "
+        "system was closed",
         "type": "Recent Closing",
-        "description": "An alarm occurred within five minutes after the system was closed",
-        "concerns": "User number"
     },
     "CS": {
         "code": "CS",
-        "type": "Closing Keyswitch",
+        "concerns": "Zone or point",
         "description": "Account has been armed by keyswitch",
-        "concerns": "Zone or point"
+        "type": "Closing Keyswitch",
     },
     "CT": {
         "code": "CT",
-        "type": "Late to Open",
+        "concerns": "Area number",
         "description": "System was not disarmed on time",
-        "concerns": "Area number"
+        "type": "Late to Open",
     },
     "CW": {
         "code": "CW",
-        "type": "Was Force Armed",
+        "concerns": "Area number",
         "description": "Header for a force armed session, forced point msgs may follow",
-        "concerns": "Area number"
+        "type": "Was Force Armed",
     },
     "CX": {
         "code": "CX",
-        "type": "Custom Function Executed",
+        "concerns": "Custom Function number",
         "description": "The panel has executed a preprogrammed set of instructions",
-        "concerns": "Custom Function number"
+        "type": "Custom Function Executed",
     },
     "CZ": {
         "code": "CZ",
-        "type": "Point Closing",
+        "concerns": "Zone or point",
         "description": "A point, as opposed to a whole area or account, has closed",
-        "concerns": "Zone or point"
+        "type": "Point Closing",
     },
     "DA": {
         "code": "DA",
-        "type": "Card Assigned",
+        "concerns": "User number",
         "description": "An access ID has been added to the controller",
-        "concerns": "User number"
+        "type": "Card Assigned",
     },
     "DB": {
         "code": "DB",
-        "type": "Card Deleted",
+        "concerns": "User number",
         "description": "An access ID has been deleted from the controller",
-        "concerns": "User number"
+        "type": "Card Deleted",
     },
     "DC": {
         "code": "DC",
-        "type": "Access Closed",
+        "concerns": "Door number",
         "description": "Access to all users prohibited",
-        "concerns": "Door number"
+        "type": "Access Closed",
     },
     "DD": {
         "code": "DD",
-        "type": "Access Denied",
+        "concerns": "Door number",
         "description": "Access denied, unknown code",
-        "concerns": "Door number"
+        "type": "Access Denied",
     },
     "DE": {
         "code": "DE",
-        "type": "Request to Enter",
+        "concerns": "Door number",
         "description": "An access point was opened via a Request to Enter device",
-        "concerns": "Door number"
+        "type": "Request to Enter",
     },
     "DF": {
         "code": "DF",
-        "type": "Door Forced",
+        "concerns": "Door number",
         "description": "Door opened without access request",
-        "concerns": "Door number"
+        "type": "Door Forced",
     },
     "DG": {
         "code": "DG",
-        "type": "Access Granted",
+        "concerns": "Door number",
         "description": "Door access granted",
-        "concerns": "Door number"
+        "type": "Access Granted",
     },
     "DH": {
         "code": "DH",
-        "type": "Door Left Open - Restoral",
+        "concerns": "Door number",
         "description": "An access point in a Door Left Open state has restored",
-        "concerns": "Door number"
+        "type": "Door Left Open - Restoral",
     },
     "DI": {
         "code": "DI",
+        "concerns": "Door number",
+        "description": "Access denied because credential has not exited area "
+        "before attempting to re-enter same area",
         "type": "Access Denied – Passback",
-        "description": "Access denied because credential has not exited area before attempting to re-enter same area",
-        "concerns": "Door number"
     },
     "DJ": {
         "code": "DJ",
-        "type": "Door Forced - Trouble",
+        "concerns": "Door number",
         "description": "An access point has been forced open in an unarmed area",
-        "concerns": "Door number"
+        "type": "Door Forced - Trouble",
     },
     "DK": {
         "code": "DK",
-        "type": "Access Lockout",
+        "concerns": "Door number",
         "description": "Access denied, known code",
-        "concerns": "Door number"
+        "type": "Access Lockout",
     },
     "DL": {
         "code": "DL",
-        "type": "Door Left Open - Alarm",
+        "concerns": "Door number",
         "description": "An open access point when open time expired in an armed area",
-        "concerns": "Door number"
+        "type": "Door Left Open - Alarm",
     },
     "DM": {
         "code": "DM",
-        "type": "Door Left Open - Trouble",
+        "concerns": "Door number",
         "description": "An open access point when open time expired in an unarmed area",
-        "concerns": "Door number"
+        "type": "Door Left Open - Trouble",
     },
     "DN": {
         "code": "DN",
-        "type": "Door Left Open (non-alarm, non-trouble)",
+        "concerns": "Door number",
         "description": "An access point was open when the door cycle time expired",
-        "concerns": "Door number"
+        "type": "Door Left Open (non-alarm, non-trouble)",
     },
     "DO": {
         "code": "DO",
-        "type": "Access Open",
+        "concerns": "Door number",
         "description": "Access to authorized users allowed",
-        "concerns": "Door number"
+        "type": "Access Open",
     },
     "DP": {
         "code": "DP",
+        "concerns": "Door number",
+        "description": "An access request was denied because the request is "
+        "occurring outside the user’s authorized time "
+        "window(s)",
         "type": "Access Denied - Unauthorized Time",
-        "description": "An access request was denied because the request is occurring outside the user’s authorized time window(s)",
-        "concerns": "Door number"
     },
     "DQ": {
         "code": "DQ",
+        "concerns": "Door number",
+        "description": "An access request was denied because the user was "
+        "not authorized in this area when the area was armed",
         "type": "Access Denied - Unauthorized Arming State",
-        "description": "An access request was denied because the user was not authorized in this area when the area was armed",
-        "concerns": "Door number"
     },
     "DR": {
         "code": "DR",
-        "type": "Door Restoral",
+        "concerns": "Door number",
         "description": "Access alarm/trouble condition eliminated",
-        "concerns": "Door number"
+        "type": "Door Restoral",
     },
     "DS": {
         "code": "DS",
-        "type": "Door Station",
+        "concerns": "Door number",
         "description": "Identifies door for next report",
-        "concerns": "Door number"
+        "type": "Door Station",
     },
     "DT": {
         "code": "DT",
-        "type": "Access Trouble",
+        "concerns": "Unused",
         "description": "Access system trouble",
-        "concerns": "Unused"
+        "type": "Access Trouble",
     },
     "DU": {
         "code": "DU",
-        "type": "Dealer ID",
+        "concerns": "Dealer ID",
         "description": "Dealer ID number",
-        "concerns": "Dealer ID"
+        "type": "Dealer ID",
     },
     "DV": {
         "code": "DV",
+        "concerns": "Door number",
+        "description": "An access request was denied because the user is not "
+        "authorized in this area",
         "type": "Access Denied - Unauthorized Entry Level",
-        "description": "An access request was denied because the user is not authorized in this area",
-        "concerns": "Door number"
     },
     "DW": {
         "code": "DW",
+        "concerns": "Door number",
+        "description": "An access request was denied because the doors "
+        "associated Interlock point is open",
         "type": "Access Denied - Interlock",
-        "description": "An access request was denied because the doors associated Interlock point is open",
-        "concerns": "Door number"
     },
     "DX": {
         "code": "DX",
-        "type": "Request to Exit",
+        "concerns": "Door number",
         "description": "An access point was opened via a Request to Exit device",
-        "concerns": "Door number"
+        "type": "Request to Exit",
     },
     "DY": {
         "code": "DY",
-        "type": "Door Locked",
+        "concerns": "Door number",
         "description": "The door’s lock has been engaged",
-        "concerns": "Door number"
+        "type": "Door Locked",
     },
     "DZ": {
         "code": "DZ",
+        "concerns": "Door number",
+        "description": "An access request was denied because the door has "
+        "been placed in an Access Closed state",
         "type": "Access Denied - Door Secured",
-        "description": "An access request was denied because the door has been placed in an Access Closed state",
-        "concerns": "Door number"
     },
     "EA": {
         "code": "EA",
+        "concerns": "Zone or point",
+        "description": "An exit zone remained violated at the end of the "
+        "exit delay period",
         "type": "Exit Alarm",
-        "description": "An exit zone remained violated at the end of the exit delay period",
-        "concerns": "Zone or point"
     },
     "EE": {
         "code": "EE",
+        "concerns": "User number",
+        "description": "An exit zone remained violated at the end of the "
+        "exit delay period",
         "type": "Exit Error",
-        "description": "An exit zone remained violated at the end of the exit delay period",
-        "concerns": "User number"
     },
     "EJ": {
         "code": "EJ",
-        "type": "Expansion Tamper Restore",
+        "concerns": "Expansion device number",
         "description": "Expansion device tamper restoral",
-        "concerns": "Expansion device number"
+        "type": "Expansion Tamper Restore",
     },
     "EM": {
         "code": "EM",
-        "type": "Expansion Device Missing",
+        "concerns": "Expansion device number",
         "description": "Expansion device missing",
-        "concerns": "Expansion device number"
+        "type": "Expansion Device Missing",
     },
     "EN": {
         "code": "EN",
-        "type": "Expansion Missing Restore",
+        "concerns": "Expansion device number",
         "description": "Expansion device communications re-established",
-        "concerns": "Expansion device number"
+        "type": "Expansion Missing Restore",
     },
     "ER": {
         "code": "ER",
-        "type": "Expansion Restoral",
+        "concerns": "Expander number",
         "description": "Expansion device trouble eliminated",
-        "concerns": "Expander number"
+        "type": "Expansion Restoral",
     },
     "ES": {
         "code": "ES",
-        "type": "Expansion Device Tamper",
+        "concerns": "Expansion device number",
         "description": "Expansion device enclosure tamper",
-        "concerns": "Expansion device number"
+        "type": "Expansion Device Tamper",
     },
     "ET": {
         "code": "ET",
-        "type": "Expansion Trouble",
+        "concerns": "Expander number",
         "description": "Expansion device trouble",
-        "concerns": "Expander number"
+        "type": "Expansion Trouble",
     },
     "EX": {
         "code": "EX",
+        "concerns": "Device number",
+        "description": "A specific reportable condition is detected on an "
+        "external device",
         "type": "External Device Condition",
-        "description": "A specific reportable condition is detected on an external device",
-        "concerns": "Device number"
     },
     "EZ": {
         "code": "EZ",
-        "type": "Missing Alarm - Exit Error",
+        "concerns": "Point number",
         "description": "A point remained missing at the end of the exit delay period",
-        "concerns": "Point number"
+        "type": "Missing Alarm - Exit Error",
     },
     "FA": {
         "code": "FA",
-        "type": "Fire Alarm",
+        "concerns": "Zone or point",
         "description": "Fire condition detected",
-        "concerns": "Zone or point"
+        "type": "Fire Alarm",
     },
     "FB": {
         "code": "FB",
-        "type": "Fire Bypass",
+        "concerns": "Zone or point",
         "description": "Zone has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Fire Bypass",
     },
     "FC": {
         "code": "FC",
-        "type": "Fire Cancel",
+        "concerns": "Zone or point",
         "description": "A Fire Alarm has been cancelled by an authorized person",
-        "concerns": "Zone or point"
+        "type": "Fire Cancel",
     },
     "FG": {
         "code": "FG",
+        "concerns": "Zone or point",
+        "description": "A point assigned to a Cross Point group has gone "
+        "into alarm but the Cross Point remained normal",
         "type": "Unverified Event – Fire",
-        "description": "A point assigned to a Cross Point group has gone into alarm but the Cross Point remained normal",
-        "concerns": "Zone or point"
     },
     "FH": {
         "code": "FH",
-        "type": "Fire Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Alarm condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Fire Alarm Restore",
     },
     "FI": {
         "code": "FI",
-        "type": "Fire Test Begin",
+        "concerns": "Area number",
         "description": "The transmitter area's fire test has begun",
-        "concerns": "Area number"
+        "type": "Fire Test Begin",
     },
     "FJ": {
         "code": "FJ",
-        "type": "Fire Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Trouble condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Fire Trouble Restore",
     },
     "FK": {
         "code": "FK",
-        "type": "Fire Test End",
+        "concerns": "Area number",
         "description": "The transmitter area's fire test has ended",
-        "concerns": "Area number"
+        "type": "Fire Test End",
     },
     "FL": {
         "code": "FL",
-        "type": "Fire Alarm Silenced",
+        "concerns": "Zone or point",
         "description": "The fire panel’s sounder was silenced by command",
-        "concerns": "Zone or point"
+        "type": "Fire Alarm Silenced",
     },
     "FM": {
         "code": "FM",
+        "concerns": "Point number",
+        "description": "Fire Alarm with Cross Point also in alarm verifying "
+        "the Fire Alarm",
         "type": "Fire Alarm - Cross Point",
-        "description": "Fire Alarm with Cross Point also in alarm verifying the Fire Alarm",
-        "concerns": "Point number"
     },
     "FQ": {
         "code": "FQ",
+        "concerns": "Zone or point",
+        "description": "A fire supervisory zone that was in trouble "
+        "condition has now restored to normal",
         "type": "Fire Supervisory Trouble Restore",
-        "description": "A fire supervisory zone that was in trouble condition has now restored to normal",
-        "concerns": "Zone or point"
     },
     "FR": {
         "code": "FR",
-        "type": "Fire Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm/trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Fire Restoral",
     },
     "FS": {
         "code": "FS",
-        "type": "Fire Supervisory",
+        "concerns": "Zone or point",
         "description": "Unsafe fire detection system condition",
-        "concerns": "Zone or point"
+        "type": "Fire Supervisory",
     },
     "FT": {
         "code": "FT",
-        "type": "Fire Trouble",
+        "concerns": "Zone or point",
         "description": "Zone disabled by fault",
-        "concerns": "Zone or point"
+        "type": "Fire Trouble",
     },
     "FU": {
         "code": "FU",
-        "type": "Fire Unbypass",
+        "concerns": "Zone or point",
         "description": "Bypass has been removed",
-        "concerns": "Zone or point"
+        "type": "Fire Unbypass",
     },
     "FV": {
         "code": "FV",
+        "concerns": "Zone or point",
+        "description": "A fire supervision zone that was in alarm has "
+        "restored to normal",
         "type": "Fire Supervision Restore",
-        "description": "A fire supervision zone that was in alarm has restored to normal",
-        "concerns": "Zone or point"
     },
     "FW": {
         "code": "FW",
-        "type": "Fire Supervisory Trouble",
+        "concerns": "Zone or point",
         "description": "A fire supervisory zone is now in a trouble condition",
-        "concerns": "Zone or point"
+        "type": "Fire Supervisory Trouble",
     },
     "FX": {
         "code": "FX",
-        "type": "Fire Test",
+        "concerns": "Zone or point",
         "description": "Fire zone activated during test",
-        "concerns": "Zone or point"
+        "type": "Fire Test",
     },
     "FY": {
         "code": "FY",
-        "type": "Missing Fire Trouble",
+        "concerns": "Zone or point",
         "description": "A fire point is now logically missing",
-        "concerns": "Zone or point"
+        "type": "Missing Fire Trouble",
     },
     "FZ": {
         "code": "FZ",
-        "type": "Missing Fire Supervision",
+        "concerns": "Zone or point",
         "description": "A Fire Supervisory point has gone missing",
-        "concerns": "Zone or point"
+        "type": "Missing Fire Supervision",
     },
     "GA": {
         "code": "GA",
-        "type": "Gas Alarm",
+        "concerns": "Zone or point",
         "description": "Gas alarm condition detected",
-        "concerns": "Zone or point"
+        "type": "Gas Alarm",
     },
     "GB": {
         "code": "GB",
-        "type": "Gas Bypass",
+        "concerns": "Zone or point",
         "description": "Zone has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Gas Bypass",
     },
     "GH": {
         "code": "GH",
-        "type": "Gas Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Alarm condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Gas Alarm Restore",
     },
     "GJ": {
         "code": "GJ",
-        "type": "Gas Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Trouble condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Gas Trouble Restore",
     },
     "GR": {
         "code": "GR",
-        "type": "Gas Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm/trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Gas Restoral",
     },
     "GS": {
         "code": "GS",
-        "type": "Gas Supervisory",
+        "concerns": "Zone or point",
         "description": "Unsafe gas detection system condition",
-        "concerns": "Zone or point"
+        "type": "Gas Supervisory",
     },
     "GT": {
         "code": "GT",
-        "type": "Gas Trouble",
+        "concerns": "Zone or point",
         "description": "Zone disabled by fault",
-        "concerns": "Zone or point"
+        "type": "Gas Trouble",
     },
     "GU": {
         "code": "GU",
-        "type": "Gas Unbypass",
+        "concerns": "Zone or point",
         "description": "Bypass has been removed",
-        "concerns": "Zone or point"
+        "type": "Gas Unbypass",
     },
     "GX": {
         "code": "GX",
-        "type": "Gas Test",
+        "concerns": "Zone or point",
         "description": "Zone activated during test",
-        "concerns": "Zone or point"
+        "type": "Gas Test",
     },
     "HA": {
         "code": "HA",
-        "type": "Holdup Alarm",
+        "concerns": "Zone or point",
         "description": "Silent alarm, user under duress",
-        "concerns": "Zone or point"
+        "type": "Holdup Alarm",
     },
     "HB": {
         "code": "HB",
-        "type": "Holdup Bypass",
+        "concerns": "Zone or point",
         "description": "Zone has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Holdup Bypass",
     },
     "HH": {
         "code": "HH",
-        "type": "Holdup Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Alarm condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Holdup Alarm Restore",
     },
     "HJ": {
         "code": "HJ",
-        "type": "Holdup Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Trouble condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Holdup Trouble Restore",
     },
     "HR": {
         "code": "HR",
-        "type": "Holdup Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm/trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Holdup Restoral",
     },
     "HS": {
         "code": "HS",
-        "type": "Holdup Supervisory",
+        "concerns": "Zone or point",
         "description": "Unsafe holdup system condition",
-        "concerns": "Zone or point"
+        "type": "Holdup Supervisory",
     },
     "HT": {
         "code": "HT",
-        "type": "Holdup Trouble",
+        "concerns": "Zone or point",
         "description": "Zone disabled by fault",
-        "concerns": "Zone or point"
+        "type": "Holdup Trouble",
     },
     "HU": {
         "code": "HU",
-        "type": "Holdup Unbypass",
+        "concerns": "Zone or point",
         "description": "Bypass has been removed",
-        "concerns": "Zone or point"
+        "type": "Holdup Unbypass",
     },
     "IA": {
         "code": "IA",
-        "type": "Equipment Failure Condition",
+        "concerns": "Point number",
         "description": "A specific, reportable condition is detected on a device",
-        "concerns": "Point number"
+        "type": "Equipment Failure Condition",
     },
     "IR": {
         "code": "IR",
-        "type": "Equipment Fail - Restoral",
+        "concerns": "Point number",
         "description": "The equipment condition has been restored to normal",
-        "concerns": "Point number"
+        "type": "Equipment Fail - Restoral",
     },
     "JA": {
         "code": "JA",
+        "concerns": "Area number",
+        "description": "Too many unsuccessful attempts have been made to "
+        "enter a user ID",
         "type": "User code Tamper",
-        "description": "Too many unsuccessful attempts have been made to enter a user ID",
-        "concerns": "Area number"
     },
     "JC": {
         "code": "JC",
-        "type": "User code tamper canceled",
+        "concerns": "Area number",
         "description": "Break password restore",
-        "concerns": "Area number"
+        "type": "User code tamper canceled",
     },
     "JD": {
         "code": "JD",
-        "type": "Date Changed",
+        "concerns": "User number",
         "description": "The date was changed in the transmitter/receiver",
-        "concerns": "User number"
+        "type": "Date Changed",
     },
     "JH": {
         "code": "JH",
-        "type": "Holiday Changed",
+        "concerns": "User number",
         "description": "The transmitter's holiday schedule has been changed",
-        "concerns": "User number"
+        "type": "Holiday Changed",
     },
     "JK": {
         "code": "JK",
+        "concerns": "User number",
+        "description": "A designated user passcode has not been entered "
+        "during a scheduled time window",
         "type": "Latchkey Alert",
-        "description": "A designated user passcode has not been entered during a scheduled time window",
-        "concerns": "User number"
     },
     "JL": {
         "code": "JL",
-        "type": "Log Threshold",
+        "concerns": "Unused",
         "description": "The transmitter's log memory has reached its threshold level",
-        "concerns": "Unused"
+        "type": "Log Threshold",
     },
     "JO": {
         "code": "JO",
-        "type": "Log Overflow",
+        "concerns": "Unused",
         "description": "The transmitter's log memory has overflowed",
-        "concerns": "Unused"
+        "type": "Log Overflow",
     },
     "JP": {
         "code": "JP",
+        "concerns": "User number",
+        "description": "A designated user passcode has been used to gain "
+        "access to the premises.",
         "type": "User On Premises",
-        "description": "A designated user passcode has been used to gain access to the premises.",
-        "concerns": "User number"
     },
     "JR": {
         "code": "JR",
-        "type": "Schedule Executed",
+        "concerns": "Area number",
         "description": "An automatic scheduled event was executed",
-        "concerns": "Area number"
+        "type": "Schedule Executed",
     },
     "JS": {
         "code": "JS",
-        "type": "Schedule Changed",
+        "concerns": "User number",
         "description": "An automatic schedule was changed",
-        "concerns": "User number"
+        "type": "Schedule Changed",
     },
     "JT": {
         "code": "JT",
-        "type": "Time Changed",
+        "concerns": "User number",
         "description": "The time was changed in the transmitter/receiver",
-        "concerns": "User number"
+        "type": "Time Changed",
     },
     "JV": {
         "code": "JV",
-        "type": "User code Changed",
+        "concerns": "User number",
         "description": "A user's code has been changed",
-        "concerns": "User number"
+        "type": "User code Changed",
     },
     "JX": {
         "code": "JX",
-        "type": "User code Deleted",
+        "concerns": "User number",
         "description": "A user's code has been removed",
-        "concerns": "User number"
+        "type": "User code Deleted",
     },
     "JY": {
         "code": "JY",
-        "type": "User code Added",
+        "concerns": "User number",
         "description": "A user’s code has been added",
-        "concerns": "User number"
+        "type": "User code Added",
     },
     "JZ": {
         "code": "JZ",
-        "type": "User Level Set",
+        "concerns": "User number",
         "description": "A user’s authority level has been set",
-        "concerns": "User number"
+        "type": "User Level Set",
     },
     "KA": {
         "code": "KA",
-        "type": "Heat Alarm",
+        "concerns": "Zone or point",
         "description": "High temperature detected on premise",
-        "concerns": "Zone or point"
+        "type": "Heat Alarm",
     },
     "KB": {
         "code": "KB",
-        "type": "Heat Bypass",
+        "concerns": "Zone or point",
         "description": "Zone has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Heat Bypass",
     },
     "KH": {
         "code": "KH",
-        "type": "Heat Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Alarm condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Heat Alarm Restore",
     },
     "KJ": {
         "code": "KJ",
-        "type": "Heat Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Trouble condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Heat Trouble Restore",
     },
     "KR": {
         "code": "KR",
-        "type": "Heat Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm/trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Heat Restoral",
     },
     "KS": {
         "code": "KS",
-        "type": "Heat Supervisory",
+        "concerns": "Zone or point",
         "description": "Unsafe heat detection system condition",
-        "concerns": "Zone or point"
+        "type": "Heat Supervisory",
     },
     "KT": {
         "code": "KT",
-        "type": "Heat Trouble",
+        "concerns": "Zone or point",
         "description": "Zone disabled by fault",
-        "concerns": "Zone or point"
+        "type": "Heat Trouble",
     },
     "KU": {
         "code": "KU",
-        "type": "Heat Unbypass",
+        "concerns": "Zone or point",
         "description": "Bypass has been removed",
-        "concerns": "Zone or point"
+        "type": "Heat Unbypass",
     },
     "LB": {
         "code": "LB",
-        "type": "Local Program",
+        "concerns": "Unused",
         "description": "Begin local programming",
-        "concerns": "Unused"
+        "type": "Local Program",
     },
     "LD": {
         "code": "LD",
-        "type": "Local Program Denied",
+        "concerns": "Unused",
         "description": "Access code incorrect",
-        "concerns": "Unused"
+        "type": "Local Program Denied",
     },
     "LE": {
         "code": "LE",
-        "type": "Listen-in Ended",
+        "concerns": "Unused",
         "description": "The listen-in session has been terminated",
-        "concerns": "Unused"
+        "type": "Listen-in Ended",
     },
     "LF": {
         "code": "LF",
-        "type": "Listen-in Begin",
+        "concerns": "Unused",
         "description": "The listen-in session with the RECEIVER has begun",
-        "concerns": "Unused"
+        "type": "Listen-in Begin",
     },
     "LR": {
         "code": "LR",
-        "type": "Phone Line Restoral",
+        "concerns": "Line number",
         "description": "Phone line restored to service",
-        "concerns": "Line number"
+        "type": "Phone Line Restoral",
     },
     "LS": {
         "code": "LS",
-        "type": "Local Program Success",
+        "concerns": "Unused",
         "description": "Local programming successful",
-        "concerns": "Unused"
+        "type": "Local Program Success",
     },
     "LT": {
         "code": "LT",
-        "type": "Phone Line Trouble",
+        "concerns": "Line number",
         "description": "Phone line trouble report",
-        "concerns": "Line number"
+        "type": "Phone Line Trouble",
     },
     "LU": {
         "code": "LU",
-        "type": "Local Program Fail",
+        "concerns": "Unused",
         "description": "Local programming unsuccessful",
-        "concerns": "Unused"
+        "type": "Local Program Fail",
     },
     "LX": {
         "code": "LX",
-        "type": "Local Programming Ended",
+        "concerns": "Unused",
         "description": "A local programming session has been terminated",
-        "concerns": "Unused"
+        "type": "Local Programming Ended",
     },
     "MA": {
         "code": "MA",
-        "type": "Medical Alarm",
+        "concerns": "Zone or point",
         "description": "Emergency assistance request",
-        "concerns": "Zone or point"
+        "type": "Medical Alarm",
     },
     "MB": {
         "code": "MB",
-        "type": "Medical Bypass",
+        "concerns": "Zone or point",
         "description": "Zone has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Medical Bypass",
     },
     "MH": {
         "code": "MH",
-        "type": "Medical Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Alarm condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Medical Alarm Restore",
     },
     "MI": {
         "code": "MI",
-        "type": "Message",
+        "concerns": "Message number",
         "description": "A canned message is being sent",
-        "concerns": "Message number"
+        "type": "Message",
     },
     "MJ": {
         "code": "MJ",
-        "type": "Medical Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Trouble condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Medical Trouble Restore",
     },
     "MR": {
         "code": "MR",
-        "type": "Medical Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm/trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Medical Restoral",
     },
     "MS": {
         "code": "MS",
-        "type": "Medical Supervisory",
+        "concerns": "Zone or point",
         "description": "Unsafe system condition exists",
-        "concerns": "Zone or point"
+        "type": "Medical Supervisory",
     },
     "MT": {
         "code": "MT",
-        "type": "Medical Trouble",
+        "concerns": "Zone or point",
         "description": "Zone disabled by fault",
-        "concerns": "Zone or point"
+        "type": "Medical Trouble",
     },
     "MU": {
         "code": "MU",
-        "type": "Medical Unbypass",
+        "concerns": "Zone or point",
         "description": "Bypass has been removed",
-        "concerns": "Zone or point"
+        "type": "Medical Unbypass",
     },
     "NA": {
         "code": "NA",
+        "concerns": "Zone number",
+        "description": "There has been no zone activity for a programmed "
+        "amount of time",
         "type": "No Activity",
-        "description": "There has been no zone activity for a programmed amount of time",
-        "concerns": "Zone number"
     },
     "NB": {
         "code": "NB",
-        "type": "Arming Event",
+        "concerns": "Area number",
         "description": "Scenario",
-        "concerns": "Area number"
+        "type": "Arming Event",
     },
     "NC": {
         "code": "NC",
-        "type": "Network Condition",
+        "concerns": "Network number",
         "description": "A communications network has a specific reportable condition",
-        "concerns": "Network number"
+        "type": "Network Condition",
     },
     "ND": {
         "code": "ND",
-        "type": "Arming Event",
+        "concerns": "Area number",
         "description": "Night mode deactivated - duress",
-        "concerns": "Area number"
+        "type": "Arming Event",
     },
     "NE": {
         "code": "NE",
-        "type": "Arming Event",
+        "concerns": "Area number",
         "description": "Unsuccessful Night mode activation attempt",
-        "concerns": "Area number"
+        "type": "Arming Event",
     },
     "NF": {
         "code": "NF",
-        "type": "Forced Perimeter Arm",
+        "concerns": "Area number",
         "description": "Some zones/points not ready",
-        "concerns": "Area number"
+        "type": "Forced Perimeter Arm",
     },
     "NL": {
         "code": "NL",
-        "type": "Perimeter Armed",
+        "concerns": "Area number",
         "description": "An area has been perimeter armed",
-        "concerns": "Area number"
+        "type": "Perimeter Armed",
     },
     "NM": {
         "code": "NM",
-        "type": "Perimeter Armed, User Defined",
+        "concerns": "Area number",
         "description": "A user defined area has been perimeter armed",
-        "concerns": "Area number"
+        "type": "Perimeter Armed, User Defined",
     },
     "NO": {
         "code": "NO",
-        "type": "Arming Event",
+        "concerns": "Area number",
         "description": "Night mode deactivated automatically",
-        "concerns": "Area number"
+        "type": "Arming Event",
     },
     "NP": {
         "code": "NP",
-        "type": "Arming Event",
+        "concerns": "Zone or point",
         "description": "Night mode deactivated using device",
-        "concerns": "Zone or point"
+        "type": "Arming Event",
     },
     "NR": {
         "code": "NR",
-        "type": "Network Restoral",
+        "concerns": "Network number",
         "description": "A communications network has returned to normal operation",
-        "concerns": "Network number"
+        "type": "Network Restoral",
     },
     "NS": {
         "code": "NS",
-        "type": "Activity Resumed",
+        "concerns": "Zone number",
         "description": "A zone has detected activity after an alert",
-        "concerns": "Zone number"
+        "type": "Activity Resumed",
     },
     "NT": {
         "code": "NT",
-        "type": "Network Failure",
+        "concerns": "Network number",
         "description": "A communications network has failed",
-        "concerns": "Network number"
+        "type": "Network Failure",
     },
     "OA": {
         "code": "OA",
-        "type": "Automatic Opening",
+        "concerns": "Area number",
         "description": "System has disarmed automatically",
-        "concerns": "Area number"
+        "type": "Automatic Opening",
     },
     "OB": {
         "code": "OB",
-        "type": "Arming Event",
+        "concerns": "Area number",
         "description": "Group has been disarmed automatically",
-        "concerns": "Area number"
+        "type": "Arming Event",
     },
     "OC": {
         "code": "OC",
-        "type": "Cancel Report",
+        "concerns": "User number",
         "description": "Untyped zone cancel",
-        "concerns": "User number"
+        "type": "Cancel Report",
     },
     "OG": {
         "code": "OG",
-        "type": "Open Area",
+        "concerns": "Area number",
         "description": "System has been partially disarmed",
-        "concerns": "Area number"
+        "type": "Open Area",
     },
     "OH": {
         "code": "OH",
-        "type": "Early to Open from Alarm",
+        "concerns": "User number",
         "description": "An area in alarm was disarmed before the opening window",
-        "concerns": "User number"
+        "type": "Early to Open from Alarm",
     },
     "OI": {
         "code": "OI",
-        "type": "Fail to Open",
+        "concerns": "Area number",
         "description": "An area has not been armed at the end of the opening window",
-        "concerns": "Area number"
+        "type": "Fail to Open",
     },
     "OJ": {
         "code": "OJ",
-        "type": "Late Open",
+        "concerns": "User number",
         "description": "An area was disarmed after the opening window",
-        "concerns": "User number"
+        "type": "Late Open",
     },
     "OK": {
         "code": "OK",
-        "type": "Early Open",
+        "concerns": "User number",
         "description": "An area was disarmed before the opening window",
-        "concerns": "User number"
+        "type": "Early Open",
     },
     "OL": {
         "code": "OL",
-        "type": "Late to Open from Alarm",
+        "concerns": "User number",
         "description": "An area in alarm was disarmed after the opening window",
-        "concerns": "User number"
+        "type": "Late to Open from Alarm",
     },
     "OP": {
         "code": "OP",
-        "type": "Opening Report",
+        "concerns": "User number",
         "description": "Account was disarmed",
-        "concerns": "User number"
+        "type": "Opening Report",
     },
     "OQ": {
         "code": "OQ",
-        "type": "Remote Opening",
+        "concerns": "User number",
         "description": "The system was disarmed from a remote location",
-        "concerns": "User number"
+        "type": "Remote Opening",
     },
     "OR": {
         "code": "OR",
-        "type": "Disarm From Alarm",
+        "concerns": "User number",
         "description": "Account in alarm was reset/disarmed",
-        "concerns": "User number"
+        "type": "Disarm From Alarm",
     },
     "OS": {
         "code": "OS",
-        "type": "Opening Keyswitch",
+        "concerns": "Zone or point",
         "description": "Account has been disarmed by keyswitch",
-        "concerns": "Zone or point"
+        "type": "Opening Keyswitch",
     },
     "OT": {
         "code": "OT",
-        "type": "Late To Close",
+        "concerns": "User number",
         "description": "System was not armed on time",
-        "concerns": "User number"
+        "type": "Late To Close",
     },
     "OU": {
         "code": "OU",
-        "type": "Output State – Trouble",
+        "concerns": "Output number",
         "description": "An output on a peripheral device or NAC is not functioning",
-        "concerns": "Output number"
+        "type": "Output State – Trouble",
     },
     "OV": {
         "code": "OV",
+        "concerns": "Output number",
+        "description": "An output on a peripheral device or NAC is back to "
+        "normal operation",
         "type": "Output State – Restore",
-        "description": "An output on a peripheral device or NAC is back to normal operation",
-        "concerns": "Output number"
     },
     "OZ": {
         "code": "OZ",
-        "type": "Point Opening",
+        "concerns": "Zone or point",
         "description": "A point, rather than a full area or account, disarmed",
-        "concerns": "Zone or point"
+        "type": "Point Opening",
     },
     "PA": {
         "code": "PA",
-        "type": "Panic Alarm",
+        "concerns": "Zone or point",
         "description": "Emergency assistance request, manually activated",
-        "concerns": "Zone or point"
+        "type": "Panic Alarm",
     },
     "PB": {
         "code": "PB",
-        "type": "Panic Bypass",
+        "concerns": "Zone or point",
         "description": "Panic zone has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Panic Bypass",
     },
     "PC": {
         "code": "PC",
-        "type": "Photo on demand enabled",
+        "concerns": "User",
         "description": "Photo on demand enabled",
-        "concerns": "User"
+        "type": "Photo on demand enabled",
     },
     "PD": {
         "code": "PD",
-        "type": "Photo on demand disabled",
+        "concerns": "User",
         "description": "Photo on demand disabled",
-        "concerns": "User"
+        "type": "Photo on demand disabled",
     },
     "PE": {
         "code": "PE",
-        "type": "Photo by scenario enable",
+        "concerns": "Unused",
         "description": "Photo by alarm scenarios feature enabled for this hub",
-        "concerns": "Unused"
+        "type": "Photo by scenario enable",
     },
     "PF": {
         "code": "PF",
+        "concerns": "Zone or point",
+        "description": "MotionCam lost connection with hub over photos "
+        "communication channel",
         "type": "Malfunction",
-        "description": "MotionCam lost connection with hub over photos communication channel",
-        "concerns": "Zone or point"
     },
     "PG": {
         "code": "PG",
-        "type": "Photo by scenario disable",
+        "concerns": "Unused",
         "description": "Photo by alarm scenarios feature disabled for this hub",
-        "concerns": "Unused"
+        "type": "Photo by scenario disable",
     },
     "PH": {
         "code": "PH",
-        "type": "Panic Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Alarm condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Panic Alarm Restore",
     },
     "PJ": {
         "code": "PJ",
-        "type": "Panic Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Trouble condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Panic Trouble Restore",
     },
     "PO": {
         "code": "PO",
-        "type": "Malfunction restore",
+        "concerns": "Unused",
         "description": "Connection restored, device in room",
-        "concerns": "Unused"
+        "type": "Malfunction restore",
     },
     "PR": {
         "code": "PR",
-        "type": "Panic Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm/trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Panic Restoral",
     },
     "PS": {
         "code": "PS",
-        "type": "Panic Supervisory",
+        "concerns": "Zone or point",
         "description": "Unsafe system condition exists",
-        "concerns": "Zone or point"
+        "type": "Panic Supervisory",
     },
     "PT": {
         "code": "PT",
-        "type": "Panic Trouble",
+        "concerns": "Zone or point",
         "description": "Zone disabled by fault",
-        "concerns": "Zone or point"
+        "type": "Panic Trouble",
     },
     "PU": {
         "code": "PU",
-        "type": "Panic Unbypass",
+        "concerns": "Zone or point",
         "description": "Panic zone bypass has been removed",
-        "concerns": "Zone or point"
+        "type": "Panic Unbypass",
     },
     "QA": {
         "code": "QA",
-        "type": "Emergency Alarm",
+        "concerns": "Zone or point",
         "description": "Emergency assistance request",
-        "concerns": "Zone or point"
+        "type": "Emergency Alarm",
     },
     "QB": {
         "code": "QB",
-        "type": "Emergency Bypass",
+        "concerns": "Zone or point",
         "description": "Zone has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Emergency Bypass",
     },
     "QH": {
         "code": "QH",
-        "type": "Emergency Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Alarm condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Emergency Alarm Restore",
     },
     "QJ": {
         "code": "QJ",
-        "type": "Emergency Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Emergency Trouble Restore",
     },
     "QR": {
         "code": "QR",
-        "type": "Emergency Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm/trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Emergency Restoral",
     },
     "QS": {
         "code": "QS",
-        "type": "Emergency Supervisory",
+        "concerns": "Zone or point",
         "description": "Unsafe system condition exists",
-        "concerns": "Zone or point"
+        "type": "Emergency Supervisory",
     },
     "QT": {
         "code": "QT",
-        "type": "Emergency Trouble",
+        "concerns": "Zone or point",
         "description": "Zone disabled by fault",
-        "concerns": "Zone or point"
+        "type": "Emergency Trouble",
     },
     "QU": {
         "code": "QU",
-        "type": "Emergency Unbypass",
+        "concerns": "Zone or point",
         "description": "Bypass has been removed",
-        "concerns": "Zone or point"
+        "type": "Emergency Unbypass",
     },
     "RA": {
         "code": "RA",
-        "type": "Remote Programmer Call Failed",
+        "concerns": "Unused",
         "description": "Transmitter failed to communicate with the remote programmer",
-        "concerns": "Unused"
+        "type": "Remote Programmer Call Failed",
     },
     "RB": {
         "code": "RB",
-        "type": "Remote Program Begin",
+        "concerns": "Unused",
         "description": "Remote programming session initiated",
-        "concerns": "Unused"
+        "type": "Remote Program Begin",
     },
     "RC": {
         "code": "RC",
-        "type": "Relay Close",
+        "concerns": "Relay number",
         "description": "A relay has energized",
-        "concerns": "Relay number"
+        "type": "Relay Close",
     },
     "RD": {
         "code": "RD",
-        "type": "Remote Program Denied",
+        "concerns": "Unused",
         "description": "Access passcode incorrect",
-        "concerns": "Unused"
+        "type": "Remote Program Denied",
     },
     "RN": {
         "code": "RN",
-        "type": "Remote Reset",
+        "concerns": "Unused",
         "description": "A TRANSMITTER was reset via a remote programmer",
-        "concerns": "Unused"
+        "type": "Remote Reset",
     },
     "RO": {
         "code": "RO",
-        "type": "Relay Open",
+        "concerns": "Relay number",
         "description": "A relay has de-energized",
-        "concerns": "Relay number"
+        "type": "Relay Open",
     },
     "RP": {
         "code": "RP",
-        "type": "Automatic Test",
+        "concerns": "Unused",
         "description": "Automatic communication test report",
-        "concerns": "Unused"
+        "type": "Automatic Test",
     },
     "RR": {
         "code": "RR",
-        "type": "Power Up",
+        "concerns": "Unused",
         "description": "System lost power, is now restored",
-        "concerns": "Unused"
+        "type": "Power Up",
     },
     "RS": {
         "code": "RS",
-        "type": "Remote Program Success",
+        "concerns": "Unused",
         "description": "Remote programming successful",
-        "concerns": "Unused"
+        "type": "Remote Program Success",
     },
     "RT": {
         "code": "RT",
-        "type": "Data Lost",
+        "concerns": "Line number",
         "description": "Dialer data lost, transmission error",
-        "concerns": "Line number"
+        "type": "Data Lost",
     },
     "RU": {
         "code": "RU",
-        "type": "Remote Program Fail",
+        "concerns": "Unused",
         "description": "Remote programming unsuccessful",
-        "concerns": "Unused"
+        "type": "Remote Program Fail",
     },
     "RX": {
         "code": "RX",
-        "type": "Manual Test",
+        "concerns": "User number",
         "description": "Manual communication test report",
-        "concerns": "User number"
+        "type": "Manual Test",
     },
     "RY": {
         "code": "RY",
-        "type": "Test Off Normal",
+        "concerns": "Zone or point",
         "description": "Test signal(s) indicates abnormal condition(s) exist",
-        "concerns": "Zone or point"
+        "type": "Test Off Normal",
     },
     "SA": {
         "code": "SA",
-        "type": "Sprinkler Alarm",
+        "concerns": "Zone or point",
         "description": "Sprinkler flow condition exists",
-        "concerns": "Zone or point"
+        "type": "Sprinkler Alarm",
     },
     "SB": {
         "code": "SB",
-        "type": "Sprinkler Bypass",
+        "concerns": "Zone or point",
         "description": "Sprinkler zone has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Sprinkler Bypass",
     },
     "SC": {
         "code": "SC",
+        "concerns": "Condition number",
+        "description": "An expansion/peripheral device is reporting a new "
+        "condition or state change",
         "type": "Change of State",
-        "description": "An expansion/peripheral device is reporting a new condition or state change",
-        "concerns": "Condition number"
     },
     "SH": {
         "code": "SH",
-        "type": "Sprinkler Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Alarm condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Sprinkler Alarm Restore",
     },
     "SJ": {
         "code": "SJ",
-        "type": "Sprinkler Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Trouble condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Sprinkler Trouble Restore",
     },
     "SM": {
         "code": "SM",
-        "type": "Malfunction",
+        "concerns": "Zone or point",
         "description": "LeakProtect Malfunction",
-        "concerns": "Zone or point"
+        "type": "Malfunction",
     },
     "SR": {
         "code": "SR",
-        "type": "Sprinkler Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm/trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Sprinkler Restoral",
     },
     "SS": {
         "code": "SS",
-        "type": "Sprinkler Supervisory",
+        "concerns": "Zone or point",
         "description": "Unsafe sprinkler system condition",
-        "concerns": "Zone or point"
+        "type": "Sprinkler Supervisory",
     },
     "ST": {
         "code": "ST",
-        "type": "Sprinkler Trouble",
+        "concerns": "Zone or point",
         "description": "Zone disabled by fault",
-        "concerns": "Zone or point"
+        "type": "Sprinkler Trouble",
     },
     "SU": {
         "code": "SU",
-        "type": "Sprinkler Unbypass",
+        "concerns": "Zone or point",
         "description": "Sprinkler zone bypass has been removed",
-        "concerns": "Zone or point"
+        "type": "Sprinkler Unbypass",
     },
     "TA": {
         "code": "TA",
-        "type": "Tamper Alarm",
+        "concerns": "Zone or point",
         "description": "Alarm equipment enclosure opened",
-        "concerns": "Zone or point"
+        "type": "Tamper Alarm",
     },
     "TB": {
         "code": "TB",
-        "type": "Tamper Bypass",
+        "concerns": "Zone or point",
         "description": "Tamper detection has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Tamper Bypass",
     },
     "TC": {
         "code": "TC",
-        "type": "All Points Tested",
+        "concerns": "Unused",
         "description": "All point tested",
-        "concerns": "Unused"
+        "type": "All Points Tested",
     },
     "TE": {
         "code": "TE",
-        "type": "Test End",
+        "concerns": "Unused",
         "description": "Communicator restored to operation",
-        "concerns": "Unused"
+        "type": "Test End",
     },
     "TH": {
         "code": "TH",
+        "concerns": "Unused",
+        "description": "An Expansion Device’s tamper switch restores to "
+        "normal from an Alarm state",
         "type": "Tamper Alarm Restore",
-        "description": "An Expansion Device’s tamper switch restores to normal from an Alarm state",
-        "concerns": "Unused"
     },
     "TJ": {
         "code": "TJ",
+        "concerns": "Unused",
+        "description": "An Expansion Device’s tamper switch restores to "
+        "normal from a Trouble state",
         "type": "Tamper Trouble Restore",
-        "description": "An Expansion Device’s tamper switch restores to normal from a Trouble state",
-        "concerns": "Unused"
     },
     "TP": {
         "code": "TP",
-        "type": "Walk Test Point",
+        "concerns": "Point number",
         "description": "This point was tested during a Walk Test",
-        "concerns": "Point number"
+        "type": "Walk Test Point",
     },
     "TR": {
         "code": "TR",
-        "type": "Tamper Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm equipment enclosure has been closed",
-        "concerns": "Zone or point"
+        "type": "Tamper Restoral",
     },
     "TS": {
         "code": "TS",
-        "type": "Test Start",
+        "concerns": "Unused",
         "description": "Communicator taken out of operation",
-        "concerns": "Unused"
+        "type": "Test Start",
     },
     "TT": {
         "code": "TT",
-        "type": "Tamper Trouble",
+        "concerns": "Zone or point",
         "description": "Equipment enclosure opened in disarmed state",
-        "concerns": "Zone or point"
+        "type": "Tamper Trouble",
     },
     "TU": {
         "code": "TU",
-        "type": "Tamper Unbypass",
+        "concerns": "Zone or point",
         "description": "Tamper detection bypass has been removed",
-        "concerns": "Zone or point"
+        "type": "Tamper Unbypass",
     },
     "TW": {
         "code": "TW",
-        "type": "Area Watch Start",
+        "concerns": "Unused",
         "description": "Area watch feature has been activated",
-        "concerns": "Unused"
+        "type": "Area Watch Start",
     },
     "TX": {
         "code": "TX",
-        "type": "Test Report",
+        "concerns": "Unused",
         "description": "An unspecified (manual or automatic) communicator test",
-        "concerns": "Unused"
+        "type": "Test Report",
     },
     "TZ": {
         "code": "TZ",
-        "type": "Area Watch End",
+        "concerns": "Unused",
         "description": "Area watch feature has been deactivated",
-        "concerns": "Unused"
+        "type": "Area Watch End",
     },
     "UA": {
         "code": "UA",
-        "type": "Untyped Zone Alarm",
+        "concerns": "Zone or point",
         "description": "Alarm condition from zone of unknown type",
-        "concerns": "Zone or point"
+        "type": "Untyped Zone Alarm",
     },
     "UB": {
         "code": "UB",
-        "type": "Untyped Zone Bypass",
+        "concerns": "Zone or point",
         "description": "Zone of unknown type has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Untyped Zone Bypass",
     },
     "UG": {
         "code": "UG",
+        "concerns": "Zone or point",
+        "description": "A point assigned to a Cross Point group has gone "
+        "into alarm but the Cross Point remained normal",
         "type": "Unverified Event – Untyped",
-        "description": "A point assigned to a Cross Point group has gone into alarm but the Cross Point remained normal",
-        "concerns": "Zone or point"
     },
     "UH": {
         "code": "UH",
-        "type": "Untyped Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Alarm condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Untyped Alarm Restore",
     },
     "UJ": {
         "code": "UJ",
-        "type": "Untyped Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Trouble condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Untyped Trouble Restore",
     },
     "UR": {
         "code": "UR",
-        "type": "Untyped Zone Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm/trouble condition eliminated from zone of unknown type",
-        "concerns": "Zone or point"
+        "type": "Untyped Zone Restoral",
     },
     "US": {
         "code": "US",
-        "type": "Untyped Zone Supervisory",
+        "concerns": "Zone or point",
         "description": "Unsafe condition from zone of unknown type",
-        "concerns": "Zone or point"
+        "type": "Untyped Zone Supervisory",
     },
     "UT": {
         "code": "UT",
-        "type": "Untyped Zone Trouble",
+        "concerns": "Zone or point",
         "description": "Trouble condition from zone of unknown type",
-        "concerns": "Zone or point"
+        "type": "Untyped Zone Trouble",
     },
     "UU": {
         "code": "UU",
-        "type": "Untyped Zone Unbypass",
+        "concerns": "Zone or point",
         "description": "Bypass on zone of unknown type has been removed",
-        "concerns": "Zone or point"
+        "type": "Untyped Zone Unbypass",
     },
     "UX": {
         "code": "UX",
-        "type": "Undefined",
+        "concerns": "Unused",
         "description": "An undefined alarm condition has occurred",
-        "concerns": "Unused"
+        "type": "Undefined",
     },
     "UY": {
         "code": "UY",
-        "type": "Untyped Missing Trouble",
+        "concerns": "Zone or point",
         "description": "A point or device which was not armed is now logically missing",
-        "concerns": "Zone or point"
+        "type": "Untyped Missing Trouble",
     },
     "UZ": {
         "code": "UZ",
-        "type": "Untyped Missing Alarm",
+        "concerns": "Zone or point",
         "description": "A point or device which was armed is now logically missing",
-        "concerns": "Zone or point"
+        "type": "Untyped Missing Alarm",
     },
     "VI": {
         "code": "VI",
-        "type": "Printer Paper In",
+        "concerns": "Printer number",
         "description": "TRANSMITTER or RECEIVER paper in",
-        "concerns": "Printer number"
+        "type": "Printer Paper In",
     },
     "VO": {
         "code": "VO",
-        "type": "Printer Paper Out",
+        "concerns": "Printer number",
         "description": "TRANSMITTER or RECEIVER paper out",
-        "concerns": "Printer number"
+        "type": "Printer Paper Out",
     },
     "VR": {
         "code": "VR",
-        "type": "Printer Restore",
+        "concerns": "Printer number",
         "description": "TRANSMITTER or RECEIVER trouble restored",
-        "concerns": "Printer number"
+        "type": "Printer Restore",
     },
     "VT": {
         "code": "VT",
-        "type": "Printer Trouble",
+        "concerns": "Printer number",
         "description": "TRANSMITTER or RECEIVER trouble",
-        "concerns": "Printer number"
+        "type": "Printer Trouble",
     },
     "VX": {
         "code": "VX",
-        "type": "Printer Test",
+        "concerns": "Printer number",
         "description": "TRANSMITTER or RECEIVER test",
-        "concerns": "Printer number"
+        "type": "Printer Test",
     },
     "VY": {
         "code": "VY",
-        "type": "Printer Online",
+        "concerns": "Unused",
         "description": "RECEIVER’S printer is now online",
-        "concerns": "Unused"
+        "type": "Printer Online",
     },
     "VZ": {
         "code": "VZ",
-        "type": "Printer Offline",
+        "concerns": "Unused",
         "description": "RECEIVER’S printer is now offline",
-        "concerns": "Unused"
+        "type": "Printer Offline",
     },
     "WA": {
         "code": "WA",
-        "type": "Water Alarm",
+        "concerns": "Zone or point",
         "description": "Water detected at protected premises",
-        "concerns": "Zone or point"
+        "type": "Water Alarm",
     },
     "WB": {
         "code": "WB",
-        "type": "Water Bypass",
+        "concerns": "Zone or point",
         "description": "Water detection has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Water Bypass",
     },
     "WH": {
         "code": "WH",
-        "type": "Water Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Water alarm condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Water Alarm Restore",
     },
     "WJ": {
         "code": "WJ",
-        "type": "Water Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Water trouble condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Water Trouble Restore",
     },
     "WR": {
         "code": "WR",
-        "type": "Water Restoral",
+        "concerns": "Zone or point",
         "description": "Water alarm/trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Water Restoral",
     },
     "WS": {
         "code": "WS",
-        "type": "Water Supervisory",
+        "concerns": "Zone or point",
         "description": "Water unsafe water detection system condition",
-        "concerns": "Zone or point"
+        "type": "Water Supervisory",
     },
     "WT": {
         "code": "WT",
-        "type": "Water Trouble",
+        "concerns": "Zone or point",
         "description": "Water zone disabled by fault",
-        "concerns": "Zone or point"
+        "type": "Water Trouble",
     },
     "WU": {
         "code": "WU",
-        "type": "Water Unbypass",
+        "concerns": "Zone or point",
         "description": "Water detection bypass has been removed",
-        "concerns": "Zone or point"
+        "type": "Water Unbypass",
     },
     "XA": {
         "code": "XA",
-        "type": "Extra Account Report",
+        "concerns": "Unused",
         "description": "CS RECEIVER has received an event from a non-existent account",
-        "concerns": "Unused"
+        "type": "Extra Account Report",
     },
     "XC": {
         "code": "XC",
-        "type": "Malfunction restore",
+        "concerns": "Unused",
         "description": "Connection restored, device in room",
-        "concerns": "Unused"
+        "type": "Malfunction restore",
     },
     "XE": {
         "code": "XE",
-        "type": "Extra Point",
+        "concerns": "Point number",
         "description": "Panel has sensed an extra point not specified for this site",
-        "concerns": "Point number"
+        "type": "Extra Point",
     },
     "XF": {
         "code": "XF",
-        "type": "Extra RF Point",
+        "concerns": "Point number",
         "description": "Panel has sensed an extra RF point not specified for this site",
-        "concerns": "Point number"
+        "type": "Extra RF Point",
     },
     "XH": {
         "code": "XH",
-        "type": "RF Interference Restoral",
+        "concerns": "Receiver number",
         "description": "A radio device is no longer detecting RF Interference",
-        "concerns": "Receiver number"
+        "type": "RF Interference Restoral",
     },
     "XI": {
         "code": "XI",
-        "type": "Sensor Reset",
+        "concerns": "Zone or point",
         "description": "A user has reset a sensor",
-        "concerns": "Zone or point"
+        "type": "Sensor Reset",
     },
     "XJ": {
         "code": "XJ",
-        "type": "RF Receiver Tamper Restoral",
+        "concerns": "Receiver number",
         "description": "A Tamper condition at a premises RF Receiver has been restored",
-        "concerns": "Receiver number"
+        "type": "RF Receiver Tamper Restoral",
     },
     "XL": {
         "code": "XL",
+        "concerns": "Receiver number",
+        "description": "The RF signal strength of a reported event is below "
+        "minimum level",
         "type": "Low Received Signal Strength/Connection Lost",
-        "description": "The RF signal strength of a reported event is below minimum level",
-        "concerns": "Receiver number"
     },
     "XM": {
         "code": "XM",
-        "type": "Missing Alarm - Cross Point",
+        "concerns": "Zone or point",
         "description": "Missing Alarm verified by Cross Point in Alarm (or missing)",
-        "concerns": "Zone or point"
+        "type": "Missing Alarm - Cross Point",
     },
     "XQ": {
         "code": "XQ",
-        "type": "RF Interference",
+        "concerns": "Receiver number",
         "description": "A radio device is detecting RF Interference",
-        "concerns": "Receiver number"
+        "type": "RF Interference",
     },
     "XR": {
         "code": "XR",
-        "type": "Transmitter Battery Restoral",
+        "concerns": "Zone or point",
         "description": "Low battery has been corrected",
-        "concerns": "Zone or point"
+        "type": "Transmitter Battery Restoral",
     },
     "XS": {
         "code": "XS",
-        "type": "RF Receiver Tamper",
+        "concerns": "Receiver number",
         "description": "A Tamper condition at a premises receiver is detected",
-        "concerns": "Receiver number"
+        "type": "RF Receiver Tamper",
     },
     "XT": {
         "code": "XT",
-        "type": "Transmitter Battery Trouble",
+        "concerns": "Zone or point",
         "description": "Low battery in wireless transmitter",
-        "concerns": "Zone or point"
+        "type": "Transmitter Battery Trouble",
     },
     "XW": {
         "code": "XW",
-        "type": "Forced Point",
+        "concerns": "Zone or point",
         "description": "A point was forced out of the system at arm time",
-        "concerns": "Zone or point"
+        "type": "Forced Point",
     },
     "XX": {
         "code": "XX",
-        "type": "Fail to Test",
+        "concerns": "Unused",
         "description": "A specific test from a panel was not received",
-        "concerns": "Unused"
+        "type": "Fail to Test",
     },
     "YA": {
         "code": "YA",
+        "concerns": "Unused",
+        "description": "A trouble condition has been detected on a Local "
+        "Bell, Siren, or Annunciator",
         "type": "Bell Fault",
-        "description": "A trouble condition has been detected on a Local Bell, Siren, or Annunciator",
-        "concerns": "Unused"
     },
     "YB": {
         "code": "YB",
-        "type": "Busy Seconds",
+        "concerns": "Line card number",
         "description": "Percent of time receiver's line card is on-line",
-        "concerns": "Line card number"
+        "type": "Busy Seconds",
     },
     "YC": {
         "code": "YC",
-        "type": "Communications Fail",
+        "concerns": "Unused",
         "description": "RECEIVER and TRANSMITTER",
-        "concerns": "Unused"
+        "type": "Communications Fail",
     },
     "YD": {
         "code": "YD",
-        "type": "Receiver Line Card Trouble",
+        "concerns": "Line card number",
         "description": "A line card identified by the passed address is in trouble",
-        "concerns": "Line card number"
+        "type": "Receiver Line Card Trouble",
     },
     "YE": {
         "code": "YE",
-        "type": "Receiver Line Card Restored",
+        "concerns": "Line card number",
         "description": "A line card identified by the passed address is restored",
-        "concerns": "Line card number"
+        "type": "Receiver Line Card Restored",
     },
     "YF": {
         "code": "YF",
-        "type": "Parameter Checksum Fail",
+        "concerns": "Unused",
         "description": "System data corrupted",
-        "concerns": "Unused"
+        "type": "Parameter Checksum Fail",
     },
     "YG": {
         "code": "YG",
-        "type": "Parameter Changed",
+        "concerns": "Unused",
         "description": "A TRANSMITTER’S parameters have been changed",
-        "concerns": "Unused"
+        "type": "Parameter Changed",
     },
     "YH": {
         "code": "YH",
+        "concerns": "Unused",
+        "description": "A trouble condition has been restored on a Local "
+        "Bell, Siren, or Annunciator",
         "type": "Bell Restored",
-        "description": "A trouble condition has been restored on a Local Bell, Siren, or Annunciator",
-        "concerns": "Unused"
     },
     "YI": {
         "code": "YI",
-        "type": "Overcurrent Trouble",
+        "concerns": "Unused",
         "description": "An Expansion Device has detected an overcurrent condition",
-        "concerns": "Unused"
+        "type": "Overcurrent Trouble",
     },
     "YJ": {
         "code": "YJ",
-        "type": "Overcurrent Restore",
+        "concerns": "Unused",
         "description": "An Expansion Device has restored from an overcurrent condition",
-        "concerns": "Unused"
+        "type": "Overcurrent Restore",
     },
     "YK": {
         "code": "YK",
-        "type": "Communications Restoral",
+        "concerns": "Unused",
         "description": "TRANSMITTER has resumed communication with a RECEIVER",
-        "concerns": "Unused"
+        "type": "Communications Restoral",
     },
     "YM": {
         "code": "YM",
-        "type": "System Battery Missing",
+        "concerns": "Unused",
         "description": "TRANSMITTER/RECEIVER battery is missing",
-        "concerns": "Unused"
+        "type": "System Battery Missing",
     },
     "YN": {
         "code": "YN",
-        "type": "Invalid Report",
+        "concerns": "Unused",
         "description": "TRANSMITTER has sent a packet with invalid data",
-        "concerns": "Unused"
+        "type": "Invalid Report",
     },
     "YO": {
         "code": "YO",
-        "type": "Unknown Message",
+        "concerns": "Unused",
         "description": "An unknown message was received from automation or the printer",
-        "concerns": "Unused"
+        "type": "Unknown Message",
     },
     "YP": {
         "code": "YP",
-        "type": "Power Supply Trouble",
+        "concerns": "Unused",
         "description": "TRANSMITTER/RECEIVER has a problem with the power supply",
-        "concerns": "Unused"
+        "type": "Power Supply Trouble",
     },
     "YQ": {
         "code": "YQ",
-        "type": "Power Supply Restored",
+        "concerns": "Unused",
         "description": "TRANSMITTER’S/RECEIVER’S power supply has been restored",
-        "concerns": "Unused"
+        "type": "Power Supply Restored",
     },
     "YR": {
         "code": "YR",
-        "type": "System Battery Restoral",
+        "concerns": "Unused",
         "description": "Low battery has been corrected",
-        "concerns": "Unused"
+        "type": "System Battery Restoral",
     },
     "YS": {
         "code": "YS",
-        "type": "Communications Trouble",
+        "concerns": "Unused",
         "description": "RECEIVER and TRANSMITTER",
-        "concerns": "Unused"
+        "type": "Communications Trouble",
     },
     "YT": {
         "code": "YT",
-        "type": "System Battery Trouble",
+        "concerns": "Unused",
         "description": "Low battery in control/communicator",
-        "concerns": "Unused"
+        "type": "System Battery Trouble",
     },
     "YU": {
         "code": "YU",
-        "type": "Diagnostic Error",
+        "concerns": "Condition number",
         "description": "An expansion/peripheral device is reporting a diagnostic error",
-        "concerns": "Condition number"
+        "type": "Diagnostic Error",
     },
     "YW": {
         "code": "YW",
-        "type": "Watchdog Reset",
+        "concerns": "Unused",
         "description": "The TRANSMITTER created an internal reset",
-        "concerns": "Unused"
+        "type": "Watchdog Reset",
     },
     "YX": {
         "code": "YX",
-        "type": "Service Required",
+        "concerns": "Unused",
         "description": "A TRANSMITTER/RECEIVER needs service",
-        "concerns": "Unused"
+        "type": "Service Required",
     },
     "YY": {
         "code": "YY",
-        "type": "Status Report",
+        "concerns": "Unused",
         "description": "This is a header for an account status report transmission",
-        "concerns": "Unused"
+        "type": "Status Report",
     },
     "YZ": {
         "code": "YZ",
-        "type": "Service Completed",
+        "concerns": "Mfr defined",
         "description": "Required TRANSMITTER / RECEIVER service completed",
-        "concerns": "Mfr defined"
+        "type": "Service Completed",
     },
     "ZA": {
         "code": "ZA",
-        "type": "Freeze Alarm",
+        "concerns": "Zone or point",
         "description": "Low temperature detected at premises",
-        "concerns": "Zone or point"
+        "type": "Freeze Alarm",
     },
     "ZB": {
         "code": "ZB",
-        "type": "Freeze Bypass",
+        "concerns": "Zone or point",
         "description": "Low temperature detection has been bypassed",
-        "concerns": "Zone or point"
+        "type": "Freeze Bypass",
     },
     "ZH": {
         "code": "ZH",
-        "type": "Freeze Alarm Restore",
+        "concerns": "Zone or point",
         "description": "Alarm condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Freeze Alarm Restore",
     },
     "ZJ": {
         "code": "ZJ",
-        "type": "Freeze Trouble Restore",
+        "concerns": "Zone or point",
         "description": "Trouble condition eliminated",
-        "concerns": "Zone or point"
+        "type": "Freeze Trouble Restore",
     },
     "ZR": {
         "code": "ZR",
-        "type": "Freeze Restoral",
+        "concerns": "Zone or point",
         "description": "Alarm/trouble condition has been eliminated",
-        "concerns": "Zone or point"
+        "type": "Freeze Restoral",
     },
     "ZS": {
         "code": "ZS",
-        "type": "Freeze Supervisory",
+        "concerns": "Zone or point",
         "description": "Unsafe freeze detection system condition",
-        "concerns": "Zone or point"
+        "type": "Freeze Supervisory",
     },
     "ZT": {
         "code": "ZT",
-        "type": "Freeze Trouble",
+        "concerns": "Zone or point",
         "description": "Zone disabled by fault",
-        "concerns": "Zone or point"
+        "type": "Freeze Trouble",
     },
     "ZU": {
         "code": "ZU",
-        "type": "Freeze Unbypass",
+        "concerns": "Zone or point",
         "description": "Low temperature detection bypass removed",
-        "concerns": "Zone or point"
+        "type": "Freeze Unbypass",
     },
     "ZY": {
         "code": "ZY",
-        "type": "Common Event",
+        "concerns": "Hub",
         "description": "Device was switched on",
-        "concerns": "Hub"
+        "type": "Common Event",
     },
     "ZZ": {
         "code": "ZZ",
-        "type": "Common Event",
+        "concerns": "Hub",
         "description": "Device was switched off",
-        "concerns": "Hub"
-    }
+        "type": "Common Event",
+    },
 }
