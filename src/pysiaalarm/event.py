@@ -28,7 +28,7 @@ from .utils import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-
+_LOGGER.setLevel(logging.DEBUG)
 
 @dataclass  # type: ignore
 class BaseEvent(ABC):
