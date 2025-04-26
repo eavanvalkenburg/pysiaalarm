@@ -12,10 +12,23 @@ SIA_CODES = {
         "description": "An event message was not sent due to User action",
         "type": "Abort",
     },
+    "AE": {
+        "code": "AE",
+        "concerns": "User number",
+        "description": "System armed by user",
+        "type": "Arming Event",
+    },
     "AF": {
         "code": "AF",
         "concerns": "Zone or point",
         "description": "Scenario",
+        "type": "Arming Event",
+    }
+    ,
+    "AI": {
+        "code": "AI",
+        "concerns": "Area number",  # Or potentially Zone/Point depending on context
+        "description": "System armed instantly",
         "type": "Arming Event",
     },
     "AN": {
@@ -41,6 +54,18 @@ SIA_CODES = {
         "concerns": "Unused",
         "description": "AC power has been failed",
         "type": "AC Trouble",
+    },
+    "AU": {
+        "code": "AU",
+        "concerns": "Area number",
+        "description": "System armed automatically",
+        "type": "Arming Event",
+    },
+    "AY": {
+        "code": "AY",
+        "concerns": "User number",
+        "description": "System armed with zones bypassed",
+        "type": "Arming Event",
     },
     "BA": {
         "code": "BA",
@@ -1983,4 +2008,5 @@ SIA_CODES = {
         "description": "Device was switched off",
         "type": "Common Event",
     },
+
 }
