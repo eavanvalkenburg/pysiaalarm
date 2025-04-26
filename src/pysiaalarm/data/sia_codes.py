@@ -12,23 +12,10 @@ SIA_CODES = {
         "description": "An event message was not sent due to User action",
         "type": "Abort",
     },
-    "AE": {
-        "code": "AE",
-        "concerns": "User number",
-        "description": "System armed by user",
-        "type": "Arming Event",
-    },
     "AF": {
         "code": "AF",
         "concerns": "Zone or point",
         "description": "Scenario",
-        "type": "Arming Event",
-    }
-    ,
-    "AI": {
-        "code": "AI",
-        "concerns": "Area number",  # Or potentially Zone/Point depending on context
-        "description": "System armed instantly",
         "type": "Arming Event",
     },
     "AN": {
@@ -54,18 +41,6 @@ SIA_CODES = {
         "concerns": "Unused",
         "description": "AC power has been failed",
         "type": "AC Trouble",
-    },
-    "AU": {
-        "code": "AU",
-        "concerns": "Area number",
-        "description": "System armed automatically",
-        "type": "Arming Event",
-    },
-    "AY": {
-        "code": "AY",
-        "concerns": "User number",
-        "description": "System armed with zones bypassed",
-        "type": "Arming Event",
     },
     "BA": {
         "code": "BA",
@@ -2008,5 +1983,59 @@ SIA_CODES = {
         "description": "Device was switched off",
         "type": "Common Event",
     },
-
+    "AE": {
+        "code": "AE",
+        "concerns": "Hub/Device", # Estimation basée sur la description
+        "description": "hub switched to battery saving mode / ended call from company [...] due to error", # Note: Apparaît 2 fois avec des descriptions différentes dans le CSV
+        "type": "Malfunction",
+    },
+    "AG": {
+        "code": "AG",
+        "concerns": "Call/Device", # Estimation basée sur la description
+        "description": "ended call to company [...] via [device] in [room]",
+        "type": "Common Event",
+    },
+    "AH": {
+        "code": "AH",
+        "concerns": "Call/Device", # Estimation basée sur la description
+        "description": "started call to company [...] via [device] in [room]",
+        "type": "Common Event",
+    },
+    "AI": {
+        "code": "AI",
+        "concerns": "Call/Device", # Estimation basée sur la description
+        "description": "ended call to company [...] via [device] in [room] due to error",
+        "type": "Malfunction",
+    },
+    "AY": {
+        "code": "AY",
+        "concerns": "Hub", # Estimation basée sur la description
+        "description": "hub exited battery saving mode",
+        "type": "Malfunction Restore",
+    },
+    "HV": {
+        "code": "HV",
+        "concerns": "System", # Estimation basée sur la description
+        "description": "Hold-up alarm is confirmed",
+        "type": "Alarm",
+    },
+    "KG": {
+        "code": "KG",
+        "concerns": "Keypad/User", # Estimation basée sur la description
+        "description": "keypad unlocked on expiration of auto-lock time / keypad unlocked from the app by [user]", # Note: Apparaît 2 fois avec des descriptions similaires
+        "type": "Malfunction Restore",
+    },
+    "RL": {
+        "code": "RL",
+        "concerns": "Keypad/Switch", # Estimation basée sur la description
+        "description": "keypad locked due to unauthorized access attempt / arm switch locked due to device lid being open", # Note: Apparaît 2 fois avec des descriptions différentes
+        "type": "Malfunction",
+    },
+    "RG": {
+        "code": "RG",
+        "concerns": "Switch/User", # Estimation basée sur la description
+        "description": "arm switch unlocked from the app by [user]",
+        "type": "Malfunction Restore",
+    },
+    
 }
