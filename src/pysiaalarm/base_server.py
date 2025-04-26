@@ -20,7 +20,7 @@ from .event import NAKEvent, OHEvent, SIAEvent, EventsType
 from .utils import Counter, ResponseType
 
 _LOGGER = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 
 class BaseSIAServer(ABC):
     """Base class for SIA Server."""
