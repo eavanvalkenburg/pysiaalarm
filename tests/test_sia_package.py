@@ -272,7 +272,7 @@ class testSIA(object):
     @parametrize_with_cases("fault", prefix="fault_")
     async def test_clients(
         self,
-        event_loop,
+        #event_loop,
         unused_tcp_port_factory,
         events,
         client,
