@@ -1,7 +1,6 @@
 name: Build and Release
 
 on:
-  push:
   release:
     types: [created, edited]
 
