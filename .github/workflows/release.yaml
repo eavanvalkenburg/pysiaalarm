@@ -9,7 +9,7 @@ on:
 # Définit les permissions nécessaires pour l'action de publication
 permissions:
   contents: read # Autorise à lire le contenu du dépôt
-  # id-token: write # Décommentez cette ligne si vous utilisez l'authentification OIDC "Trusted Publishing" (plus avancé)
+  id-token: write
 
 jobs:
   # Tâche unique pour construire et publier
