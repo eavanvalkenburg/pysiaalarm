@@ -182,7 +182,7 @@ class BaseEvent(ABC):
                 .astimezone(device_timezone)
                 .strftime("_%H:%M:%S,%m-%d-%Y")
             )
-        return datetime.utcnow().strftime("_%H:%M:%S,%m-%d-%Y")
+        return datetime.now(timezone.utc).strftime("_%H:%M:%S,%m-%d-%Y")
 
     @staticmethod
     def _crc_calc(msg: str | None) -> str | None:

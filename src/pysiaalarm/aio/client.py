@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
+import inspect
 import logging
 from collections.abc import Awaitable, Callable
 from types import TracebackType
@@ -54,7 +55,7 @@ class SIAClient(BaseSIAClient):
             protocol {CommunicationsProtocol Enum} -- CommunicationsProtocol to use, TCP or UDP.
 
         """
-        if not asyncio.iscoroutinefunction(function):
+        if not inspect.iscoroutinefunction(function):
             raise TypeError("Function should be a coroutine, create with async def.")
         BaseSIAClient.__init__(self, host, port, accounts, self.protocol)
         self._func = function

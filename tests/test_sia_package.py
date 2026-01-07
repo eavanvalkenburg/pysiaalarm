@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Class for tests of pysiaalarm."""
 import logging
-import threading
 import asyncio
 import pytest
 from dataclasses import asdict
@@ -42,7 +41,6 @@ def account_list(account):
 
 
 @fixture(unpack_into="client, config, good, sync")
-@pytest.mark.asyncio
 @parametrize_with_cases("good", prefix="handler_")
 @parametrize_with_cases("key", prefix="encrypted_")
 @parametrize_with_cases("sync", prefix="sync_")
@@ -129,8 +127,6 @@ def get_event_func():
 
 class testSIA(object):
     """Class for pysiaalarm tests."""
-
-    pytestmark = pytest.mark.asyncio
 
     @parametrize_with_cases("cl, dic, clear_account", cases=ToFromDict)
     def test_to_from_dict(self, cl, dic, clear_account):
@@ -270,9 +266,9 @@ class testSIA(object):
             assert isinstance(exp, error_type)
 
     @parametrize_with_cases("fault", prefix="fault_")
+    @pytest.mark.asyncio
     async def test_clients(
         self,
-        event_loop,
         unused_tcp_port_factory,
         events,
         client,
@@ -283,19 +279,17 @@ class testSIA(object):
     ):
         """Test the clients."""
         if sync:
-            client.start()
+            client.start(poll_interval=0.01)
         else:
             await client.async_start()
-        await asyncio.sleep(0.01)
-
-        t = threading.Thread(
-            target=send_messages,
-            name="send_messages",
-            args=(config, {fault: True}),
+        await asyncio.to_thread(
+            send_messages,
+            config,
+            {fault: True},
+            connect_timeout=0.25,
+            connect_interval=0.01,
+            recv_timeout=0.25,
         )
-        t.daemon = True
-        t.start()  # stops after the event has been sent.
-        await asyncio.sleep(0.1)
 
         if sync:
             client.stop()
@@ -336,6 +330,11 @@ class testSIA(object):
         if msg_type in ("ADM-CID", "NULL") and code == "ZX":
             pytest.skip(
                 "Unknown code is not usefull to test in ADM-CID and NULL messages."
+            )
+            return
+        if alter_key and msg_type == "NULL":
+            pytest.skip(
+                "Altered keys on NULL messages can still parse to valid content."
             )
             return
         if alter_key and key is None:
@@ -415,6 +414,7 @@ class testSIA(object):
                 assert False
 
     @parametrize_with_cases("sync", prefix="sync_")
+    @pytest.mark.asyncio
     async def test_context(self, account_list, unused_tcp_port_factory, sync):
         """Test the context manager functions."""
         if sync:

@@ -1,4 +1,15 @@
-XDATA = {
+from typing import TypedDict
+
+
+class XDataEntry(TypedDict):
+    characters: str
+    description: str
+    identifier: str
+    length: int
+    name: str
+
+
+XDATA: dict[str, XDataEntry] = {
     "A": {
         "characters": "ASCII",
         "description": "A hash of the message that allows the message to be "

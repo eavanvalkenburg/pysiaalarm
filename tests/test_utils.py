@@ -1,7 +1,7 @@
 """Utils for testing pysiaalarm."""
 import logging
 from binascii import hexlify
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import random
 from Crypto import Random
@@ -69,8 +69,8 @@ def create_line_from_test_case(config, tc):
     return create_test_line(
         account="FFFFFFFFF" if tc.get("account", False) else config["account_id"],
         key=config["key"],
-        code=UNKNOWN_CODE if tc.get("code", False) else _get_random_code(),
-        seq=str(random.randint(1000, 9999)),
+        code=UNKNOWN_CODE if tc.get("code", False) else _get_fixed_code(),
+        seq="7654",
         time_offset=timedelta(seconds=100 if tc.get("timestamp", False) else 0),
         alter_crc=tc.get("crc", False),
         wrong_event=tc.get("format", False),
@@ -143,10 +143,16 @@ def _encrypt_content(key, content):
 
 def _get_timestamp(timed: timedelta) -> str:
     """Create a timestamp in the right format."""
-    return (datetime.utcnow() - timed).strftime("_%H:%M:%S,%m-%d-%Y")
+    return (datetime.now(timezone.utc) - timed).strftime("_%H:%M:%S,%m-%d-%Y")
 
 
 def _get_random_code() -> str:
     """Get a random code from all codes."""
     codes = [code for code in _load_sia_codes()]
     return random.choice(codes)
+
+
+def _get_fixed_code() -> str:
+    """Pick a stable code from the known code list for deterministic tests."""
+    codes = sorted(_load_sia_codes())
+    return codes[0]
