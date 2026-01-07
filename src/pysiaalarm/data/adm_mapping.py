@@ -121,4 +121,42 @@ ADM_MAPPING = {
     "632": {"1": "JS", "3": "JS"},
     "654": {"1": "NA", "3": "NA"},
     "900": {"1": "RR", "3": "RR"},
+    # --- Début des ajouts basés sur le CSV Ajax ---
+    "129": {"1": "HV"}, # Hold-up Confirmé (Événement seul)
+    "141": {"1": "BS", "3": "BJ"}, # Ring Disconnected/Connected Back
+    "142": {"1": "BS", "3": "BJ"}, # Short-Circuit/Restore (utilisé plusieurs fois)
+    "145": {"1": "TA", "3": "TR"}, # Hub Lid Open/Closed
+    "305": {"1": "ZY"}, # Device Switched On (Événement seul)
+    "306": {"1": "XI"}, # Device Reset to Factory (Événement seul)
+    "308": {"1": "ZZ"}, # Device Switched Off (Événement seul)
+    "314": {"1": "UT", "3": "UJ"}, # Power Unit Faulty/OK
+    "315": {"1": "US", "3": "UR"}, # Bolt Lock Unlocked/Locked
+    "351": {"1": "YS"}, # Server Connection Ethernet Lost (Pas de R351 -> YZ trouvé clairement)
+    "353": {"1": "YX"}, # vhf Bridge Not Responding (Pas de restauration claire)
+    "354": {"1": "YS"}, # Monitoring Connection Lost (Pas de restauration claire)
+    "374": {"1": "EA"}, # Device Not Closed During Arming (Événement seul)
+    "383": {"1": "TB", "3": "TU"}, # Lid Notifications Disabled/Enabled (Bypass)
+    "384": {"1": "XT", "3": "XR"}, # Low Battery/Restore (Appareil)
+    "389": {"1": "FT", "3": "FJ"}, # FireProtect Hardware Failure/Reset
+    "391": {"1": "PF", "3": "PO"}, # MotionCam/Wings Connection Lost/Restored
+    "423": {"1": "HA"}, # Duress Code (Événement seul)
+    "441": {"1": "NL"}, # Group Night Mode Activated (Événement seul)
+    "442": {"1": "NP", "3": "NL"}, # Group Night Mode Deactivate/Activate
+    "454": {"1": "CI"}, # Arming Incomplete (Fail to Close) (Événement seul)
+    "455": {"1": "CC"}, # Auto Arming Fail (Événement seul)
+    "459": {"1": "CR"}, # Recent Closing Alarm (Événement seul)
+    "461": {"1": "JA"}, # Unauthorized Access Attempt (Événement seul)
+    "531": {"1": "EN"}, # Antenna Connect (Événement seul)
+    "532": {"1": "EM", "3": "ES"}, # Antenna Disconnect / Enclosure Tamper Connected (vérifier logique ES)
+    "550": {"1": "PC", "3": "PD"}, # Photo on Demand Enable/Disable
+    "572": {"1": "TB", "3": "TU"}, # Lid Notifications Bypass (until disarm)
+    "573": {"1": "BB", "3": "BU"}, # Auto Deactivation/Restore (Alarm Limit/Timer)
+    "577": {"1": "RL", "3": "KG"}, # Keypad/Switch Locked/Unlocked
+    "601": {"1": "BX"}, # Self-test Passed (Événement seul)
+    # Note: CID 730/731 (Photo events) mappés approximativement à BA car pas de code SIA direct
+    "730": {"1": "BA"}, # Photo by Alarm (Approx.) (Événement seul)
+    "731": {"1": "BA"}, # Photo by Schedule (Approx.) (Événement seul)
+    "750": {"1": "PE", "3": "PG"}, # Photo by Scenario Enable/Disable
+    "835": {"1": "AE", "3": "AY"}, # Battery Saving Mode Enter/Exit
+    # --- Fin des ajouts basés sur le CSV Ajax ---
 }

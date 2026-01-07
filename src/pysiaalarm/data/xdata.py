@@ -1,43 +1,49 @@
-XDATA = {
+"""Données XDATA pour pysiaalarm."""
+
+from typing import Dict, Optional
+
+from .data import SIAXDataDict
+
+XDATA: Dict[str, SIAXDataDict] = {
     "A": {
         "characters": "ASCII",
-        "description": "A hash of the message that allows the message to be "
-        "authenticated.",
+        "description": "A hash of the message that allows the message to be authenticated.",
         "identifier": "A",
         "length": 12,
         "name": "Authentication Hash",
+        "value": None,  
     },
     "C": {
         "characters": "ASCII",
-        "description": "An identifier for the number of communication paths "
-        "and link supervision category",
+        "description": "An identifier for the number of communication paths and link supervision category",
         "identifier": "C",
         "length": 64,
         "name": "Supervision Category",
+        "value": None, 
     },
     "H": {
         "characters": "ASCII",
-        "description": "Time that event occurred (may be different than "
-        "message time stamp)",
+        "description": "Time that event occurred (may be different than message time stamp)",
         "identifier": "H",
         "length": 21,
         "name": "Time of Occurence",
+        "value": None,  
     },
     "I": {
         "characters": "Win1252",
-        "description": "Alarm text which may be a description of the event or "
-        "a comment regarding the event.",
+        "description": "Alarm text which may be a description of the event or a comment regarding the event.",
         "identifier": "I",
         "length": 256,
         "name": "Alarm Text",
+        "value": None,  
     },
     "J": {
         "characters": "ASCII",
-        "description": "Manufacturer specific identifier for the path that "
-        "was used for the communication",
+        "description": "Manufacturer specific identifier for the path that was used for the communication",
         "identifier": "J",
         "length": 1,
         "name": "Network Path",
+        "value": None,  
     },
     "K": {
         "characters": "ASCII",
@@ -45,6 +51,7 @@ XDATA = {
         "identifier": "K",
         "length": 64,
         "name": "Encryption Key",
+        "value": None,  
     },
     "L": {
         "characters": "Win1252",
@@ -52,6 +59,7 @@ XDATA = {
         "identifier": "L",
         "length": 256,
         "name": "Location",
+        "value": None,  
     },
     "M": {
         "characters": "ASCII",
@@ -59,14 +67,15 @@ XDATA = {
         "identifier": "M",
         "length": 12,
         "name": "MAC Address",
+        "value": None,  
     },
     "N": {
         "characters": "ASCII",
-        "description": "Hardware network address associated with the "
-        "communication on path used.",
+        "description": "Hardware network address associated with the communication on path used.",
         "identifier": "N",
         "length": 128,
         "name": "Network Address",
+        "value": None,  
     },
     "O": {
         "characters": "Win1252",
@@ -74,14 +83,15 @@ XDATA = {
         "identifier": "O",
         "length": 256,
         "name": "Building Name",
+        "value": None,  
     },
     "P": {
         "characters": "Win1252",
-        "description": "contains a message used to support programming or "
-        "other interactive operations with the receiver",
+        "description": "contains a message used to support programming or other interactive operations with the receiver",
         "identifier": "P",
         "length": 256,
         "name": "Authentication Hash",
+        "value": None,  
     },
     "R": {
         "characters": "Win1252",
@@ -89,6 +99,7 @@ XDATA = {
         "identifier": "R",
         "length": 256,
         "name": "Room",
+        "value": None,  
     },
     "S": {
         "characters": "Win1252",
@@ -96,6 +107,7 @@ XDATA = {
         "identifier": "S",
         "length": 256,
         "name": "Site name",
+        "value": None,  
     },
     "T": {
         "characters": "ASCII",
@@ -103,14 +115,15 @@ XDATA = {
         "identifier": "T",
         "length": 1,
         "name": "Alarm Trigger",
+        "value": None,  
     },
     "V": {
         "characters": "Win1252",
-        "description": "information about audio or video information that may "
-        "be associated with the event report.",
+        "description": "information about audio or video information that may be associated with the event report.",
         "identifier": "V",
         "length": 256,
         "name": "Verification",
+        "value": None,  
     },
     "X": {
         "characters": "ASCII",
@@ -118,6 +131,7 @@ XDATA = {
         "identifier": "X",
         "length": 12,
         "name": "Longitude",
+        "value": None,  
     },
     "Y": {
         "characters": "ASCII",
@@ -125,6 +139,7 @@ XDATA = {
         "identifier": "Y",
         "length": 12,
         "name": "Latitude",
+        "value": None,  
     },
     "Z": {
         "characters": "ASCII",
@@ -132,5 +147,6 @@ XDATA = {
         "identifier": "Z",
         "length": 12,
         "name": "Altitude",
+        "value": None,  
     },
 }
