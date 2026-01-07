@@ -2,8 +2,8 @@
 """This is a the main class for the SIA Client."""
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Callable
+import inspect
 import logging
 from threading import Thread
 from types import TracebackType
@@ -39,7 +39,7 @@ class SIAClient(Thread, BaseSIAClient):
             protocol {CommunicationsProtocol Enum} -- CommunicationsProtocol to use, TCP or UDP.
 
         """
-        if asyncio.iscoroutinefunction(function):
+        if inspect.iscoroutinefunction(function):
             raise TypeError(
                 "Asyncio coroutines as the function are not supported, please use the aio version of the SIAClient for that."  # pylint: disable=line-too-long
             )
