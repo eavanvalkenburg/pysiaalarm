@@ -156,7 +156,7 @@ class BaseEvent(ABC):
         acc = main_content["account"]
         sia_account = None
         if accounts and acc:
-            sia_account = accounts.get(acc, None)
+            sia_account = accounts.get(acc, None) or accounts.get("", None)
 
         return SIAEvent(
             full_message=incoming[8:],
@@ -228,7 +228,6 @@ class BaseEvent(ABC):
         if "timestamp" in event and event["timestamp"] is not None:
             event["timestamp"] = datetime.fromisoformat(event["timestamp"])
         return cls(**event)
-
 
 
 @dataclass
@@ -347,14 +346,14 @@ class SIAEvent(BaseEvent):
         ):
             x_data = f"[K{self.sia_account.key}]"
         if response_type == ResponseType.NAK:
-            res = f'"{response_type.value}"0000{self.receiver}{self.line}A0[]{self._get_timestamp(self.sia_account.device_timezone)}'
+            res = f'"{response_type.value}"0000{self.receiver}{self.line}A0[{self.sia_account.response_qualifier}]{self._get_timestamp(self.sia_account.device_timezone)}'
         elif not self.encrypted or response_type == ResponseType.DUH:
-            res = f'"{response_type.value}"{self.sequence}{self.receiver}{self.line}#{self.account}[]{x_data if x_data else ""}'
+            res = f'"{response_type.value}"{self.sequence}{self.receiver}{self.line}#{self.account}[{self.sia_account.response_qualifier}]{x_data if x_data else ""}'
         else:
             encrypted_content = self.encrypt_content(
                 f']{x_data if x_data else ""}{self._get_timestamp(self.sia_account.device_timezone)}'
             )
-            res = f'"*{response_type.value}"{self.sequence}{self.receiver}{self.line}#{self.account}[{encrypted_content}'
+            res = f'"*{response_type.value}"{self.sequence}{self.receiver}{self.line}#{self.account}[{self.sia_account.response_qualifier}{encrypted_content}'
         header = ("%04x" % len(res)).upper()
         new_crc = self._crc_calc(res)
         return f"\n{new_crc}{header}{res}\r".encode("ascii")
@@ -390,9 +389,10 @@ class SIAEvent(BaseEvent):
     def parse_adm(self) -> None:
         """Parse the event qualifier and type for ADM messages."""
         if self.event_qualifier and self.event_type:  # pragma: no cover
-            sub_map = _load_adm_mapping().get(self.event_type, None)
-            if sub_map:
-                self.code = sub_map.get(self.event_qualifier, None)
+            if sub_map := _load_adm_mapping().get(self.event_type, None):
+                self.code = sub_map.get(self.event_qualifier, "YN")
+            else:
+                self.code = "YN"  # invalid data
         self._adm_parsed = True
 
     def parse_content(self) -> None:
@@ -451,15 +451,6 @@ class SIAEvent(BaseEvent):
                 xdata.value = x_data[1:]
                 self.extended_data.append(xdata)
         self._xdata_parsed = True
-
-    def sia_account_from_message(self) -> SIAAccount | None:  # pragma: no cover
-        """Return the SIA Account.
-
-        If there is not account added, create one based on the account in the message.
-        """
-        if self.account is not None:
-            return SIAAccount(self.account)
-        return None
 
     def __str__(self) -> str:
         """Return the event as a string."""

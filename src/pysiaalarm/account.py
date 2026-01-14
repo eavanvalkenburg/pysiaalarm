@@ -21,10 +21,11 @@ _LOGGER = logging.getLogger(__name__)
 class SIAAccount:
     """Class for SIA Accounts."""
 
-    account_id: str
+    account_id: str = ""
     key: str | None = None
-    allowed_timeband: tuple[int, int] = (40, 20)
+    allowed_timeband: tuple[int, int] | None = (40, 20)
     device_timezone: tzinfo = pytz.utc
+    response_qualifier: str = ""
     key_b: bytes | None = field(
         repr=False,
         default=None,  # metadata=config(exclude=Exclude.ALWAYS)  # type: ignore
@@ -34,6 +35,7 @@ class SIAAccount:
         """Rewrite the key as bytes."""
         self.key_b = self.key.encode("utf-8") if self.key else None
         self.account_id = self.account_id.upper()
+        self.response_qualifier = self.response_qualifier.upper()
 
     @property
     def encrypted(self) -> bool:
@@ -59,7 +61,7 @@ class SIAAccount:
             InvalidAccountLengthError: If the account id does not have between 3 and 16 characters.
 
         """
-        if account_id is not None:  # pragma: no cover
+        if account_id:  # pragma: no cover
             try:
                 int(account_id, 16)
             except ValueError as exc:

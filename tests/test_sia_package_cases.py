@@ -19,7 +19,7 @@ from pysiaalarm.const import (
     COUNTER_FORMAT,
     COUNTER_TIMESTAMP,
 )
-from tests.test_utils import ACCOUNT, KEY
+from tests.test_utils import ACCOUNT, KEY, crc_calc
 
 
 def encrypted_encrypted():
@@ -75,6 +75,23 @@ def msg_admcid():
 def msg_null():
     """Test class for Message type SIA-DCS."""
     return "NULL"
+
+
+def _build_adm_line(
+    event_qualifier,
+    event_type,
+    account=ACCOUNT,
+    partition="00",
+    ri="001",
+    seq="1234",
+):
+    """Build an ADM-CID line with a valid CRC/length."""
+    message = (
+        f'"ADM-CID"{seq}L0#{account}[#{account}|{event_qualifier}{event_type} {partition} {ri}]'
+    )
+    crc = crc_calc(message)
+    length = f"{len(message):04X}"
+    return f"{crc}{length}{message}"
 
 
 def fault_none():
@@ -169,6 +186,18 @@ class EventParsing:
             "4F39",
             "Closing Report",
             "CL",
+            None,
+            False,
+            False,
+        )
+
+    def case_adm_unknown_type(self):
+        """Test case ADM-CID format with unknown event type."""
+        return (
+            _build_adm_line("1", "999"),
+            ACCOUNT,
+            "Invalid Report",
+            "YN",
             None,
             False,
             False,
