@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
+import inspect
 import logging
 from collections.abc import Awaitable, Callable
 from types import TracebackType
 from typing import Any, Type
 
-from .. import __author__, __copyright__, __license__, __version__
 from ..account import SIAAccount
 from ..base_client import BaseSIAClient
 from ..event import SIAEvent
@@ -43,6 +43,7 @@ class SIAClient(BaseSIAClient):
         port: int,
         accounts: list[SIAAccount],
         function: Callable[[SIAEvent], Awaitable[None]],
+        **kwargs: Any,
     ):
         """Create the asynchronous SIA Client object.
 
@@ -54,7 +55,7 @@ class SIAClient(BaseSIAClient):
             protocol {CommunicationsProtocol Enum} -- CommunicationsProtocol to use, TCP or UDP.
 
         """
-        if not asyncio.iscoroutinefunction(function):
+        if not inspect.iscoroutinefunction(function):
             raise TypeError("Function should be a coroutine, create with async def.")
         BaseSIAClient.__init__(self, host, port, accounts, self.protocol)
         self._func = function
@@ -114,7 +115,7 @@ class SIAClientTCP(SIAClient):
     ) -> None:
         """Create the TCP SIA Client object."""
         super().__init__(host, port, accounts, function)
-        self.task: asyncio.Task | None = None
+        self.server: asyncio.Server | None = None
         self.sia_server: SIAServerTCP = SIAServerTCP(
             self._accounts, self._func, self._counts
         )
@@ -125,16 +126,19 @@ class SIAClientTCP(SIAClient):
         The rest of the arguments are passed directly to asyncio.start_server().
         """
         _LOGGER.debug("Starting SIA.")
-        coro = asyncio.start_server(
+        self.server = await asyncio.start_server(
             self.sia_server.handle_line, self._host, self._port, **kwargs
         )
-        self.task = asyncio.create_task(coro)
 
     async def async_stop(self) -> None:
         """Stop the asynchronous SIA TCP server."""
         _LOGGER.debug("Stopping SIA.")
+        if self.server is None:
+            return
         self.sia_server.shutdown_flag = True
-        await asyncio.gather(self.task)  # type: ignore
+        self.server.close()
+        await self.server.wait_closed()
+        self.server = None
 
 
 class SIAClientUDP(SIAClient):
@@ -152,6 +156,9 @@ class SIAClientUDP(SIAClient):
     ) -> None:
         """Create the UDP SIA Client object."""
         super().__init__(host, port, accounts, function)
+        self.sia_server: SIAServerUDP = SIAServerUDP(
+            self._accounts, self._func, self._counts
+        )
         self.transport: asyncio.BaseTransport | None = None
         self.dgprotocol: asyncio.BaseProtocol | None = None
 
@@ -163,7 +170,7 @@ class SIAClientUDP(SIAClient):
         _LOGGER.debug("Starting SIA.")
         loop = asyncio.get_running_loop()
         self.transport, self.dgprotocol = await loop.create_datagram_endpoint(
-            lambda: SIAServerUDP(self._accounts, self._func, self._counts),
+            lambda: self.sia_server,
             local_addr=(self._host, self._port),
             **kwargs,
         )
@@ -171,5 +178,8 @@ class SIAClientUDP(SIAClient):
     async def async_stop(self) -> None:
         """Stop the asynchronous SIA UDP server."""
         _LOGGER.debug("Stopping SIA.")
+        self.sia_server.shutdown_flag = True
         if self.transport is not None:
             self.transport.close()
+            self.transport = None
+            self.dgprotocol = None

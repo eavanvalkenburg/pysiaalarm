@@ -44,21 +44,26 @@ class SIAServerTCP(BaseSIAServer):
             writer {asyncio.StreamWriter} -- StreamWriter to respond.
 
         """
-        while True and not self.shutdown_flag:  # pragma: no cover  # type: ignore
-            try:
-                data = await reader.read(1000)
-            except ConnectionResetError:
-                break
-            if data == EMPTY_BYTES or reader.at_eof():
-                break
-            event = self.parse_and_check_event(data)
-            if not event:
-                continue
-            writer.write(event.create_response())
-            await writer.drain()
-            await self.async_func_wrap(event)
-
-        writer.close()
+        try:
+            while not self.shutdown_flag:  # pragma: no cover  # type: ignore
+                try:
+                    data = await reader.read(1000)
+                except ConnectionResetError:
+                    break
+                if data == EMPTY_BYTES or reader.at_eof():
+                    break
+                event = self.parse_and_check_event(data)
+                if not event:
+                    continue
+                _LOGGER.debug("Incoming event: %s", event)
+                response = event.create_response()
+                _LOGGER.debug("Outgoing line: %s", response)
+                writer.write(response)
+                await writer.drain()
+                await self.async_func_wrap(event)
+        finally:
+            writer.close()
+            await writer.wait_closed()
 
 
 class SIAServerUDP(BaseSIAServer, asyncio.DatagramProtocol):
@@ -88,6 +93,8 @@ class SIAServerUDP(BaseSIAServer, asyncio.DatagramProtocol):
 
     def datagram_received(self, data: bytes, addr: tuple[str, int]) -> None:
         """Receive and process datagrams. This support UDP connections."""
+        if self.shutdown_flag:  # type: ignore
+            return
         event = self.parse_and_check_event(data)
         if not event:
             return

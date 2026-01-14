@@ -13,7 +13,14 @@ logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
 
 
-def send_messages(config, test_case=None, time_between=5):
+def send_messages(
+    config,
+    test_case=None,
+    time_between=5,
+    connect_timeout=1.0,
+    connect_interval=0.01,
+    recv_timeout=1.0,
+):
     """Create the socket client and start sending messages every 5 seconds, until stopped, or the server disappears."""
     _LOGGER.info("Test client config: %s", config)
     host = config["host"]
@@ -25,12 +32,18 @@ def send_messages(config, test_case=None, time_between=5):
     )
 
     with socket.socket(socket.AF_INET, protocol) as sock:
-        try:
-            sock.connect((host, port))  # connect to the server
-        except ConnectionRefusedError:
-            _LOGGER.error("Connection refused in test_alarm.py.")
-            return
+        deadline = time.monotonic() + connect_timeout
+        while True:
+            try:
+                sock.connect((host, port))  # connect to the server
+                break
+            except ConnectionRefusedError:
+                if time.monotonic() >= deadline:
+                    _LOGGER.error("Connection refused in test_alarm.py.")
+                    return
+                time.sleep(connect_interval)
 
+        sock.settimeout(recv_timeout)
         if test_case:
             message = create_line_from_test_case(config, test_case)
             _LOGGER.debug(f"Sending to server: {message}")

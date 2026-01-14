@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 """Class for tests of pysiaalarm."""
 import logging
-import threading
 import asyncio
 import pytest
 from dataclasses import asdict
 
 from pytest_cases import parametrize_with_cases, fixture
-from unittest.mock import patch
+from unittest.mock import AsyncMock, Mock, patch
 
 from pysiaalarm import (
     SIAAccount,
@@ -16,9 +15,12 @@ from pysiaalarm import (
 )
 from pysiaalarm.aio import SIAClient as SIAClientA
 from pysiaalarm.aio.client import SIAClientTCP
+from pysiaalarm.aio.server import SIAServerTCP, SIAServerUDP
 from pysiaalarm.event import NAKEvent, BaseEvent
 from pysiaalarm.const import COUNTER_USER_CODE, COUNTER_VALID, COUNTER_EVENTS
 from pysiaalarm.errors import NoAccountError
+from pysiaalarm.sync.handler import SIATCPHandler, SIAUDPHandler
+from pysiaalarm.utils import Counter
 
 from tests.test_alarm import send_messages
 from tests.test_utils import ACCOUNT, KEY, HOST, create_test_line
@@ -42,7 +44,6 @@ def account_list(account):
 
 
 @fixture(unpack_into="client, config, good, sync")
-@pytest.mark.asyncio
 @parametrize_with_cases("good", prefix="handler_")
 @parametrize_with_cases("key", prefix="encrypted_")
 @parametrize_with_cases("sync", prefix="sync_")
@@ -129,8 +130,6 @@ def get_event_func():
 
 class testSIA(object):
     """Class for pysiaalarm tests."""
-
-    pytestmark = pytest.mark.asyncio
 
     @parametrize_with_cases("cl, dic, clear_account", cases=ToFromDict)
     def test_to_from_dict(self, cl, dic, clear_account):
@@ -270,9 +269,9 @@ class testSIA(object):
             assert isinstance(exp, error_type)
 
     @parametrize_with_cases("fault", prefix="fault_")
+    @pytest.mark.asyncio
     async def test_clients(
         self,
-        event_loop,
         unused_tcp_port_factory,
         events,
         client,
@@ -283,19 +282,17 @@ class testSIA(object):
     ):
         """Test the clients."""
         if sync:
-            client.start()
+            client.start(poll_interval=0.01)
         else:
             await client.async_start()
-        await asyncio.sleep(0.01)
-
-        t = threading.Thread(
-            target=send_messages,
-            name="send_messages",
-            args=(config, {fault: True}),
+        await asyncio.to_thread(
+            send_messages,
+            config,
+            {fault: True},
+            connect_timeout=0.25,
+            connect_interval=0.01,
+            recv_timeout=0.25,
         )
-        t.daemon = True
-        t.start()  # stops after the event has been sent.
-        await asyncio.sleep(0.1)
 
         if sync:
             client.stop()
@@ -336,6 +333,11 @@ class testSIA(object):
         if msg_type in ("ADM-CID", "NULL") and code == "ZX":
             pytest.skip(
                 "Unknown code is not usefull to test in ADM-CID and NULL messages."
+            )
+            return
+        if alter_key and msg_type == "NULL":
+            pytest.skip(
+                "Altered keys on NULL messages can still parse to valid content."
             )
             return
         if alter_key and key is None:
@@ -415,6 +417,7 @@ class testSIA(object):
                 assert False
 
     @parametrize_with_cases("sync", prefix="sync_")
+    @pytest.mark.asyncio
     async def test_context(self, account_list, unused_tcp_port_factory, sync):
         """Test the context manager functions."""
         if sync:
@@ -440,3 +443,92 @@ class testSIA(object):
                     ) as cl:
                         assert cl.accounts == account_list
                 client.assert_awaited_once()
+
+    def test_response_qualifier_in_ack(self):
+        """Test response qualifier usage in ACK responses."""
+        account = SIAAccount(ACCOUNT, None, response_qualifier="ab", allowed_timeband=None)
+        line = create_test_line(
+            account=ACCOUNT, key=None, code="RP", use_fixed_time=True
+        )
+        event = SIAEvent.from_line(line, {ACCOUNT: account})
+        response = event.create_response().decode("ascii")
+        assert f"#{ACCOUNT}[AB]" in response
+
+    def test_response_qualifier_in_nak(self):
+        """Test response qualifier usage in NAK responses."""
+        account = SIAAccount(
+            ACCOUNT, None, allowed_timeband=(0, 0), response_qualifier="ab"
+        )
+        line = create_test_line(
+            account=ACCOUNT, key=None, code="RP", use_fixed_time=True
+        )
+        event = SIAEvent.from_line(line, {ACCOUNT: account})
+        assert event.response == ResponseType.NAK
+        response = event.create_response().decode("ascii")
+        assert "A0[AB]" in response
+
+    def test_response_qualifier_in_encrypted_response(self):
+        """Test response qualifier usage in encrypted responses."""
+        account = SIAAccount(ACCOUNT, KEY, response_qualifier="ab")
+        line = create_test_line(account=ACCOUNT, key=KEY, code="RP")
+        event = SIAEvent.from_line(line, {ACCOUNT: account})
+        response = event.create_response().decode("ascii")
+        assert f"#{ACCOUNT}[AB" in response
+
+    def test_default_account_fallback(self):
+        """Test using the default account when no direct match exists."""
+        default_account = SIAAccount("", KEY)
+        line = create_test_line(
+            account=ACCOUNT, key=KEY, code="RP", use_fixed_time=True
+        )
+        event = SIAEvent.from_line(line, {"": default_account})
+        assert event.sia_account is default_account
+        assert event.code == "RP"
+
+    def test_sync_tcp_handler_shutdown_skips_recv(self):
+        """Ensure TCP handler does not read when shutdown is requested."""
+        server = Mock()
+        server.shutdown_flag = True
+        request = Mock()
+        request.recv = Mock(side_effect=AssertionError("recv called"))
+        SIATCPHandler(request, ("127.0.0.1", 1234), server)
+        request.recv.assert_not_called()
+
+    def test_sync_udp_handler_shutdown_skips_recv(self):
+        """Ensure UDP handler does not process when shutdown is requested."""
+        server = Mock()
+        server.shutdown_flag = True
+        socket = Mock()
+        request = (b"data", socket)
+        SIAUDPHandler(request, ("127.0.0.1", 1234), server)
+        socket.sendto.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_aio_tcp_handler_shutdown_closes_writer(self, account):
+        """Ensure async TCP handler closes writer when shutdown is requested."""
+        async def async_func(_: SIAEvent) -> None:
+            return None
+
+        server = SIAServerTCP({account.account_id: account}, async_func, Counter())
+        server.shutdown_flag = True
+        reader = AsyncMock(spec=asyncio.StreamReader)
+        writer = AsyncMock(spec=asyncio.StreamWriter)
+        writer.close = Mock()
+        writer.wait_closed = AsyncMock()
+
+        await server.handle_line(reader, writer)
+
+        reader.read.assert_not_awaited()
+        writer.close.assert_called_once()
+        writer.wait_closed.assert_awaited_once()
+
+    def test_aio_udp_handler_shutdown_ignores_datagrams(self, account):
+        """Ensure async UDP handler ignores datagrams during shutdown."""
+        async def async_func(_: SIAEvent) -> None:
+            return None
+
+        server = SIAServerUDP({account.account_id: account}, async_func, Counter())
+        server.shutdown_flag = True
+        with patch.object(server, "parse_and_check_event") as parse_event:
+            server.datagram_received(b"data", ("127.0.0.1", 1234))
+        parse_event.assert_not_called()

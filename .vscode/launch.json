@@ -5,16 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Tests",
-            "type": "python",
-            "request": "test",
-            "console": "integratedTerminal",
-            "justMyCode": false,
-            "env": {"PYTEST_ADDOPTS": "--no-cov"}
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
         },
         {
             "name": "Python: AIO",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "run_aio.py",
             "console": "integratedTerminal",
@@ -22,7 +21,7 @@
         },
         {
             "name": "Python: Thread",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "run.py",
             "console": "integratedTerminal",
@@ -30,7 +29,7 @@
         },
         {
             "name": "Python: Client AIO",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "test_client_aio.py",
             "console": "integratedTerminal",
