@@ -215,6 +215,18 @@ class EventParsing:
             False,
         )
 
+    def case_code_satel_pi(self):
+        """Input a Satel-style SIA DC-09 event using NpiX/<code>."""
+        return (
+            r'D8910037"SIA-DCS"0097L0#ABCD[#0000|Npi0/AT]_11:26:04,03-01-2026',
+            "ABCD",
+            "AC Trouble",
+            "AT",
+            None,
+            False,
+            False,
+        )
+
     def case_xdata_M(self):
         """Input a closing report event in SIA DC-09 with M xdata."""
         return (
