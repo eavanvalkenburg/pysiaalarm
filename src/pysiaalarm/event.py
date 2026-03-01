@@ -417,6 +417,9 @@ class SIAEvent(BaseEvent):
             self.event_qualifier = content["event_qualifier"]
             self.event_type = content["event_type"]
         else:
+            # Some SIA-DCS senders (for example Satel) use `pi` instead of `ri`.
+            # Keep it in partition and still parse the two-letter SIA code reliably.
+            self.partition = content["pi"]
             self.code = content["code"]
             self.ti = content["ti"]
             self.id = content["id"]
