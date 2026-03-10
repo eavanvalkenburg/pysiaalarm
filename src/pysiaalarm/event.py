@@ -348,7 +348,7 @@ class SIAEvent(BaseEvent):
         ):
             x_data = f"[K{self.sia_account.key}]"
         if response_type == ResponseType.NAK:
-            res = f'"{response_type.value}"0000{self.receiver}{self.line}A0[{self.sia_account.response_qualifier}]{self._get_timestamp(self.sia_account.device_timezone)}'
+            res = f'"{response_type.value}"0000R0L0A0[{self.sia_account.response_qualifier}]{self._get_timestamp(self.sia_account.device_timezone)}'
         elif not self.encrypted or response_type == ResponseType.DUH:
             res = f'"{response_type.value}"{self.sequence}{self.receiver}{self.line}#{self.account}[{self.sia_account.response_qualifier}]{x_data if x_data else ""}'
         else:
