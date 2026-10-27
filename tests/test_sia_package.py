@@ -522,6 +522,22 @@ class testSIA(object):
         writer.close.assert_called_once()
         writer.wait_closed.assert_awaited_once()
 
+    @pytest.mark.asyncio
+    async def test_aio_tcp_stop_with_idle_connection(self, account, unused_tcp_port):
+        """Ensure async_stop returns while a connection is open but silent."""
+        async def async_func(_: SIAEvent) -> None:
+            return None
+
+        client = SIAClientA(HOST, unused_tcp_port, [account], async_func)
+        await client.async_start()
+        _, writer = await asyncio.open_connection(HOST, unused_tcp_port)
+        await asyncio.sleep(0.1)
+
+        await asyncio.wait_for(client.async_stop(), 2)
+
+        assert not client.sia_server.writers
+        writer.close()
+
     def test_aio_udp_handler_shutdown_ignores_datagrams(self, account):
         """Ensure async UDP handler ignores datagrams during shutdown."""
         async def async_func(_: SIAEvent) -> None:

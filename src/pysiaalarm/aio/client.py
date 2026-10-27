@@ -137,6 +137,11 @@ class SIAClientTCP(SIAClient):
             return
         self.sia_server.shutdown_flag = True
         self.server.close()
+        # Since Python 3.12 wait_closed() also waits for every accepted
+        # connection, and handle_line blocks in reader.read() until the panel
+        # sends again, so close the open connections first.
+        for writer in list(self.sia_server.writers):
+            writer.close()
         await self.server.wait_closed()
         self.server = None
 

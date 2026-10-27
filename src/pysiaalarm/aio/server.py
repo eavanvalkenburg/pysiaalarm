@@ -33,6 +33,7 @@ class SIAServerTCP(BaseSIAServer):
             counts Counter -- counter kept by client to give insights in how many errorous events were discarded of each type.  # pylint: disable=line-too-long
         """
         BaseSIAServer.__init__(self, accounts, counts, async_func=func)
+        self.writers: set[asyncio.StreamWriter] = set()
 
     async def handle_line(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
@@ -44,6 +45,7 @@ class SIAServerTCP(BaseSIAServer):
             writer {asyncio.StreamWriter} -- StreamWriter to respond.
 
         """
+        self.writers.add(writer)
         try:
             while not self.shutdown_flag:  # pragma: no cover  # type: ignore
                 try:
@@ -62,6 +64,7 @@ class SIAServerTCP(BaseSIAServer):
                 await writer.drain()
                 await self.async_func_wrap(event)
         finally:
+            self.writers.discard(writer)
             writer.close()
             await writer.wait_closed()
 
