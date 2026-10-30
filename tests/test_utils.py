@@ -88,11 +88,21 @@ def create_test_line(
     alter_key=False,
     wrong_event=False,
     use_fixed_time=False,
+    block="N",
+    timestamp=None,
+    truncate_to_bytes=None,
 ):
-    """Create a test line, with encrytion if key is supplied."""
+    """Create a test line, with encrytion if key is supplied.
+
+    block: the DC-03 block letter before the content ("N" new event, "O" old event).
+    timestamp: a fixed timestamp string such as "_23:05:05,10-30-2026".
+    truncate_to_bytes: cut the ciphertext to this many bytes, like a panel that stops
+        at the first 0x00 byte; CRC and length are calculated over the cut frame.
+    """
     if wrong_event:
         return "This is not a SIA Event."
-    timestamp = _get_timestamp(time_offset)
+    if timestamp is None:
+        timestamp = _get_timestamp(time_offset)
     if use_fixed_time:
         timestamp = "_16:04:02,07-09-2020"
     if key:
@@ -100,7 +110,10 @@ def create_test_line(
             _LOGGER.debug("Old key: %s", key)
             key = key[:-1] + str(int(key[-1], 16) - 1)
             _LOGGER.debug("New key: %s", key)
-    line = _construct_string(msg_type, seq, account, code, timestamp, key)
+    line = _construct_string(msg_type, seq, account, code, timestamp, key, block)
+    if key and truncate_to_bytes is not None:
+        head, ciphertext = line.split("[", 1)
+        line = f"{head}[{ciphertext[: truncate_to_bytes * 2]}"
     if alter_crc:
         crc = ("%04x" % random.randrange(16 ** 4)).upper()
     else:
@@ -109,16 +122,16 @@ def create_test_line(
     return rf"{crc}{leng}{line}"
 
 
-def _construct_string(msg_type, seq, account, code, timestamp, key=None):
+def _construct_string(msg_type, seq, account, code, timestamp, key=None, block="N"):
     """Construct the string based on the inputs."""
-    return f'"{"*" if key else ""}{msg_type}"{seq}L0#{account}[{_construct_content(msg_type, "0" if code == "RP" else "1", code, timestamp, key)}'
+    return f'"{"*" if key else ""}{msg_type}"{seq}L0#{account}[{_construct_content(msg_type, "0" if code == "RP" else "1", code, timestamp, key, block)}'
 
 
-def _construct_content(msg_type, zone, code, timestamp, key=None):
+def _construct_content(msg_type, zone, code, timestamp, key=None, block="N"):
     """Construct the content of the message."""
     cont = f"]{timestamp}"
     if msg_type == "SIA-DCS":
-        cont = f"|Nri{zone}/{code}000" + cont
+        cont = f"|{block}ri{zone}/{code}000" + cont
     if msg_type == "ADM-CID":
         # z = f"{int(zone):03d}"
         cont = f"|{ADM_REVERSE_MAP.get(code)} 00 {int(zone):03d}" + cont

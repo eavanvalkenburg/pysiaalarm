@@ -311,6 +311,30 @@ class EventParsing:
             False,
         )
 
+    def case_old_event_block(self):
+        """Input a resent event with the DC-03 old event block O (Hikvision AX HOME)."""
+        return (
+            r'78E6003B"SIA-DCS"0004L0#AAA[#AAA|Ori0000/RP000]_23:05:05,10-30-2026',
+            "AAA",
+            "Automatic Test",
+            "RP",
+            None,
+            False,
+            False,
+        )
+
+    def case_o_code_without_block(self):
+        """Input a code starting with O and no block letter: O is not a block here."""
+        return (
+            r'92E20033"SIA-DCS"0005L0#AAA[#AAA|OP001]_23:05:05,10-30-2026',
+            "AAA",
+            "Opening Report",
+            "OP",
+            None,
+            False,
+            False,
+        )
+
     def case_null(self):
         """Input a encrypted null event."""
         return (

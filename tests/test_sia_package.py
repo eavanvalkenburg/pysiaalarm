@@ -4,6 +4,7 @@ import logging
 import asyncio
 import pytest
 from dataclasses import asdict
+from datetime import datetime, timezone
 
 from pytest_cases import parametrize_with_cases, fixture
 from unittest.mock import AsyncMock, Mock, patch
@@ -17,18 +18,36 @@ from pysiaalarm.aio import SIAClient as SIAClientA
 from pysiaalarm.aio.client import SIAClientTCP
 from pysiaalarm.aio.server import SIAServerTCP, SIAServerUDP
 from pysiaalarm.event import NAKEvent, BaseEvent
-from pysiaalarm.const import COUNTER_USER_CODE, COUNTER_VALID, COUNTER_EVENTS
-from pysiaalarm.errors import NoAccountError
+from pysiaalarm.const import (
+    COUNTER_EVENTS,
+    COUNTER_FORMAT,
+    COUNTER_USER_CODE,
+    COUNTER_VALID,
+)
+from pysiaalarm.errors import EventFormatError, NoAccountError
 from pysiaalarm.sync.handler import SIATCPHandler, SIAUDPHandler
 from pysiaalarm.utils import Counter
 
 from tests.test_alarm import send_messages
-from tests.test_utils import ACCOUNT, KEY, HOST, create_test_line
+from tests.test_utils import ACCOUNT, KEY, HOST, create_test_line, crc_calc
 from tests.test_sia_package_cases import *  # pylint: disable=W0614
 
 
 logging.basicConfig(level=logging.INFO)
 _LOGGER = logging.getLogger(__name__)
+
+
+class _FrozenDatetime(datetime):
+    """Datetime with a fixed now(): 2026-10-30 23:05:50 UTC."""
+
+    @classmethod
+    def now(cls, tz=None):
+        frozen = datetime(2026, 10, 30, 23, 5, 50, tzinfo=timezone.utc)
+        return frozen.astimezone(tz) if tz else frozen.replace(tzinfo=None)
+
+
+async def _noop(_: SIAEvent) -> None:
+    return None
 
 
 @pytest.fixture
@@ -484,6 +503,69 @@ class testSIA(object):
         event = SIAEvent.from_line(line, {"": default_account})
         assert event.sia_account is default_account
         assert event.code == "RP"
+
+    @pytest.mark.parametrize("cut_to_bytes", [8, 10, 38, 43])
+    def test_truncated_ciphertext_is_nak(self, cut_to_bytes):
+        """A ciphertext cut short by the panel is a format error answered with NAK.
+
+        Hikvision AX HOME stops the ciphertext at its first 0x00 byte; CRC and length
+        match the cut frame. Before, this raised ValueError and dropped the connection.
+        """
+        account = SIAAccount(ACCOUNT, KEY)
+        line = create_test_line(
+            account=ACCOUNT, key=KEY, code="RP", truncate_to_bytes=cut_to_bytes
+        )
+        with pytest.raises(EventFormatError):
+            SIAEvent.from_line(line, {ACCOUNT: account})
+
+        server = SIAServerTCP({ACCOUNT: account}, _noop, Counter())
+        event = server.parse_and_check_event(line.encode())
+        assert isinstance(event, NAKEvent)
+        assert event.response == ResponseType.NAK
+        assert server.counts.get(COUNTER_FORMAT) == 1
+
+    def test_non_hex_ciphertext_is_nak(self):
+        """A ciphertext that is not hex is a format error answered with NAK."""
+        account = SIAAccount(ACCOUNT, KEY)
+        body = f'"*SIA-DCS"0001L0#{ACCOUNT}[{"G" * 32}'
+        line = f"{crc_calc(body)}{len(body):04X}{body}"
+        server = SIAServerTCP({ACCOUNT: account}, _noop, Counter())
+        event = server.parse_and_check_event(line.encode())
+        assert isinstance(event, NAKEvent)
+        assert server.counts.get(COUNTER_FORMAT) == 1
+
+    @parametrize_with_cases("key", prefix="encrypted_")
+    def test_old_event_block_is_acked(self, key):
+        """A retransmission with the DC-03 old event block O is parsed and ACKed."""
+        account = SIAAccount(ACCOUNT, key)
+        line = create_test_line(account=ACCOUNT, key=key, code="RP", block="O")
+        server = SIAServerTCP({ACCOUNT: account}, _noop, Counter())
+        event = server.parse_and_check_event(line.encode())
+        assert event.code == "RP"
+        assert event.ri == "0"
+        assert event.response == ResponseType.ACK
+
+    @parametrize_with_cases("key", prefix="encrypted_")
+    @pytest.mark.parametrize(
+        "sent, minute_precision, response",
+        [
+            ("_23:05:45,10-30-2026", False, ResponseType.ACK),  # normal panel
+            ("_23:05:05,10-30-2026", False, ResponseType.NAK),  # HH:MM:MM, default
+            ("_23:05:05,10-30-2026", True, ResponseType.ACK),  # HH:MM:MM, opt-in
+            ("_23:03:03,10-30-2026", True, ResponseType.NAK),  # too old: replay check
+            ("_23:07:07,10-30-2026", True, ResponseType.NAK),  # too far in the future
+        ],
+    )
+    def test_timestamp_minute_precision(self, key, sent, minute_precision, response):
+        """Panels with unreliable seconds can opt in to a minute-precision check.
+
+        now = 23:05:50 UTC and the default band (40, 20) accepts 23:05:10 to 23:06:10.
+        """
+        account = SIAAccount(ACCOUNT, key, timestamp_minute_precision=minute_precision)
+        line = create_test_line(account=ACCOUNT, key=key, code="RP", timestamp=sent)
+        with patch("pysiaalarm.event.datetime", _FrozenDatetime):
+            event = SIAEvent.from_line(line, {ACCOUNT: account})
+            assert event.response == response
 
     def test_sync_tcp_handler_shutdown_skips_recv(self):
         """Ensure TCP handler does not read when shutdown is requested."""
