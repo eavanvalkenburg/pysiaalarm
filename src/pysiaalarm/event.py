@@ -325,6 +325,12 @@ class SIAEvent(BaseEvent):
             current_plus = current_time + timedelta(
                 seconds=self.sia_account.allowed_timeband[1]
             )
+            if self.sia_account.timestamp_minute_precision:
+                # The seconds field is unreliable (e.g. Hikvision AX HOME sends
+                # HH:MM:MM): accept the event if any second of its minute is inside.
+                start = self.timestamp.replace(second=0, microsecond=0)
+                end = start + timedelta(seconds=59)
+                return start <= current_plus and end >= current_min
             return current_min <= self.timestamp <= current_plus
         return True  # pragma: no cover
 
@@ -367,9 +373,20 @@ class SIAEvent(BaseEvent):
         decr = self._get_crypter()
         if not decr:
             return None  # pragma: no cover
-        self.content = decr.decrypt(bytes.fromhex(self.encrypted_content)).decode(
-            "ascii", "ignore"
-        )
+        try:
+            ciphertext = bytes.fromhex(self.encrypted_content)
+        except ValueError as exc:
+            raise EventFormatError(
+                f"Encrypted content is not a hex string: {exc}"
+            ) from exc
+        if not ciphertext or len(ciphertext) % AES.block_size:
+            # Some panels (e.g. Hikvision AX HOME) cut the ciphertext at its first
+            # 0x00 byte. EventFormatError makes the server answer NAK; panel resends.
+            raise EventFormatError(
+                f"Encrypted content is {len(ciphertext)} bytes, not a multiple of "
+                f"{AES.block_size}; the frame was probably truncated by the sender"
+            )
+        self.content = decr.decrypt(ciphertext).decode("ascii", "ignore")
         self._encrypted_content_decrypted = True
 
     def encrypt_content(self, message: str) -> str | None:

@@ -34,7 +34,7 @@ MAIN_MATCHER = re.compile(main_regex, re.X)
 sia_content_regex = r"""
 [#]?(?P<account>[A-Fa-f0-9]{3,16})?
 [|]?
-[N]?
+(?:N|O(?=[A-Za-z]{2}))?  # DC-03 block: N = new event, O = old event (resent)
 (?:ti)?(?:(?<=ti)(?P<ti>\d{2}:\d{2}))?\/?
 (?:id)?(?:(?<=id)(?P<id>\d*))?\/?
 (?:ri)?(?:(?<=ri)(?P<ri>\d*))?\/?

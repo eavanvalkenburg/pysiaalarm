@@ -26,6 +26,9 @@ class SIAAccount:
     allowed_timeband: tuple[int, int] | None = (40, 20)
     device_timezone: tzinfo = pytz.utc
     response_qualifier: str = ""
+    # Check the timestamp with minute precision, for panels whose seconds field is
+    # unreliable (e.g. Hikvision AX HOME sends HH:MM:MM). Replay protection stays on.
+    timestamp_minute_precision: bool = False
     key_b: bytes | None = field(
         repr=False,
         default=None,  # metadata=config(exclude=Exclude.ALWAYS)  # type: ignore
